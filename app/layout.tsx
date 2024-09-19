@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { SocketProvider } from "@/context/SocketProvider";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default async function RootLayout({
             <Toaster richColors />
           </ThemeProvider>
         </body>
+        <Analytics />
       </html>
     </SessionProvider>
   );
