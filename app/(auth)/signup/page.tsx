@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ export default function SignupPage() {
   }, [state]);
 
   const handleSubmit = (formData: FormData) => {
+    track("signup_email");
     const data = {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
@@ -205,7 +207,10 @@ export default function SignupPage() {
               variant="outline"
               className="w-full"
               type="button"
-              onClick={() => login("google")}
+              onClick={() => {
+                track("signup_google");
+                login("google");
+              }}
             >
               <Image
                 src={"/google.svg"}

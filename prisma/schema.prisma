@@ -20,7 +20,7 @@ model User {
   lastName      String?
   email         String?         @unique
   hashedPassword String?
-  phone         String?       @unique
+  phone         String?
   university    String?
   dateOfBirth   DateTime?
   emailVerified DateTime?
@@ -82,9 +82,15 @@ model ForgotPasswordCode {
   @@unique([email, code])
 }
 
+enum EventType {
+  STATUS
+  EVENT
+}
+
 model Event {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   content   String
+  eventType EventType
   type      String?
   mediaUrl  String?
   stateName String

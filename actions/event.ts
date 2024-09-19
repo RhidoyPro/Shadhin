@@ -10,7 +10,7 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { UserRole } from "@prisma/client";
+import { EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 
@@ -96,6 +96,7 @@ type CreateEventInput = {
   type?: "image" | "video" | undefined;
   url?: string;
   stateName: string;
+  eventType: EventType;
 };
 
 export const createEvent = async ({
@@ -103,6 +104,7 @@ export const createEvent = async ({
   type,
   url,
   stateName,
+  eventType,
 }: CreateEventInput) => {
   const session = await auth();
 
@@ -126,40 +128,44 @@ export const createEvent = async ({
       mediaUrl: url,
       userId: session.user.id!,
       stateName,
+      eventType,
     },
   });
 
-  let userEmails: string[] = [];
-  if (stateName === BangladeshStates[0].slug) {
-    const users = await db.user.findMany({
-      where: {
-        emailVerified: {
-          not: null,
+  if (eventType === EventType.EVENT) {
+    //then send email to all users
+    let userEmails: string[] = [];
+    if (stateName === BangladeshStates[0].slug) {
+      const users = await db.user.findMany({
+        where: {
+          emailVerified: {
+            not: null,
+          },
         },
-      },
-    });
+      });
 
-    userEmails = users.map((user) => user?.email as string);
-  } else {
-    const users = await db.user.findMany({
-      where: {
-        emailVerified: {
-          not: null,
+      userEmails = users.map((user) => user?.email as string);
+    } else {
+      const users = await db.user.findMany({
+        where: {
+          emailVerified: {
+            not: null,
+          },
+          stateName,
         },
-        stateName,
-      },
-    });
+      });
 
-    userEmails = users.map((user) => user?.email as string);
+      userEmails = users.map((user) => user?.email as string);
+    }
+
+    // Send email to all users in the state
+    await sendEventEmails(userEmails, {
+      stateName,
+      id: event.id,
+      createdAt: event.createdAt,
+      createdBy: session.user.name as string,
+    });
   }
-
-  // Send email to all users in the state
-  await sendEventEmails(userEmails, {
-    stateName,
-    id: event.id,
-    createdAt: event.createdAt,
-    createdBy: session.user.name as string,
-  });
 
   revalidatePath("/events/[stateName]", "page");
 

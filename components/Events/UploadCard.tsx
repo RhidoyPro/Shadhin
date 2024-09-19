@@ -9,8 +9,11 @@ import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 
 const UploadCard = () => {
   const [isEventModalOpen, setEventModalOpen] = useState(false);
+  // Add a new state to manage the status of the modal, as we have eventType and if clicked on post event we will set it to false
+  const [isStatus, setStatus] = useState(true);
 
   const handleCloseEventModal = () => {
+    setStatus(true);
     setEventModalOpen(false);
   };
 
@@ -36,7 +39,13 @@ const UploadCard = () => {
             <ImageIcon className="mr-2" />
             Upload Photo
           </Button>
-          <Button variant="ghost" onClick={() => setEventModalOpen(true)}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setEventModalOpen(true);
+              setStatus(false);
+            }}
+          >
             <CalendarCheck2Icon className="mr-2" />
             Post Events
           </Button>
@@ -45,6 +54,7 @@ const UploadCard = () => {
       <UploadEventModal
         isOpen={isEventModalOpen}
         onClose={handleCloseEventModal}
+        isStatus={isStatus}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { track } from "@vercel/analytics";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import { Upload, X } from "lucide-react";
 import { createEvent, getSignedURL } from "@/actions/event";
 import ErrorMessage from "./ErrorMessage";
 import { useParams } from "next/navigation";
-import { UserRole } from "@prisma/client";
+import { EventType, UserRole } from "@prisma/client";
 import {
   Select,
   SelectContent,
@@ -30,9 +31,14 @@ import VerifiedBadge from "./VerifiedBadge";
 type UploadEventModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  isStatus: boolean;
 };
 
-const UploadEventModal = ({ isOpen, onClose }: UploadEventModalProps) => {
+const UploadEventModal = ({
+  isOpen,
+  onClose,
+  isStatus,
+}: UploadEventModalProps) => {
   const user = useCurrentUser();
 
   const params = useParams<{ stateName: string }>();
@@ -84,6 +90,7 @@ const UploadEventModal = ({ isOpen, onClose }: UploadEventModalProps) => {
     }
 
     try {
+      track("upload_event");
       if (file) {
         const checkSum = await computeSHA256(file);
         const signedUrlResult = await getSignedURL(
@@ -119,6 +126,7 @@ const UploadEventModal = ({ isOpen, onClose }: UploadEventModalProps) => {
           type: file.type.includes("image") ? "image" : "video",
           url: url.split("?")[0],
           stateName,
+          eventType: isStatus ? EventType.STATUS : EventType.EVENT,
         });
 
         if (createEventResult.error !== undefined) {
@@ -132,6 +140,7 @@ const UploadEventModal = ({ isOpen, onClose }: UploadEventModalProps) => {
       const createEventResult = await createEvent({
         content,
         stateName,
+        eventType: isStatus ? EventType.STATUS : EventType.EVENT,
       });
 
       if (createEventResult.error !== undefined) {
@@ -152,7 +161,7 @@ const UploadEventModal = ({ isOpen, onClose }: UploadEventModalProps) => {
       <DialogContent className="max-w-[95vw] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Create a new event in{" "}
+            {isStatus ? "Post Status" : "Post Event"} in{" "}
             <Select
               value={stateName}
               onValueChange={(value) => setStateName(value as string)}
