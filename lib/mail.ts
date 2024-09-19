@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendVerificationEmail = async (email: string, token: string) => {
   await resend.emails.send({
-    from: "info@sheharyarishfaq.me",
+    from: "help@shadhin.io",
     to: email,
     subject: "Verify your email address",
     react: AccountVerificationEmail({ token }),
@@ -16,7 +16,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 
 export const sendForgotPasswordEmail = async (email: string, code: string) => {
   await resend.emails.send({
-    from: "info@sheharyarishfaq.me",
+    from: "help@shadhin.io",
     to: email,
     subject: "Reset your password",
     react: ResetPasswordEmail({ code }),
@@ -39,7 +39,7 @@ export const sendEventEmails = async (
 
   for (const chunk of chunkedEmails) {
     await resend.emails.send({
-      from: "info@sheharyarishfaq.me",
+      from: "help@shadhin.io",
       to: chunk,
       subject: `New event in ${event.stateName}`,
       react: EventBroadcastEmail({
