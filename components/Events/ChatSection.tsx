@@ -9,7 +9,7 @@ import UserAvatar from "../Shared/UserAvatar";
 import VerifiedBadge from "../Shared/VerifiedBadge";
 import { IMessage, useSocket } from "@/context/SocketProvider";
 import { toast } from "sonner";
-import { addMessage } from "@/actions/message";
+import { addMessage, fetchMessages } from "@/actions/message";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
 
@@ -38,6 +38,9 @@ const ChatSection = ({
 
   const { setStateName, messages, sendMessage, setMessages } = useSocket();
   const [message, setMessage] = React.useState("");
+  const [page, setPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [loadPrevious, setLoadPrevious] = React.useState(false);
 
   useEffect(() => {
     setStateName(activeState);
@@ -59,15 +62,34 @@ const ChatSection = ({
   }, [savedMessages]);
 
   useEffect(() => {
+    if (loadPrevious) return;
     chatBoxRef.current?.scrollTo(0, chatBoxRef.current?.scrollHeight);
   }, [messages]);
+
+  const fetchPaginatedMessages = async () => {
+    const prevMessages = await fetchMessages(activeState, page + 1);
+    if (prevMessages?.length) {
+      setPage(page + 1);
+      setMessages([...prevMessages, ...messages]);
+      setLoadPrevious(false);
+      return;
+    }
+    setLoadPrevious(false);
+    setHasMore(false);
+  };
+
+  useEffect(() => {
+    if (loadPrevious) {
+      fetchPaginatedMessages();
+    }
+  }, [loadPrevious]);
 
   return (
     <section
       className={`${
         hiddenOnMobile
           ? "hidden md:flex h-[79vh] flex-[1.3] sticky top-32 left-0"
-          : "flex h-full flex-1"
+          : "flex h-[91vh] flex-1"
       } flex-col bg-white dark:bg-neutral-900 rounded-lg  p-4`}
     >
       <div
@@ -94,6 +116,13 @@ const ChatSection = ({
           } custom-scrollbar`}
           ref={chatBoxRef}
         >
+          {hasMore && (
+            <div className="flex items-center justify-center">
+              <Button variant={"link"} onClick={() => setLoadPrevious(true)}>
+                Load previous messages
+              </Button>
+            </div>
+          )}
           {messages.map((message: IMessage) => (
             <div key={message.id} className="flex my-2 gap-2">
               <UserAvatar

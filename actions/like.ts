@@ -1,8 +1,8 @@
 "use server";
 
 import { auth } from "@/auth";
+import { getIsLikedByUser } from "@/data/like";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
 
 export const like = async (eventId: string) => {
   const session = await auth();
@@ -41,7 +41,6 @@ export const like = async (eventId: string) => {
         id: existingLike.id,
       },
     });
-    revalidatePath("/events/[stateName]", "page");
     return {
       success: true,
     };
@@ -55,9 +54,12 @@ export const like = async (eventId: string) => {
     },
   });
 
-  revalidatePath("/events/[stateName]", "page");
-
   return {
     success: true,
   };
+};
+
+export const isLikedByUser = async (eventId: string, userId: string) => {
+  const isLikedByUser = await getIsLikedByUser(eventId, userId);
+  return isLikedByUser;
 };

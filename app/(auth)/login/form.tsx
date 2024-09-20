@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,7 +159,10 @@ const LoginForm = () => {
         <Button
           variant="outline"
           className="w-full text-black dark:text-white"
-          onClick={() => login("google")}
+          onClick={() => {
+            track("login_google");
+            login("google");
+          }}
           type="button"
         >
           <Image

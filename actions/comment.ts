@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
+import { getCommentsByEventId } from "@/data/comments";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
@@ -41,4 +42,13 @@ export const addComment = async (eventId: string, content: string) => {
   return {
     success: true,
   };
+};
+
+export const fetchEventComments = async (
+  eventId: string,
+  page?: number,
+  limit?: number
+) => {
+  const comments = await getCommentsByEventId(eventId, page, limit);
+  return comments;
 };

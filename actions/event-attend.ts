@@ -1,9 +1,12 @@
 "use server";
 
 import { auth } from "@/auth";
+import {
+  isUserAttendingEvent,
+  isUserNotAttendingEvent,
+} from "@/data/event-attend";
 import { db } from "@/lib/db";
 import { EventStatus } from "@prisma/client";
-import { revalidatePath } from "next/cache";
 
 export const markAsAttending = async (eventId: string) => {
   const session = await auth();
@@ -55,8 +58,6 @@ export const markAsAttending = async (eventId: string) => {
         },
       },
     });
-
-    revalidatePath("/events/[stateName]", "page");
     return {
       success: true,
     };
@@ -102,7 +103,6 @@ export const markAsAttending = async (eventId: string) => {
   });
   console.log(user);
 
-  revalidatePath("/events/[stateName]", "page");
   return {
     success: true,
   };
@@ -147,7 +147,6 @@ export const markAsNotAttending = async (eventId: string) => {
       },
     });
 
-    revalidatePath("/events/[stateName]", "page");
     return {
       success: true,
     };
@@ -192,8 +191,15 @@ export const markAsNotAttending = async (eventId: string) => {
     },
   });
 
-  revalidatePath("/events/[stateName]", "page");
   return {
     success: true,
   };
+};
+
+export const isUserAttending = async (eventId: string, userId: string) => {
+  return await isUserAttendingEvent(eventId, userId);
+};
+
+export const isUserNotAttending = async (eventId: string, userId: string) => {
+  return await isUserNotAttendingEvent(eventId, userId);
 };

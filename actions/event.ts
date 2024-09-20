@@ -2,6 +2,11 @@
 
 import { auth } from "@/auth";
 import BangladeshStates from "@/data/bangladesh-states";
+import {
+  getEventById,
+  getEventsByStatePaginated,
+  getUserEvents,
+} from "@/data/events";
 import { db } from "@/lib/db";
 import { sendEventEmails } from "@/lib/mail";
 import {
@@ -229,4 +234,28 @@ export const deleteEvent = async (eventId: string) => {
       error: "Something went wrong",
     };
   }
+};
+
+export const fetchEvents = async (
+  stateName: string,
+  page?: number,
+  limit?: number
+) => {
+  const events = await getEventsByStatePaginated(stateName, page, limit);
+  return events || [];
+};
+
+export const fetchUserEvents = async (
+  userId: string,
+  page?: number,
+  limit?: number
+) => {
+  const events = await getUserEvents(userId, page, limit);
+
+  return events || [];
+};
+
+export const fetchEventData = async (eventId: string) => {
+  const event = await getEventById(eventId);
+  return event;
 };

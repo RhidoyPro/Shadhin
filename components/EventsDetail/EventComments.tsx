@@ -1,5 +1,5 @@
 "use client";
-import React, { useTransition } from "react";
+import React, { useEffect, useTransition } from "react";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -7,9 +7,11 @@ import { SendIcon } from "lucide-react";
 import { Card } from "../ui/card";
 import { Prisma } from "@prisma/client";
 import { toast } from "sonner";
-import { addComment } from "@/actions/comment";
+import { addComment, fetchEventComments } from "@/actions/comment";
 import { formatDistance } from "date-fns";
 import { useSocket } from "@/context/SocketProvider";
+import { v4 as uuidv4 } from "uuid";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type EventCommentWithUser = Prisma.CommentGetPayload<{
   include: {
@@ -34,16 +36,44 @@ const EventComments = ({
   eventId,
   eventUserId,
 }: EventCommentsProps) => {
+  const user = useCurrentUser();
   const { sendNotification } = useSocket();
   const [isPending, startTransition] = useTransition();
 
   const [newComment, setNewComment] = React.useState("");
+  const [eventComments, setEventComments] =
+    React.useState<EventCommentWithUser[]>(comments);
+  const [page, setPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [loadMore, setLoadMore] = React.useState(false);
 
   const addNewCommentHandler = async () => {
     if (newComment.trim() === "") {
       toast.error("Please write something before commenting");
       return;
     }
+
+    if (!user) {
+      toast.error("User not authenticated");
+      return;
+    }
+    // Optimistically add the comment
+    const newCommentObj: EventCommentWithUser = {
+      id: uuidv4(),
+      content: newComment,
+      createdAt: new Date(),
+      user: {
+        id: user.id!,
+        name: user.name!,
+        image: user.image!,
+      },
+      updatedAt: new Date(),
+      userId: user.id!,
+      eventId,
+    };
+
+    setEventComments([newCommentObj, ...eventComments]);
+    setNewComment("");
 
     try {
       const addCommentRes = await addComment(eventId, newComment);
@@ -53,10 +83,26 @@ const EventComments = ({
       sendNotification("Added a new comment", eventUserId, eventId);
     } catch (err) {
       toast.error("Failed to add comment");
-    } finally {
-      setNewComment("");
     }
   };
+
+  const fetchComments = async () => {
+    const commentsData = await fetchEventComments(eventId, page + 1);
+    if (commentsData?.length) {
+      setEventComments([...eventComments, ...commentsData]);
+      setPage(page + 1);
+      setLoadMore(false);
+      return;
+    }
+    setHasMore(false);
+    setLoadMore(false);
+  };
+
+  useEffect(() => {
+    if (loadMore) {
+      fetchComments();
+    }
+  }, [loadMore]);
 
   return (
     <Card className="p-4 mt-4">
@@ -66,7 +112,6 @@ const EventComments = ({
           placeholder="Write a comment"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          disabled={isPending}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               startTransition(() => addNewCommentHandler());
@@ -83,7 +128,7 @@ const EventComments = ({
         </Button>
       </div>
       <div>
-        {comments.map((comment) => (
+        {eventComments.map((comment) => (
           <div key={comment.id} className="flex gap-2 mt-3">
             <CurrentUserAvatar size={8} />
             <div className="bg-slate-100 dark:bg-neutral-700 px-3 py-2 rounded-md">
@@ -100,6 +145,18 @@ const EventComments = ({
           </div>
         ))}
       </div>
+      {hasMore && (
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => setLoadMore(true)}
+            disabled={loadMore}
+          >
+            {loadMore ? "Loading..." : "Load more"}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 };

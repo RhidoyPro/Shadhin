@@ -1,26 +1,24 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import EventCard, { EventWithUser } from "@/components/Shared/EventCard";
 import { useInView } from "react-intersection-observer";
-import UploadCard from "./UploadCard";
-import EventCard, { EventWithUser } from "../Shared/EventCard";
+import { fetchUserEvents } from "@/actions/event";
 import ClipLoader from "react-spinners/ClipLoader";
-import { fetchEvents } from "@/actions/event";
 
-type FeedSectionProps = {
-  activeState: string;
+interface EventsCtnProps {
   initialEvents: EventWithUser[];
-};
+  username: string;
+  userId: string;
+}
 
-const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
-  const [events, setEvents] = React.useState<EventWithUser[]>(
-    initialEvents || []
-  );
-  const [page, setPage] = React.useState<number>(1);
-  const [hasMore, setHasMore] = React.useState<boolean>(true);
+const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
+  const [events, setEvents] = useState<EventWithUser[]>(initialEvents || []);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const [ref, inView] = useInView();
 
   const fetchMoreEvents = async () => {
-    const newEvents = await fetchEvents(activeState, page + 1);
+    const newEvents = await fetchUserEvents(userId, page + 1);
     if (newEvents?.length) {
       setPage(page + 1);
       setEvents([...events, ...newEvents]);
@@ -36,15 +34,14 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
   }, [inView]);
 
   return (
-    <section className="flex-[2.5] flex flex-col gap-3">
-      <UploadCard />
+    <>
       {events?.length ? (
         events.map((event) => <EventCard key={event.id} event={event} />)
       ) : (
         <p className="text-center text-lg text-gray-600 mt-4">
-          No events found for{" "}
+          There are no events for{" "}
           <span className="text-gray-800 font-semibold capitalize">
-            {activeState}
+            {username}
           </span>
         </p>
       )}
@@ -53,8 +50,8 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
           <ClipLoader color="#16a34a" size={30} />
         </div>
       )}
-    </section>
+    </>
   );
 };
 
-export default FeedSection;
+export default EventsCtn;

@@ -1,6 +1,12 @@
 "use server";
 
 import { auth } from "@/auth";
+import {
+  isUserAttendingEvent,
+  isUserNotAttendingEvent,
+} from "@/data/event-attend";
+import { getIsLikedByUser } from "@/data/like";
+import { getAllUsersWithPointsPaginated } from "@/data/user";
 import { db } from "@/lib/db";
 import { UpdateProfileSchema } from "@/utils/zodSchema";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
@@ -242,4 +248,21 @@ export const deleteUser = async (userId: string) => {
       error: "Failed to delete user",
     };
   }
+};
+
+export const getUserDataForEvent = async (eventId: string, userId: string) => {
+  const isLikedByUser = await getIsLikedByUser(eventId, userId);
+  const isUserAttending = await isUserAttendingEvent(eventId, userId);
+  const isUserNotAttending = await isUserNotAttendingEvent(eventId, userId);
+
+  return {
+    isLikedByUser,
+    isUserAttending,
+    isUserNotAttending,
+  };
+};
+
+export const fetchLeaderboard = async (page?: number, limit?: number) => {
+  const users = await getAllUsersWithPointsPaginated(page, limit);
+  return users;
 };

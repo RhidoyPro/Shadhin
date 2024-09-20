@@ -4,10 +4,11 @@ import EventCard from "@/components/Shared/EventCard";
 import EventComments from "@/components/EventsDetail/EventComments";
 import { getEventById } from "@/data/events";
 import { getCommentsByEventId } from "@/data/comments";
+import { fetchEventComments } from "@/actions/comment";
 
 const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
   const event = await getEventById(params.eventId);
-  const comments = (await getCommentsByEventId(params.eventId)) || [];
+  const comments = await fetchEventComments(params.eventId);
   return (
     <div className="container px-4 py-6 max-w-3xl">
       {event && (
@@ -15,7 +16,7 @@ const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
           <EventCard event={event} showFullContent />
           <EventComments
             eventUserId={event.userId}
-            comments={comments}
+            comments={comments || []}
             eventId={params.eventId}
           />
         </>

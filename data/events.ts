@@ -1,6 +1,50 @@
 import { db } from "@/lib/db";
 import { EventStatus } from "@prisma/client";
 
+export const getEventsByStatePaginated = async (
+  stateName: string,
+  page: number = 1,
+  limit: number = 10
+) => {
+  const skip = (page - 1) * limit;
+  try {
+    const events = await db.event.findMany({
+      where: {
+        stateName,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        user: true,
+        likes: {
+          select: {
+            id: true,
+          },
+        },
+        attendees: {
+          where: {
+            status: EventStatus.GOING,
+          },
+          select: {
+            id: true,
+          },
+        },
+        comments: {
+          select: {
+            id: true,
+          },
+        },
+      },
+      skip,
+      take: limit,
+    });
+    return events;
+  } catch {
+    return null;
+  }
+};
+
 export const getEventsByState = async (stateName: string) => {
   try {
     const events = await db.event.findMany({
@@ -72,7 +116,12 @@ export const getEventById = async (eventId: string) => {
   }
 };
 
-export const getUserEvents = async (userId: string) => {
+export const getUserEvents = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 10
+) => {
+  const skip = (page - 1) * limit;
   try {
     const events = await db.event.findMany({
       where: {
@@ -102,6 +151,8 @@ export const getUserEvents = async (userId: string) => {
           },
         },
       },
+      skip,
+      take: limit,
     });
     return events;
   } catch {

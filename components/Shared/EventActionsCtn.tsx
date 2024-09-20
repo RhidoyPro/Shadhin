@@ -39,6 +39,7 @@ type EventActionsCtnProps = {
   attendees: number;
   comments: number;
   eventType: EventType;
+  refetch: () => void;
 };
 
 const EventActionsCtn = ({
@@ -51,6 +52,7 @@ const EventActionsCtn = ({
   attendees,
   comments,
   eventType,
+  refetch,
 }: EventActionsCtnProps) => {
   const { sendNotification } = useSocket();
   const [isPending, startTransition] = useTransition();
@@ -111,6 +113,7 @@ const EventActionsCtn = ({
     } catch (err) {
       toast.error("An error occurred while liking the event");
     }
+    refetch();
   };
 
   const shareEventHandler = () => {
@@ -143,6 +146,7 @@ const EventActionsCtn = ({
     } catch (err) {
       toast.error("An error occurred while attending the event");
     }
+    refetch();
   };
 
   const handleNotAttendEvent = async () => {
@@ -164,6 +168,7 @@ const EventActionsCtn = ({
     } catch (err) {
       toast.error("An error occurred while not attending the event");
     }
+    refetch();
   };
 
   const reportEventHandler = async () => {

@@ -66,7 +66,11 @@ export const getTopUsers = async () => {
   return users;
 };
 
-export const getAllUsersWithPoints = async () => {
+export const getAllUsersWithPointsPaginated = async (
+  page: number = 1,
+  limit: number = 10
+) => {
+  const skip = (page - 1) * limit;
   const users = await db.user.findMany({
     where: {
       points: {
@@ -80,10 +84,11 @@ export const getAllUsersWithPoints = async () => {
       points: true,
       role: true,
     },
-
     orderBy: {
       points: "desc",
     },
+    skip,
+    take: limit,
   });
 
   return users;

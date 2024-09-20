@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
+import { getMessagesByStateName } from "@/data/messages";
 import { db } from "@/lib/db";
 
 export const addMessage = async (message: string, stateName: string) => {
@@ -30,4 +31,13 @@ export const addMessage = async (message: string, stateName: string) => {
   return {
     success: true,
   };
+};
+
+export const fetchMessages = async (
+  stateName: string,
+  page?: number,
+  limit?: number
+) => {
+  const messages = await getMessagesByStateName(stateName, page, limit);
+  return messages;
 };
