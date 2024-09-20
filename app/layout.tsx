@@ -38,8 +38,8 @@ export default async function RootLayout({
             <Toaster richColors />
           </ThemeProvider>
         </body>
-        {/* <Analytics />
-        <SpeedInsights /> */}
+        <Analytics />
+        <SpeedInsights />
       </html>
     </SessionProvider>
   );
