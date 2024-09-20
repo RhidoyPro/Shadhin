@@ -1,5 +1,4 @@
 import React from "react";
-import Navbar from "@/components/Navbar";
 import { Separator } from "@/components/ui/separator";
 import { getAllUsersWithPoints } from "@/data/user";
 import UserAvatar from "@/components/Shared/UserAvatar";
@@ -9,8 +8,7 @@ import { Award } from "lucide-react";
 const LeaderBoardPage = async () => {
   const topUsers = await getAllUsersWithPoints();
   return (
-    <main className="bg-slate-100 dark:bg-neutral-700 min-h-screen relative">
-      <Navbar />
+    <>
       <div className="container px-4 py-6 max-w-3xl">
         <div className="bg-white dark:bg-neutral-900 rounded-lg p-4">
           <h1 className="text-center text-xl font-bold text-primary">
@@ -41,7 +39,7 @@ const LeaderBoardPage = async () => {
           </div>
         </div>
       </div>
-    </main>
+    </>
   );
 };
 

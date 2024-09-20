@@ -1,7 +1,6 @@
 import React from "react";
 import { getUserById } from "@/data/user";
 import { getUserEvents } from "@/data/events";
-import Navbar from "@/components/Navbar";
 import EventCard from "@/components/Shared/EventCard";
 import UploadCard from "@/components/Events/UploadCard";
 import UserInfo from "@/components/Profile/UserInfo";
@@ -16,8 +15,7 @@ const UserProfilePage = async ({
   const user = await getUserById(userId);
   const events = await getUserEvents(userId);
   return (
-    <main className="bg-slate-100 dark:bg-neutral-700 min-h-screen relative">
-      <Navbar />
+    <>
       {user && (
         <div className="container flex flex-col md:flex-row gap-4 px-4 py-6 relative">
           <UserInfo user={user} eventsCreated={events?.length || 0} />
@@ -36,7 +34,7 @@ const UserProfilePage = async ({
           </section>
         </div>
       )}
-    </main>
+    </>
   );
 };
 

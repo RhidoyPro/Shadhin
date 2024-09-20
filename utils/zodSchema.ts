@@ -39,8 +39,10 @@ export const UpdateProfileSchema = z.object({
   firstName: z.string().min(3, "Name must be at least 3 characters long"),
   lastName: z.string().optional(),
   university: z.string().optional(),
-  dateOfBirth: z.date({
-    message: "Please enter a valid date of birth",
-  }),
+  dateOfBirth: z
+    .date({
+      message: "Please enter a valid date of birth",
+    })
+    .optional(),
   phone: z.string().optional(),
 });

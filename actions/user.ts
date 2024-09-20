@@ -127,6 +127,7 @@ export const updateUser = async (userId: string, data: any) => {
         phone: data.phone,
         university: data.university,
         dateOfBirth: data.dateOfBirth,
+        stateName: data.state,
       },
     });
     revalidatePath("/user/[userId]", "page");

@@ -28,6 +28,14 @@ import {
 } from "@/actions/user";
 import { useSession } from "next-auth/react";
 import { computeSHA256 } from "@/utils/computeHash";
+import BangladeshStates from "@/data/bangladesh-states";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 type UpdateProfileModalProps = {
   isOpen: boolean;
@@ -76,6 +84,7 @@ const UpdateProfileModal = ({
       phone: formData.get("phone") as string,
       university: formData.get("university") as string,
       dateOfBirth: date,
+      state: formData.get("state") as string,
     };
     const phoneNumber = formData.get("phone") as string;
     if (!isValidPhoneNumber(phoneNumber)) {
@@ -307,6 +316,21 @@ const UpdateProfileModal = ({
                   </PopoverContent>
                 </Popover>
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="state">State</Label>
+              <Select name="state" defaultValue={user?.stateName || ""}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select State" />
+                </SelectTrigger>
+                <SelectContent id="state">
+                  {BangladeshStates.slice(1).map((state) => (
+                    <SelectItem key={state.id} value={state.slug}>
+                      {state.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button className="mt-4 w-full">Update Profile</Button>
           </form>
