@@ -7,6 +7,7 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { SocketProvider } from "@/context/SocketProvider";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default async function RootLayout({
           </ThemeProvider>
         </body>
         <Analytics />
+        <SpeedInsights />
       </html>
     </SessionProvider>
   );
