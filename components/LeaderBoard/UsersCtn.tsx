@@ -21,7 +21,9 @@ type LeaderBoardUser = Prisma.UserGetPayload<{
 const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
   const [users, setUsers] = useState<LeaderBoardUser[]>(topUsers);
   const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = React.useState<boolean>(true);
+  const [hasMore, setHasMore] = React.useState<boolean>(
+    topUsers.length < 10 ? false : true
+  );
   const [loadMore, setLoadMore] = React.useState<boolean>(false);
 
   const fetchUsers = async () => {

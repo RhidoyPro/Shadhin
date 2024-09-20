@@ -44,7 +44,9 @@ const EventComments = ({
   const [eventComments, setEventComments] =
     React.useState<EventCommentWithUser[]>(comments);
   const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
+  const [hasMore, setHasMore] = React.useState(
+    comments.length < 10 ? false : true
+  );
   const [loadMore, setLoadMore] = React.useState(false);
 
   const addNewCommentHandler = async () => {
@@ -144,6 +146,11 @@ const EventComments = ({
             </div>
           </div>
         ))}
+        {eventComments.length === 0 && (
+          <div className="flex items-center justify-center mt-4">
+            <p className="text-lg text-slate-400">No comments yet</p>
+          </div>
+        )}
       </div>
       {hasMore && (
         <div className="flex justify-center mt-4">

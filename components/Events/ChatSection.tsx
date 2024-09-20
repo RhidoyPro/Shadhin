@@ -56,6 +56,9 @@ const ChatSection = ({
   };
 
   useEffect(() => {
+    if (savedMessages.length < 20) {
+      setHasMore(false);
+    }
     setMessages(savedMessages);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -148,6 +151,11 @@ const ChatSection = ({
               </div>
             </div>
           ))}
+          {messages.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-lg text-slate-400">No messages yet</p>
+            </div>
+          )}
         </div>
         <div className="absolute bottom-0 left-0 w-full flex items-center gap-2">
           <CurrentUserAvatar />
