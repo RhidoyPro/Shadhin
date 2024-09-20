@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Logo from "@/components/Shared/Logo";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 const ForbiddenPage = () => {
   return (
@@ -26,7 +27,7 @@ const ForbiddenPage = () => {
           </CardContent>
           <CardFooter className="flex items-center justify-center">
             <Button asChild variant={"link"}>
-              <Link href="/">Go back</Link>
+              <Link href={DEFAULT_LOGIN_REDIRECT}>Go back</Link>
             </Button>
           </CardFooter>
         </Card>

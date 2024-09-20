@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import LogoImg from "@/public/logo.png";
 import LogoWhiteImg from "@/public/logo-white.png";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 type ILogoProps = {
   color?: string;
@@ -10,7 +11,7 @@ type ILogoProps = {
 
 const Logo = ({ color = "primary" }: ILogoProps) => {
   return (
-    <Link href="/" className="flex items-center gap-1">
+    <Link href={DEFAULT_LOGIN_REDIRECT} className="flex items-center gap-1">
       <Image
         src={color === "white" ? LogoWhiteImg : LogoImg}
         alt="Shadhin.io"

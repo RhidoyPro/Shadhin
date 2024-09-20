@@ -2,12 +2,13 @@ import Image from "next/image";
 import LoginForm from "./form";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
 export default async function LoginPage() {
   const session = await auth();
 
   if (session?.user) {
-    redirect("/");
+    redirect(DEFAULT_LOGIN_REDIRECT);
   }
   return (
     <div className="w-full grid lg:grid-cols-2 min-h-screen">

@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 import { SocketProvider } from "@/context/SocketProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <html lang="en">
         <body className={inter.className}>
+          <NextTopLoader color="#16a34a" />
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -36,8 +38,8 @@ export default async function RootLayout({
             <Toaster richColors />
           </ThemeProvider>
         </body>
-        <Analytics />
-        <SpeedInsights />
+        {/* <Analytics />
+        <SpeedInsights /> */}
       </html>
     </SessionProvider>
   );
