@@ -118,6 +118,7 @@ const EventCard = async ({
           likes={event.likes?.length}
           attendees={event.attendees?.length}
           comments={event.comments?.length}
+          eventType={event.eventType}
         />
       </CardFooter>
     </Card>

@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { useSocket } from "@/context/SocketProvider";
 import { Textarea } from "../ui/textarea";
 import { addNewReport } from "@/actions/report";
+import { EventType } from "@prisma/client";
 
 type EventActionsCtnProps = {
   eventUserId: string;
@@ -37,6 +38,7 @@ type EventActionsCtnProps = {
   likes: number;
   attendees: number;
   comments: number;
+  eventType: EventType;
 };
 
 const EventActionsCtn = ({
@@ -48,6 +50,7 @@ const EventActionsCtn = ({
   likes,
   attendees,
   comments,
+  eventType,
 }: EventActionsCtnProps) => {
   const { sendNotification } = useSocket();
   const [isPending, startTransition] = useTransition();
@@ -245,34 +248,36 @@ const EventActionsCtn = ({
             </Button>
           </div>
           <Separator className="mt-3 xs:hidden" />
-          <div className="flex items-center gap-3">
-            <Button
-              variant="secondary"
-              size={"sm"}
-              className={`w-full xs:w-auto ${
-                isAttendingOptimistic
-                  ? "bg-green-100 text-green-500 hover:bg-green-100"
-                  : ""
-              }`}
-              onClick={() => startTransition(() => handleAttendEvent())}
-            >
-              <CircleCheck className="mr-2" />
-              Going
-            </Button>
-            <Button
-              variant="secondary"
-              size={"sm"}
-              className={`w-full xs:w-auto ${
-                isNotAttendingOptimistic
-                  ? "bg-red-100 text-red-500 hover:bg-red-100"
-                  : ""
-              }`}
-              onClick={() => startTransition(() => handleNotAttendEvent())}
-            >
-              <CircleX className="mr-2" />
-              Not Going
-            </Button>
-          </div>
+          {eventType === EventType.EVENT && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                size={"sm"}
+                className={`w-full xs:w-auto ${
+                  isAttendingOptimistic
+                    ? "bg-green-100 text-green-500 hover:bg-green-100"
+                    : ""
+                }`}
+                onClick={() => startTransition(() => handleAttendEvent())}
+              >
+                <CircleCheck className="mr-2" />
+                Going
+              </Button>
+              <Button
+                variant="secondary"
+                size={"sm"}
+                className={`w-full xs:w-auto ${
+                  isNotAttendingOptimistic
+                    ? "bg-red-100 text-red-500 hover:bg-red-100"
+                    : ""
+                }`}
+                onClick={() => startTransition(() => handleNotAttendEvent())}
+              >
+                <CircleX className="mr-2" />
+                Not Going
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       <AlertDialog
