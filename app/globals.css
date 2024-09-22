@@ -108,3 +108,6 @@
     --chart-5: 340 75% 55%;
   }
 }
+.rdp-vhidden {
+  @apply hidden;
+}
