@@ -156,7 +156,7 @@ const LoginForm = () => {
           </Label>
         </div>
         <SubmitButton />
-        <Button
+        {/* <Button
           variant="outline"
           className="w-full text-black dark:text-white"
           onClick={() => {
@@ -173,7 +173,7 @@ const LoginForm = () => {
             className="mr-2"
           />
           Login with Google
-        </Button>
+        </Button> */}
       </div>
       <div className="text-center text-sm text-white">
         Don&apos;t have an account?{" "}

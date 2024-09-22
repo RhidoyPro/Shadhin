@@ -205,7 +205,7 @@ export default function SignupPage() {
               <Input id="password" name="password" type="password" required />
             </div>
             <SubmitButton />
-            <Button
+            {/* <Button
               variant="outline"
               className="w-full"
               type="button"
@@ -222,7 +222,7 @@ export default function SignupPage() {
                 className="mr-2"
               />
               Signup with Google
-            </Button>
+            </Button> */}
           </div>
           <div className="mt-2 text-center text-sm">
             Already have an account?{" "}
