@@ -125,6 +125,16 @@ export const createEvent = async ({
     };
   }
 
+  //we need to check if the stateName is all-states and the user is a normal user, we throw an error
+  if (
+    stateName === BangladeshStates[0].slug &&
+    session?.user?.role === UserRole.USER
+  ) {
+    return {
+      error: "Unauthorized! You can't post to all states",
+    };
+  }
+
   // Save the event to the database
   const event = await db.event.create({
     data: {

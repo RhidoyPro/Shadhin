@@ -131,6 +131,7 @@ const UploadEventModal = ({
 
         if (createEventResult.error !== undefined) {
           setError(createEventResult.error);
+          return;
         }
         resetData();
         onClose();
@@ -145,6 +146,7 @@ const UploadEventModal = ({
 
       if (createEventResult.error !== undefined) {
         setError(createEventResult.error);
+        return;
       }
 
       resetData();
