@@ -84,9 +84,17 @@ export const sendReVerificationEmailsByAdmin = async () => {
       };
     }
 
+    let count = 0;
+
     for (const verification of filteredPendingVerifications) {
+      if (count > 15) {
+        //wait for 1s before sending the next email
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        count = 0;
+      }
       await sendVerificationEmail(verification.email, verification.token);
       await updateIsEmailSent(verification.token);
+      count++;
     }
 
     return {
