@@ -10,6 +10,7 @@ import { SignupSchema } from "@/utils/zodSchema";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { sendVerificationEmail } from "@/lib/mail";
+import { updateIsEmailSent } from "@/data/verification-token";
 
 export const login = async (provider: string) => {
   await signIn(provider, {
@@ -73,6 +74,9 @@ export const loginWithCreds = async (state: any, formData: ILoginData) => {
       verificationToken.email,
       verificationToken.token
     );
+
+    //we need to update isEmailSent to true
+    await updateIsEmailSent(verificationToken.token);
 
     return {
       message:
@@ -177,6 +181,9 @@ export const signup = async (state: any, formData: ISignupData) => {
       verificationToken.email,
       verificationToken.token
     );
+
+    //we need to update isEmailSent to true
+    await updateIsEmailSent(verificationToken.token);
 
     return {
       message: "Verification email sent! Please verify your email and login",

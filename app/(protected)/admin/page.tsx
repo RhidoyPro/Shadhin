@@ -57,6 +57,19 @@ const DashboardPage = async () => {
             </div>
           </CardContent>
         </Card>
+        <Card className="bg-slate-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pending User Verifications (No Email Sent)
+            </CardTitle>
+            <LoaderIcon className="h-6 w-6text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              +{stats.pendingVerificationsWithNoEmailSent}
+            </div>
+          </CardContent>
+        </Card>
         <Card className="bg-purple-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Likes</CardTitle>

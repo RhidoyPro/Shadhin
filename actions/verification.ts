@@ -2,7 +2,10 @@
 
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/data/user";
-import { getVerificationTokenByToken } from "@/data/verification-token";
+import {
+  getVerificationTokenByToken,
+  updateIsEmailSent,
+} from "@/data/verification-token";
 import { db } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/mail";
 import { UserRole } from "@prisma/client";
@@ -69,7 +72,11 @@ export const sendReVerificationEmailsByAdmin = async () => {
   }
 
   try {
-    const pendingVerifications = await db.verificationToken.findMany();
+    const pendingVerifications = await db.verificationToken.findMany({
+      where: {
+        isEmailSent: false,
+      },
+    });
 
     if (pendingVerifications.length === 0) {
       return {
@@ -79,12 +86,14 @@ export const sendReVerificationEmailsByAdmin = async () => {
 
     for (const verification of pendingVerifications) {
       await sendVerificationEmail(verification.email, verification.token);
+      await updateIsEmailSent(verification.token);
     }
 
     return {
       message: "Re-verification emails sent successfully",
     };
-  } catch {
+  } catch (e: any) {
+    console.error(e);
     return {
       error: "Failed to send re-verification emails",
     };

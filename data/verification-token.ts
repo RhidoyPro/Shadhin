@@ -27,3 +27,20 @@ export const getVerificationTokenByToken = async (token: string) => {
     return null;
   }
 };
+
+export const updateIsEmailSent = async (token: string) => {
+  try {
+    await db.verificationToken.update({
+      where: {
+        token,
+      },
+      data: {
+        isEmailSent: true,
+      },
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+};
