@@ -72,19 +72,19 @@ export const sendReVerificationEmailsByAdmin = async () => {
   }
 
   try {
-    const pendingVerifications = await db.verificationToken.findMany({
-      where: {
-        isEmailSent: false,
-      },
-    });
+    const pendingVerifications = await db.verificationToken.findMany();
 
-    if (pendingVerifications.length === 0) {
+    const filteredPendingVerifications = pendingVerifications.filter(
+      (verification) => !verification.isEmailSent
+    );
+
+    if (filteredPendingVerifications.length === 0) {
       return {
         message: "No pending verifications",
       };
     }
 
-    for (const verification of pendingVerifications) {
+    for (const verification of filteredPendingVerifications) {
       await sendVerificationEmail(verification.email, verification.token);
       await updateIsEmailSent(verification.token);
     }
