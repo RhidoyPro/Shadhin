@@ -56,6 +56,8 @@ export const newVerification = async (token: string) => {
   };
 };
 
+export const maxDuration = 200; //2-- seconds = 200/60 = 3 minutes
+
 export const sendReVerificationEmailsByAdmin = async () => {
   const session = await auth();
 
