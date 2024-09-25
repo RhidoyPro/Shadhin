@@ -1,8 +1,11 @@
 "use server";
 
+import { auth } from "@/auth";
 import { getUserByEmail } from "@/data/user";
 import { getVerificationTokenByToken } from "@/data/verification-token";
 import { db } from "@/lib/db";
+import { sendVerificationEmail } from "@/lib/mail";
+import { UserRole } from "@prisma/client";
 
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
@@ -48,4 +51,42 @@ export const newVerification = async (token: string) => {
   return {
     message: "Email verified successfully",
   };
+};
+
+export const sendReVerificationEmailsByAdmin = async () => {
+  const session = await auth();
+
+  if (!session) {
+    return {
+      error: "User not authenticated",
+    };
+  }
+
+  if (session.user.role !== UserRole.ADMIN) {
+    return {
+      error: "User not authorized",
+    };
+  }
+
+  try {
+    const pendingVerifications = await db.verificationToken.findMany();
+
+    if (pendingVerifications.length === 0) {
+      return {
+        message: "No pending verifications",
+      };
+    }
+
+    for (const verification of pendingVerifications) {
+      await sendVerificationEmail(verification.email, verification.token);
+    }
+
+    return {
+      message: "Re-verification emails sent successfully",
+    };
+  } catch {
+    return {
+      error: "Failed to send re-verification emails",
+    };
+  }
 };
