@@ -22,7 +22,7 @@ const UserProfilePage = async ({
           <section className="flex-[2.5] flex flex-col gap-3">
             {session?.user?.id === user.id && <UploadCard />}
             <EventsCtn
-              initialEvents={events}
+              initialEvents={events || []}
               username={user.name}
               userId={userId}
             />

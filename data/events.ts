@@ -20,6 +20,7 @@ export const getEventsByStatePaginated = async (
         likes: {
           select: {
             id: true,
+            userId: true,
           },
         },
         attendees: {
@@ -28,6 +29,8 @@ export const getEventsByStatePaginated = async (
           },
           select: {
             id: true,
+            userId: true,
+            status: true,
           },
         },
         comments: {
@@ -93,6 +96,7 @@ export const getEventById = async (eventId: string) => {
         likes: {
           select: {
             id: true,
+            userId: true,
           },
         },
         attendees: {
@@ -101,6 +105,8 @@ export const getEventById = async (eventId: string) => {
           },
           select: {
             id: true,
+            userId: true,
+            status: true,
           },
         },
         comments: {
@@ -110,7 +116,26 @@ export const getEventById = async (eventId: string) => {
         },
       },
     });
-    return event;
+    if (!event) return null;
+    const isLikedByUser = event.likes.find(
+      (like) => like.userId === event.userId
+    );
+    const isUserAttending = event.attendees.find(
+      (attendee) =>
+        attendee.userId === event.userId &&
+        attendee.status === EventStatus.GOING
+    );
+    const isUserNotAttending = event.attendees.find(
+      (attendee) =>
+        attendee.userId === event.userId &&
+        attendee.status === EventStatus.NOT_GOING
+    );
+    return {
+      ...event,
+      isLikedByUser: !!isLikedByUser,
+      isUserAttending: !!isUserAttending,
+      isUserNotAttending: !!isUserNotAttending,
+    };
   } catch {
     return null;
   }
@@ -135,6 +160,7 @@ export const getUserEvents = async (
         likes: {
           select: {
             id: true,
+            userId: true,
           },
         },
         attendees: {
@@ -143,6 +169,8 @@ export const getUserEvents = async (
           },
           select: {
             id: true,
+            userId: true,
+            status: true,
           },
         },
         comments: {

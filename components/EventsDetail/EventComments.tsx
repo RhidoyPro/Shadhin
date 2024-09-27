@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useTransition } from "react";
+import React, { useEffect, useCallback, useTransition } from "react";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -32,7 +32,7 @@ type EventCommentsProps = {
 };
 
 const EventComments = ({
-  comments,
+  comments: initialComments,
   eventId,
   eventUserId,
 }: EventCommentsProps) => {
@@ -42,14 +42,12 @@ const EventComments = ({
 
   const [newComment, setNewComment] = React.useState("");
   const [eventComments, setEventComments] =
-    React.useState<EventCommentWithUser[]>(comments);
+    React.useState<EventCommentWithUser[]>(initialComments);
   const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(
-    comments.length < 10 ? false : true
-  );
-  const [loadMore, setLoadMore] = React.useState(false);
+  const [hasMore, setHasMore] = React.useState(initialComments.length >= 10);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
 
-  const addNewCommentHandler = async () => {
+  const addNewCommentHandler = useCallback(async () => {
     if (newComment.trim() === "") {
       toast.error("Please write something before commenting");
       return;
@@ -59,8 +57,8 @@ const EventComments = ({
       toast.error("User not authenticated");
       return;
     }
-    // Optimistically add the comment
-    const newCommentObj: EventCommentWithUser = {
+
+    const optimisticComment: EventCommentWithUser = {
       id: uuidv4(),
       content: newComment,
       createdAt: new Date(),
@@ -74,37 +72,58 @@ const EventComments = ({
       eventId,
     };
 
-    setEventComments([newCommentObj, ...eventComments]);
+    setEventComments((prevComments) => [optimisticComment, ...prevComments]);
     setNewComment("");
 
     try {
       const addCommentRes = await addComment(eventId, newComment);
-      if (addCommentRes.error !== undefined) {
-        toast.error(addCommentRes.error);
+      if (addCommentRes.error) {
+        throw new Error(addCommentRes.error);
       }
       sendNotification("Added a new comment", eventUserId, eventId);
     } catch (err) {
       toast.error("Failed to add comment");
+      setEventComments((prevComments) =>
+        prevComments.filter((comment) => comment.id !== optimisticComment.id)
+      );
     }
-  };
+  }, [newComment, user, eventId, eventUserId]);
 
-  const fetchComments = async () => {
-    const commentsData = await fetchEventComments(eventId, page + 1);
-    if (commentsData?.length) {
-      setEventComments([...eventComments, ...commentsData]);
-      setPage(page + 1);
-      setLoadMore(false);
-      return;
+  const fetchMoreComments = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const newComments = await fetchEventComments(eventId, page + 1);
+      if (newComments?.length) {
+        setEventComments((prevComments) => [...prevComments, ...newComments]);
+        setPage((prevPage) => prevPage + 1);
+        setHasMore(newComments.length >= 10);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      toast.error("Failed to load more comments");
+    } finally {
+      setIsLoadingMore(false);
     }
-    setHasMore(false);
-    setLoadMore(false);
-  };
+  }, [eventId, page, isLoadingMore, hasMore]);
 
   useEffect(() => {
-    if (loadMore) {
-      fetchComments();
-    }
-  }, [loadMore]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          fetchMoreComments();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    const loadMoreTrigger = document.getElementById("load-more-trigger");
+    if (loadMoreTrigger) observer.observe(loadMoreTrigger);
+
+    return () => observer.disconnect();
+  }, [fetchMoreComments, hasMore, isLoadingMore]);
 
   return (
     <Card className="p-4 mt-4">
@@ -115,7 +134,8 @@ const EventComments = ({
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
               startTransition(() => addNewCommentHandler());
             }
           }}
@@ -124,44 +144,38 @@ const EventComments = ({
           variant="ghost"
           size="iconRounded"
           onClick={() => startTransition(() => addNewCommentHandler())}
-          disabled={isPending}
+          disabled={isPending || !newComment.trim()}
         >
           <SendIcon />
         </Button>
       </div>
-      <div>
+      <div className="mt-4 space-y-3">
         {eventComments.map((comment) => (
-          <div key={comment.id} className="flex gap-2 mt-3">
+          <div key={comment.id} className="flex gap-2">
             <CurrentUserAvatar size={8} />
-            <div className="bg-slate-100 dark:bg-neutral-700 px-3 py-2 rounded-md">
-              <div className="flex items-center justify-between gap-8">
+            <div className="flex-1 bg-slate-100 dark:bg-neutral-700 px-3 py-2 rounded-md">
+              <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-sm">{comment.user.name}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {formatDistance(comment.createdAt, new Date(), {
+                  {formatDistance(new Date(comment.createdAt), new Date(), {
                     addSuffix: true,
                   })}
                 </p>
               </div>
-              <p className="text-sm break-words">{comment.content}</p>
+              <p className="text-sm break-words mt-1">{comment.content}</p>
             </div>
           </div>
         ))}
         {eventComments.length === 0 && (
-          <div className="flex items-center justify-center mt-4">
+          <div className="flex items-center justify-center">
             <p className="text-lg text-slate-400">No comments yet</p>
           </div>
         )}
       </div>
-      {hasMore && (
+      {hasMore && <div id="load-more-trigger" className="h-1" />}
+      {isLoadingMore && (
         <div className="flex justify-center mt-4">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => setLoadMore(true)}
-            disabled={loadMore}
-          >
-            {loadMore ? "Loading..." : "Load more"}
-          </Button>
+          <p className="text-sm text-slate-500">Loading more comments...</p>
         </div>
       )}
     </Card>

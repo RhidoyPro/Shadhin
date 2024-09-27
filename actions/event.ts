@@ -15,7 +15,7 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { EventType, UserRole } from "@prisma/client";
+import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 
@@ -251,8 +251,38 @@ export const fetchEvents = async (
   page?: number,
   limit?: number
 ) => {
-  const events = await getEventsByStatePaginated(stateName, page, limit);
-  return events || [];
+  const session = await auth();
+  const events =
+    (await getEventsByStatePaginated(stateName, page, limit)) || [];
+  //we need to add isLiked, isAttending, isNotAttending to the event object
+  if (session?.user) {
+    const eventsWithUserData = await Promise.all(
+      events.map(async (event) => {
+        const isLikedByUser = event.likes.find(
+          (like) => like.userId === session.user.id
+        );
+        const isUserAttending = event.attendees.find(
+          (attendee) =>
+            attendee.userId === session.user.id &&
+            attendee.status === EventStatus.GOING
+        );
+        const isUserNotAttending = event.attendees.find(
+          (attendee) =>
+            attendee.userId === session.user.id &&
+            attendee.status === EventStatus.NOT_GOING
+        );
+        return {
+          ...event,
+          isLikedByUser: !!isLikedByUser,
+          isUserAttending: !!isUserAttending,
+          isUserNotAttending: !!isUserNotAttending,
+        };
+      })
+    );
+
+    return eventsWithUserData;
+  }
+  return [];
 };
 
 export const fetchUserEvents = async (
@@ -260,12 +290,65 @@ export const fetchUserEvents = async (
   page?: number,
   limit?: number
 ) => {
-  const events = await getUserEvents(userId, page, limit);
+  const session = await auth();
+  const events = (await getUserEvents(userId, page, limit)) || [];
+  if (session?.user) {
+    const eventsWithUserData = await Promise.all(
+      events.map(async (event) => {
+        const isLikedByUser = event.likes.find(
+          (like) => like.userId === session.user.id
+        );
+        const isUserAttending = event.attendees.find(
+          (attendee) =>
+            attendee.userId === session.user.id &&
+            attendee.status === EventStatus.GOING
+        );
+        const isUserNotAttending = event.attendees.find(
+          (attendee) =>
+            attendee.userId === session.user.id &&
+            attendee.status === EventStatus.NOT_GOING
+        );
+        return {
+          ...event,
+          isLikedByUser: !!isLikedByUser,
+          isUserAttending: !!isUserAttending,
+          isUserNotAttending: !!isUserNotAttending,
+        };
+      })
+    );
 
-  return events || [];
+    return eventsWithUserData;
+  }
 };
 
 export const fetchEventData = async (eventId: string) => {
+  const session = await auth();
   const event = await getEventById(eventId);
-  return event;
+  const isLikedByUser = await db.like.findFirst({
+    where: {
+      eventId,
+      userId: session?.user?.id,
+    },
+  });
+  const isUserAttending = await db.eventAttendee.findFirst({
+    where: {
+      eventId,
+      userId: session?.user?.id,
+      status: EventStatus.GOING,
+    },
+  });
+  const isUserNotAttending = await db.eventAttendee.findFirst({
+    where: {
+      eventId,
+      userId: session?.user?.id,
+      status: EventStatus.NOT_GOING,
+    },
+  });
+
+  return {
+    ...event,
+    isLikedByUser: !!isLikedByUser,
+    isUserAttending: !!isUserAttending,
+    isUserNotAttending: !!isUserNotAttending,
+  };
 };
