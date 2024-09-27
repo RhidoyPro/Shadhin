@@ -251,6 +251,14 @@ export const fetchEvents = async (
   page?: number,
   limit?: number
 ) => {
+  await db.message.updateMany({
+    where: {
+      stateName: "all-states",
+    },
+    data: {
+      stateName: "all-districts",
+    },
+  });
   const session = await auth();
   const events =
     (await getEventsByStatePaginated(stateName, page, limit)) || [];
