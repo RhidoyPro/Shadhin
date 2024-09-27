@@ -29,7 +29,7 @@ export const sendEventEmails = async (
 ) => {
   //resend can send 100 emails at once, so we need to chunk the emails
   const chunkedEmails = emails.reduce((acc, email, i) => {
-    const index = Math.floor(i / 100);
+    const index = Math.floor(i / 50);
     if (!acc[index]) {
       acc[index] = [];
     }
