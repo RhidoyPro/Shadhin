@@ -23,31 +23,44 @@ export const sendForgotPasswordEmail = async (email: string, code: string) => {
   });
 };
 
+const RECIPIENTS_PER_EMAIL = 50;
+const MAX_BATCH_SIZE = 100;
+
 export const sendEventEmails = async (
   emails: string[],
   event: { stateName: string; id: string; createdAt: Date; createdBy: string }
 ) => {
-  //resend can send 100 emails at once, so we need to chunk the emails
-  const chunkedEmails = emails.reduce((acc, email, i) => {
-    const index = Math.floor(i / 50);
-    if (!acc[index]) {
-      acc[index] = [];
+  // Group emails into chunks of 50 recipients
+  const emailGroups = emails.reduce((acc, email, i) => {
+    const groupIndex = Math.floor(i / RECIPIENTS_PER_EMAIL);
+    if (!acc[groupIndex]) {
+      acc[groupIndex] = [];
     }
-    acc[index].push(email);
+    acc[groupIndex].push(email);
     return acc;
   }, [] as string[][]);
 
-  for (const chunk of chunkedEmails) {
-    await resend.emails.send({
-      from: "help@shadhin.io",
-      to: chunk,
-      subject: `New event in ${event.stateName}`,
-      react: EventBroadcastEmail({
-        stateName: event.stateName,
-        eventId: event.id,
-        createdAt: event.createdAt,
-        createdBy: event.createdBy,
-      }),
-    });
+  // Prepare email data for each group
+  const emailData = emailGroups.map((group) => ({
+    from: "help@shadhin.io",
+    to: group,
+    subject: `New event in ${event.stateName}`,
+    react: EventBroadcastEmail({
+      stateName: event.stateName,
+      eventId: event.id,
+      createdAt: event.createdAt,
+      createdBy: event.createdBy,
+    }),
+  }));
+
+  // Send emails in batches of 100
+  for (let i = 0; i < emailData.length; i += MAX_BATCH_SIZE) {
+    const batch = emailData.slice(i, i + MAX_BATCH_SIZE);
+    try {
+      await resend.batch.send(batch);
+      console.log(`Sent batch ${i / MAX_BATCH_SIZE + 1}`);
+    } catch (error) {
+      console.error(`Error sending batch ${i / MAX_BATCH_SIZE + 1}:`, error);
+    }
   }
 };
