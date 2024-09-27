@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import Image from "next/image";
 import { formatDistance } from "date-fns";
 import { Prisma, UserRole } from "@prisma/client";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import UserAvatar from "./UserAvatar";
 import VerifiedBadge from "./VerifiedBadge";
@@ -57,6 +59,26 @@ const EventCard = ({
   eventAttendHandler,
   eventNotAttendHandler,
 }: EventCardProps) => {
+  const [isContentClamped, setIsContentClamped] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkContentOverflow = () => {
+      if (contentRef.current) {
+        const isOverflowing =
+          contentRef.current.scrollHeight > contentRef.current.clientHeight;
+        setIsContentClamped(isOverflowing);
+      }
+    };
+
+    checkContentOverflow();
+    window.addEventListener("resize", checkContentOverflow);
+
+    return () => {
+      window.removeEventListener("resize", checkContentOverflow);
+    };
+  }, [event.content]);
+
   return (
     <Card>
       <CardHeader className="py-4">
@@ -80,15 +102,21 @@ const EventCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-2">
-        {!showFullContent && (
-          <Link
-            href={`/events/details/${event.id}`}
-            className="line-clamp-2 sm:line-clamp-4 cursor-pointer break-words"
-          >
-            {event.content}
+        <div
+          ref={contentRef}
+          className={`${
+            showFullContent ? "" : "line-clamp-2 sm:line-clamp-4"
+          } break-words`}
+        >
+          {event.content}
+        </div>
+        {!showFullContent && isContentClamped && (
+          <Link href={`/events/details/${event.id}`} passHref>
+            <Button variant="link" className="p-0 h-auto font-semibold mt-1">
+              Show more
+            </Button>
           </Link>
         )}
-        {showFullContent && <p className="break-words">{event.content}</p>}
         <div className="mt-2">
           {event?.type === "image" && event.mediaUrl && (
             <Image

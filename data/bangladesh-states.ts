@@ -4,7 +4,7 @@ interface State {
   slug: string;
 }
 const BangladeshStates: State[] = [
-  { id: 0, name: "All States", slug: "all-states" },
+  { id: 0, name: "All Districts", slug: "all-districts" },
   { id: 1, name: "Dhaka", slug: "dhaka" },
   { id: 2, name: "Chattogram", slug: "chattogram" },
   { id: 3, name: "Khulna", slug: "khulna" },

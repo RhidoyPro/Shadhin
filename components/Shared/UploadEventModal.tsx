@@ -181,12 +181,12 @@ const UploadEventModal = ({
             </Select>
           </DialogTitle>
         </DialogHeader>
-        {stateName === "all-states" && user?.role === UserRole.USER ? (
+        {stateName === "all-districts" && user?.role === UserRole.USER ? (
           <>
             <div className="mt-4">
               <p>
-                You are not allowed to post events in all states. Only selected
-                users can post events in all states.
+                You are not allowed to post events in all districts. Only
+                selected users can post events in all districts.
               </p>
             </div>
             <Button className="mt-4" onClick={onClose} variant="destructive">

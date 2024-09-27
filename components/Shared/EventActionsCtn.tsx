@@ -25,6 +25,12 @@ import { Textarea } from "../ui/textarea";
 import { addNewReport } from "@/actions/report";
 import { EventType } from "@prisma/client";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type EventActionsCtnProps = {
   eventId: string;
@@ -100,76 +106,138 @@ const EventActionsCtn = ({
             >
               {comments} {comments === 1 ? "comment" : "comments"}
             </Link>
-            <Separator className="h-4" orientation="vertical" />
-            <span>
-              {attendees} {attendees === 1 ? "person" : "people"} going
-            </span>
+            {eventType === EventType.EVENT && (
+              <>
+                <Separator className="h-4" orientation="vertical" />
+                <span>
+                  {attendees} {attendees === 1 ? "person" : "people"} going
+                </span>
+              </>
+            )}
           </div>
         </div>
         <Separator className="my-3" />
         <div className="flex flex-col-reverse xs:flex-row xs:justify-between xs:items-center w-full">
           <div className="flex items-center justify-between xs:justify-normal gap-3">
-            <Button
-              variant="ghost"
-              size={"iconRounded"}
-              onClick={eventLikeHandler}
-              className={
-                isLiked
-                  ? "bg-blue-100 text-blue-500 hover:bg-blue-100 hover:text-blue-500"
-                  : ""
-              }
-            >
-              <ThumbsUp />
-            </Button>
-            <Button variant="ghost" size={"iconRounded"} asChild>
-              <Link href={`/events/details/${eventId}`}>
-                <MessageCircle />
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size={"iconRounded"}
-              onClick={shareEventHandler}
-            >
-              <Share />
-            </Button>
-            <Button
-              variant="ghost"
-              size={"iconRounded"}
-              onClick={() => setIsReportDialogOpen(true)}
-            >
-              <BadgeAlertIcon />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={"iconRounded"}
+                    onClick={eventLikeHandler}
+                    className={
+                      isLiked
+                        ? "bg-blue-100 text-blue-500 hover:bg-blue-100 hover:text-blue-500"
+                        : ""
+                    }
+                  >
+                    <ThumbsUp />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">{isLiked ? "Unlike" : "Like"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size={"iconRounded"} asChild>
+                    <Link href={`/events/details/${eventId}`}>
+                      <MessageCircle />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">Comment</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={"iconRounded"}
+                    onClick={shareEventHandler}
+                  >
+                    <Share />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">Share</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={"iconRounded"}
+                    onClick={() => setIsReportDialogOpen(true)}
+                  >
+                    <BadgeAlertIcon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">Report</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <Separator className="mt-3 xs:hidden" />
           {eventType === EventType.EVENT && (
             <div className="flex items-center gap-3">
-              <Button
-                variant="secondary"
-                size={"sm"}
-                className={`w-full xs:w-auto ${
-                  isAttending
-                    ? "bg-green-100 text-green-500 hover:bg-green-100"
-                    : ""
-                }`}
-                onClick={eventAttendHandler}
-              >
-                <CircleCheck className="mr-2" />
-                Going
-              </Button>
-              <Button
-                variant="secondary"
-                size={"sm"}
-                className={`w-full xs:w-auto ${
-                  isNotAttending
-                    ? "bg-red-100 text-red-500 hover:bg-red-100"
-                    : ""
-                }`}
-                onClick={eventNotAttendHandler}
-              >
-                <CircleX className="mr-2" />
-                Not Going
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size={"sm"}
+                      className={`w-full xs:w-auto ${
+                        isAttending
+                          ? "bg-green-100 text-green-500 hover:bg-green-100"
+                          : ""
+                      }`}
+                      onClick={eventAttendHandler}
+                    >
+                      <CircleCheck className="mr-2" />
+                      Going
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">
+                      Mark yourself as going to this event
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size={"sm"}
+                      className={`w-full xs:w-auto ${
+                        isNotAttending
+                          ? "bg-red-100 text-red-500 hover:bg-red-100"
+                          : ""
+                      }`}
+                      onClick={eventNotAttendHandler}
+                    >
+                      <CircleX className="mr-2" />
+                      Not Going
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">
+                      Mark yourself as not going to this event
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
         </div>

@@ -125,13 +125,13 @@ export const createEvent = async ({
     };
   }
 
-  //we need to check if the stateName is all-states and the user is a normal user, we throw an error
+  //we need to check if the stateName is all-districts and the user is a normal user, we throw an error
   if (
     stateName === BangladeshStates[0].slug &&
     session?.user?.role === UserRole.USER
   ) {
     return {
-      error: "Unauthorized! You can't post to all states",
+      error: "Unauthorized! You can't post to all districts",
     };
   }
 
@@ -251,6 +251,14 @@ export const fetchEvents = async (
   page?: number,
   limit?: number
 ) => {
+  await db.event.updateMany({
+    where: {
+      stateName: "all-states",
+    },
+    data: {
+      stateName: "all-districts",
+    },
+  });
   const session = await auth();
   const events =
     (await getEventsByStatePaginated(stateName, page, limit)) || [];
