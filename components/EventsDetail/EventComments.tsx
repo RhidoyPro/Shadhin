@@ -12,6 +12,7 @@ import { formatDistance } from "date-fns";
 import { useSocket } from "@/context/SocketProvider";
 import { v4 as uuidv4 } from "uuid";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import UserAvatar from "../Shared/UserAvatar";
 
 type EventCommentWithUser = Prisma.CommentGetPayload<{
   include: {
@@ -152,7 +153,11 @@ const EventComments = ({
       <div className="mt-4 space-y-3">
         {eventComments.map((comment) => (
           <div key={comment.id} className="flex gap-2">
-            <CurrentUserAvatar size={8} />
+            <UserAvatar
+              id={comment.user.id}
+              image={comment?.user?.image || ""}
+              size={8}
+            />
             <div className="flex-1 bg-slate-100 dark:bg-neutral-700 px-3 py-2 rounded-md">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-sm">{comment.user.name}</p>

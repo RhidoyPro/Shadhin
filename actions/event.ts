@@ -321,6 +321,34 @@ export const fetchUserEvents = async (
   }
 };
 
+export const fetchEventById = async (eventId: string) => {
+  const session = await auth();
+  const event = await getEventById(eventId);
+  if (!event) {
+    return null;
+  }
+  const isLikedByUser = event.likes.find(
+    (like) => like.userId === session?.user?.id
+  );
+  const isUserAttending = event.attendees.find(
+    (attendee) =>
+      attendee.userId === session?.user?.id &&
+      attendee.status === EventStatus.GOING
+  );
+  const isUserNotAttending = event.attendees.find(
+    (attendee) =>
+      attendee.userId === session?.user?.id &&
+      attendee.status === EventStatus.NOT_GOING
+  );
+
+  return {
+    ...event,
+    isLikedByUser: !!isLikedByUser,
+    isUserAttending: !!isUserAttending,
+    isUserNotAttending: !!isUserNotAttending,
+  };
+};
+
 export const fetchEventData = async (eventId: string) => {
   const session = await auth();
   const event = await getEventById(eventId);

@@ -116,26 +116,7 @@ export const getEventById = async (eventId: string) => {
         },
       },
     });
-    if (!event) return null;
-    const isLikedByUser = event.likes.find(
-      (like) => like.userId === event.userId
-    );
-    const isUserAttending = event.attendees.find(
-      (attendee) =>
-        attendee.userId === event.userId &&
-        attendee.status === EventStatus.GOING
-    );
-    const isUserNotAttending = event.attendees.find(
-      (attendee) =>
-        attendee.userId === event.userId &&
-        attendee.status === EventStatus.NOT_GOING
-    );
-    return {
-      ...event,
-      isLikedByUser: !!isLikedByUser,
-      isUserAttending: !!isUserAttending,
-      isUserNotAttending: !!isUserNotAttending,
-    };
+    return event;
   } catch {
     return null;
   }

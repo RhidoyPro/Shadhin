@@ -1,11 +1,11 @@
 import React from "react";
 import EventComments from "@/components/EventsDetail/EventComments";
-import { getEventById } from "@/data/events";
 import { fetchEventComments } from "@/actions/comment";
 import EventData from "@/components/EventsDetail/EventData";
+import { fetchEventById } from "@/actions/event";
 
 const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
-  const event = await getEventById(params.eventId);
+  const event = await fetchEventById(params.eventId);
   const comments = await fetchEventComments(params.eventId);
 
   return (
