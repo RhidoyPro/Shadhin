@@ -212,6 +212,7 @@ const UploadEventModal = ({
                   className="mt-4 resize-none min-h-40"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  autoFocus
                 />
               </div>
               <section className="text-center mt-4 border-2 border-dashed border-slate-200 p-4 rounded-sm h-24 flex items-center justify-center flex-col cursor-pointer transition-all duration-200 ease-in hover:bg-slate-100 dark:hover:bg-neutral-700">

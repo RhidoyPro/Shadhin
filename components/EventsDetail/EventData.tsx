@@ -6,12 +6,15 @@ import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { useSocket } from "@/context/SocketProvider";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
+import { deleteEventByUser } from "@/actions/event";
+import { useRouter } from "next/navigation";
 
 interface IEventData {
   event: EventWithUser;
 }
 
 const EventData = ({ event: initialEvent }: IEventData) => {
+  const router = useRouter();
   const [event, setEvent] = useState<EventWithUser>(initialEvent);
   const { sendNotification } = useSocket();
   const user = useCurrentUser();
@@ -78,6 +81,11 @@ const EventData = ({ event: initialEvent }: IEventData) => {
     setEvent(initialEvent);
   }, [initialEvent]);
 
+  const onDeleteEvent = async () => {
+    deleteEventByUser(event.id);
+    router.push(`/user/${event.user.id}`);
+  };
+
   return (
     <EventCard
       showFullContent
@@ -87,6 +95,7 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       eventNotAttendHandler={() =>
         notAttendEventHandler(event.id, event.user.id)
       }
+      onDeleteEvent={onDeleteEvent}
     />
   );
 };

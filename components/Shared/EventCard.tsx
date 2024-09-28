@@ -7,14 +7,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { formatDistance } from "date-fns";
-import { Prisma, UserRole } from "@prisma/client";
+import { EventType, Prisma, UserRole } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import UserAvatar from "./UserAvatar";
 import VerifiedBadge from "./VerifiedBadge";
+import { EyeIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -50,6 +71,7 @@ type EventCardProps = {
   eventLikeHandler: () => void;
   eventAttendHandler: () => void;
   eventNotAttendHandler: () => void;
+  onDeleteEvent: () => void;
 };
 
 const EventCard = ({
@@ -58,7 +80,9 @@ const EventCard = ({
   eventLikeHandler,
   eventAttendHandler,
   eventNotAttendHandler,
+  onDeleteEvent,
 }: EventCardProps) => {
+  const user = useCurrentUser();
   const [isContentClamped, setIsContentClamped] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -82,23 +106,73 @@ const EventCard = ({
   return (
     <Card>
       <CardHeader className="py-4">
-        <CardTitle className="flex items-center gap-3">
-          <UserAvatar
-            size={14}
-            image={event?.user?.image || ""}
-            id={event?.user?.id}
-          />
-          <div>
-            <h1 className="text-base font-semibold flex items-center gap-1">
-              {event?.user?.name}
-              <VerifiedBadge userRole={event?.user?.role as UserRole} />
-            </h1>
-            <p className="text-sm text-slate-400 font-medium">
-              {formatDistance(event.createdAt, new Date(), {
-                addSuffix: true,
-              })}
-            </p>
+        <CardTitle className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              size={14}
+              image={event?.user?.image || ""}
+              id={event?.user?.id}
+            />
+            <div>
+              <h1 className="text-base font-semibold flex items-center gap-1">
+                {event?.user?.name}
+                <VerifiedBadge userRole={event?.user?.role as UserRole} />
+              </h1>
+              <p className="text-sm text-slate-400 font-medium">
+                {formatDistance(event.createdAt, new Date(), {
+                  addSuffix: true,
+                })}
+              </p>
+            </div>
           </div>
+          <AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="p-2">
+                  <MoreHorizontalIcon size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Event Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link href={`/events/details/${event.id}`}>
+                    <EyeIcon size={16} className="mr-2" />
+                    View{" "}
+                    {event.eventType === EventType.EVENT ? "Event" : "Post"}
+                  </Link>
+                </DropdownMenuItem>
+                {user?.id === event.user.id && (
+                  <AlertDialogTrigger asChild>
+                    <p className="text-sm flex items-center p-2 text-red-500 hover:bg-gray-100 cursor-pointer">
+                      <Trash2Icon size={16} className="mr-2" />
+                      Delete{" "}
+                      {event.eventType === EventType.EVENT ? "Event" : "Post"}
+                    </p>
+                  </AlertDialogTrigger>
+                )}
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete this{" "}
+                      {event.eventType === EventType.EVENT ? "event" : "post"}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      the{" "}
+                      {event.eventType === EventType.EVENT ? "event" : "post"}.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onDeleteEvent}>
+                      Continue
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </AlertDialog>
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-2">

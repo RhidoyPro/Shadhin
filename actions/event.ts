@@ -380,3 +380,58 @@ export const fetchEventData = async (eventId: string) => {
     isUserNotAttending: !!isUserNotAttending,
   };
 };
+
+export const deleteEventByUser = async (eventId: string) => {
+  const session = await auth();
+
+  if (!session) {
+    return {
+      error: "User not authenticated",
+    };
+  }
+
+  try {
+    const event = await db.event.findUnique({
+      where: {
+        id: eventId,
+      },
+    });
+
+    if (!event) {
+      return {
+        error: "Event not found",
+      };
+    }
+
+    if (event.userId !== session.user.id) {
+      return {
+        error: "Unauthorized",
+      };
+    }
+
+    if (event.mediaUrl) {
+      const deleteObjectCommand = new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME!,
+        Key: event.mediaUrl?.split("/").pop() as string,
+      });
+
+      await s3.send(deleteObjectCommand);
+    }
+
+    // Delete the event from the database
+    await db.event.delete({
+      where: {
+        id: eventId,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Event deleted successfully",
+    };
+  } catch {
+    return {
+      error: "Something went wrong",
+    };
+  }
+};

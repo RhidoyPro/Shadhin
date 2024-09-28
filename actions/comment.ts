@@ -29,7 +29,7 @@ export const addComment = async (eventId: string, content: string) => {
 
   // Save the comment to the database
 
-  await db.comment.create({
+  const comment = await db.comment.create({
     data: {
       eventId,
       userId: session.user.id!,
@@ -41,6 +41,7 @@ export const addComment = async (eventId: string, content: string) => {
 
   return {
     success: true,
+    comment,
   };
 };
 
@@ -51,4 +52,44 @@ export const fetchEventComments = async (
 ) => {
   const comments = await getCommentsByEventId(eventId, page, limit);
   return comments;
+};
+
+export const deleteComment = async (commentId: string) => {
+  const session = await auth();
+
+  if (!session) {
+    return {
+      error: "User not authenticated",
+    };
+  }
+
+  const comment = await db.comment.findUnique({
+    where: {
+      id: commentId,
+    },
+  });
+
+  if (!comment) {
+    return {
+      error: "Comment not found",
+    };
+  }
+
+  if (comment.userId !== session.user.id) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  await db.comment.delete({
+    where: {
+      id: commentId,
+    },
+  });
+
+  revalidatePath("/events/details/[eventId]", "page");
+
+  return {
+    success: true,
+  };
 };

@@ -4,7 +4,7 @@ import { useInView } from "react-intersection-observer";
 import UploadCard from "./UploadCard";
 import EventCard, { EventWithUser } from "../Shared/EventCard";
 import ClipLoader from "react-spinners/ClipLoader";
-import { fetchEvents } from "@/actions/event";
+import { deleteEventByUser, fetchEvents } from "@/actions/event";
 import { like } from "@/actions/like";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { useSocket } from "@/context/SocketProvider";
@@ -120,6 +120,11 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     }
   };
 
+  const onDeleteEvent = async (eventId: string) => {
+    setEvents(events.filter((event) => event.id !== eventId));
+    await deleteEventByUser(eventId);
+  };
+
   return (
     <section className="flex-[2.5] flex flex-col gap-3">
       <UploadCard />
@@ -135,6 +140,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
             eventNotAttendHandler={() =>
               notAttendEventHandler(event.id, event.user.id)
             }
+            onDeleteEvent={() => onDeleteEvent(event.id)}
           />
         ))
       ) : (

@@ -30,15 +30,17 @@ const UploadCard = () => {
           </div>
         </CardHeader>
         <Separator />
-        <CardContent className="hidden xs:flex items-center justify-between gap-3 pb-2 mt-2">
+        <CardContent className="hidden sm:flex items-center justify-between gap-3 pb-2 mt-2">
           <Button variant="ghost" onClick={() => setEventModalOpen(true)}>
             <Video className="mr-2" />
             Upload Video
           </Button>
+          <Separator className="h-6" orientation="vertical" />
           <Button variant="ghost" onClick={() => setEventModalOpen(true)}>
             <ImageIcon className="mr-2" />
             Upload Photo
           </Button>
+          <Separator className="h-6" orientation="vertical" />
           <Button
             variant="ghost"
             onClick={() => {
@@ -48,6 +50,19 @@ const UploadCard = () => {
           >
             <CalendarCheck2Icon className="mr-2" />
             Post Events
+          </Button>
+        </CardContent>
+        <CardContent className="sm:hidden pb-2 mt-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setEventModalOpen(true);
+              setStatus(false);
+            }}
+            className="w-full"
+          >
+            <CalendarCheck2Icon className="mr-2" />
+            <span>Post Events</span>
           </Button>
         </CardContent>
       </Card>

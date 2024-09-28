@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import EventCard, { EventWithUser } from "@/components/Shared/EventCard";
 import { useInView } from "react-intersection-observer";
-import { fetchUserEvents } from "@/actions/event";
+import { deleteEventByUser, fetchUserEvents } from "@/actions/event";
 import ClipLoader from "react-spinners/ClipLoader";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { like } from "@/actions/like";
@@ -118,6 +118,11 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
     }
   };
 
+  const onDeleteEvent = async (eventId: string) => {
+    setEvents(events.filter((event) => event.id !== eventId));
+    await deleteEventByUser(eventId);
+  };
+
   return (
     <>
       {events?.length ? (
@@ -132,6 +137,7 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
             eventNotAttendHandler={() =>
               notAttendEventHandler(event.id, event.user.id)
             }
+            onDeleteEvent={() => onDeleteEvent(event.id)}
           />
         ))
       ) : (
