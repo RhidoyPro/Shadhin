@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { track } from "@vercel/analytics";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +33,7 @@ import { SignupSchema } from "@/utils/zodSchema";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
 import BangladeshStates from "@/data/bangladesh-states";
+import { addAnalyticEvent } from "@/utils/addAnalyticsEvent";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -63,7 +63,12 @@ export default function SignupPage() {
   }, [state]);
 
   const handleSubmit = (formData: FormData) => {
-    track("signup_email");
+    addAnalyticEvent({
+      action: "signup",
+      category: "auth",
+      label: "User signup",
+      value: formData.get("email") as string,
+    });
     const data = {
       email: formData.get("email") as string,
       password: formData.get("password") as string,

@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { track } from "@vercel/analytics";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +26,7 @@ import {
 import BangladeshStates from "@/data/bangladesh-states";
 import { computeSHA256 } from "@/utils/computeHash";
 import VerifiedBadge from "./VerifiedBadge";
+import { addAnalyticEvent } from "@/utils/addAnalyticsEvent";
 
 type UploadEventModalProps = {
   isOpen: boolean;
@@ -90,7 +90,12 @@ const UploadEventModal = ({
     }
 
     try {
-      track("upload_event");
+      addAnalyticEvent({
+        action: "upload_event",
+        category: "event",
+        label: "User upload event",
+        value: "User trying to upload event in " + stateName,
+      });
       if (file) {
         const checkSum = await computeSHA256(file);
         const signedUrlResult = await getSignedURL(
