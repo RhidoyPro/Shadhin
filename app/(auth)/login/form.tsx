@@ -30,18 +30,24 @@ function SubmitButton() {
 const LoginForm = () => {
   const [state, formAction] = useFormState(loginWithCreds, null);
   const [isLoginWithPhone, setIsLoginWithPhone] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!state) return;
     if (state.message) {
+      setMessage(state.message);
       toast.success(state.message);
     }
     if (state.error) {
+      setError(state.error);
       toast.error(state.error);
     }
   }, [state]);
 
   const handleSubmit = (formData: FormData) => {
+    setMessage("");
+    setError("");
     const data = {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
@@ -154,6 +160,8 @@ const LoginForm = () => {
               : "Login with Phone instead"}
           </Label>
         </div>
+        {message && <p className="text-green-500">{message}</p>}
+        {error && <p className="text-red-500">{error}</p>}
         <SubmitButton />
         {/* <Button
           variant="outline"

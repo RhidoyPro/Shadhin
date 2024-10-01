@@ -10,7 +10,10 @@ import { SignupSchema } from "@/utils/zodSchema";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { sendVerificationEmail } from "@/lib/mail";
-import { updateIsEmailSent } from "@/data/verification-token";
+import {
+  getVerificationTokenByEmail,
+  updateIsEmailSent,
+} from "@/data/verification-token";
 
 export const login = async (provider: string) => {
   await signIn(provider, {
@@ -66,20 +69,24 @@ export const loginWithCreds = async (state: any, formData: ILoginData) => {
   }
 
   if (!existingUser.emailVerified) {
-    const verificationToken = await generateVerificationToken(
-      rawFormData.email || existingUser.email
-    );
+    const existingToken = await getVerificationTokenByEmail(existingUser.email);
 
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token
-    );
-
-    //we need to update isEmailSent to true
-    await updateIsEmailSent(verificationToken.token);
+    if (!existingToken || new Date(existingToken.expires) < new Date()) {
+      const verificationToken = await generateVerificationToken(
+        existingUser.email
+      );
+      await sendVerificationEmail(
+        verificationToken.email,
+        verificationToken.token
+      );
+      await updateIsEmailSent(verificationToken.token);
+    } else {
+      await sendVerificationEmail(existingToken.email, existingToken.token);
+      await updateIsEmailSent(existingToken.token);
+    }
 
     return {
-      message:
+      error:
         "Your email is not verified. Verification email send again, please verify your email and login",
     };
   }
