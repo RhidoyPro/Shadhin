@@ -36,6 +36,7 @@ import UserAvatar from "./UserAvatar";
 import VerifiedBadge from "./VerifiedBadge";
 import { EyeIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import FormattedContent from "./FormattedContent";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -182,7 +183,7 @@ const EventCard = ({
             showFullContent ? "" : "line-clamp-2 sm:line-clamp-4"
           } break-words`}
         >
-          {event.content}
+          <FormattedContent content={event.content} />
         </div>
         {!showFullContent && isContentClamped && (
           <Link href={`/events/details/${event.id}`} passHref>
