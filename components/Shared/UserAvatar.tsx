@@ -14,7 +14,7 @@ const UserAvatar = ({ size = 10, image, id }: UserAvatarProps) => {
   return (
     <Avatar className={`max-h-${size} max-w-${size} cursor-pointer relative`}>
       <Link href={`/user/${id}`}>
-        <AvatarImage src={image} />
+        <AvatarImage src={image} className="object-contain bg-gray-100" />
         <AvatarFallback>
           <UserRound className="text-slate-500" />
         </AvatarFallback>

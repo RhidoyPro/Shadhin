@@ -44,7 +44,10 @@ const Navbar = async () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="cursor-pointer">
-                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarImage
+                  src={session?.user?.image || ""}
+                  className="object-contain bg-gray-100"
+                />
                 <AvatarFallback>
                   <UserRound className="text-slate-500" />
                 </AvatarFallback>

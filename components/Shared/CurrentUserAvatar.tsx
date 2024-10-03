@@ -15,7 +15,10 @@ const CurrentUserAvatar = ({ size = 10 }: CurrentUserAvatarProps) => {
   return (
     <Avatar className={`h-${size} w-${size} cursor-pointer`} asChild>
       <Link href={`/user/${user?.id}`}>
-        <AvatarImage src={user?.image || ""} />
+        <AvatarImage
+          src={user?.image || ""}
+          className="object-contain bg-gray-100"
+        />
         <AvatarFallback>
           <UserRound className="text-slate-500" />
         </AvatarFallback>
