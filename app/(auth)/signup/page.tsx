@@ -80,11 +80,11 @@ export default function SignupPage() {
       state: formData.get("state") as string,
     };
     console.log(data);
-    const phoneNumber = formData.get("phone") as string;
-    if (!isValidPhoneNumber(phoneNumber)) {
-      toast.error("Please enter a valid phone number");
-      return;
-    }
+    // const phoneNumber = formData.get("phone") as string;
+    // if (!isValidPhoneNumber(phoneNumber)) {
+    //   toast.error("Please enter a valid phone number");
+    //   return;
+    // }
     const validatedData = SignupSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -137,8 +137,8 @@ export default function SignupPage() {
                 required
               />
             </div>
-            <div className="grid sm:grid-cols-2 gap-2">
-              <div className="grid gap-2">
+            <div className="grid gap-2">
+              {/* <div className="grid gap-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <PhoneInput
                   placeholder="Enter number"
@@ -147,7 +147,7 @@ export default function SignupPage() {
                   id="phone"
                   name="phone"
                 />
-              </div>
+              </div> */}
               <div className="grid gap-2">
                 <Label htmlFor="state">State</Label>
                 <Select name="state">

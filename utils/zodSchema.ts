@@ -44,5 +44,5 @@ export const UpdateProfileSchema = z.object({
       message: "Please enter a valid date of birth",
     })
     .optional(),
-  phone: z.string().optional(),
+  // phone: z.string().optional(),
 });

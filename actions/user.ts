@@ -130,7 +130,7 @@ export const updateUser = async (userId: string, data: any) => {
         firstName: data.firstName,
         lastName: data.lastName,
         name: `${data.firstName} ${data.lastName}`,
-        phone: data.phone,
+        // phone: data.phone,
         university: data.university,
         dateOfBirth: data.dateOfBirth,
         stateName: data.state,

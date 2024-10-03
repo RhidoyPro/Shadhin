@@ -112,7 +112,7 @@ const LoginForm = () => {
             />
           </div>
         )}
-        {isLoginWithPhone && (
+        {/* {isLoginWithPhone && (
           <div className="grid gap-2">
             <Label htmlFor="phone" className="text-white">
               Phone Number
@@ -125,7 +125,7 @@ const LoginForm = () => {
               name="phone"
             />
           </div>
-        )}
+        )} */}
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password" className="text-white">
@@ -146,7 +146,7 @@ const LoginForm = () => {
             required
           />
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Switch
             checked={isLoginWithPhone}
             onCheckedChange={setIsLoginWithPhone}
@@ -159,7 +159,7 @@ const LoginForm = () => {
               ? "Login with Email instead"
               : "Login with Phone instead"}
           </Label>
-        </div>
+        </div> */}
         {message && <p className="text-green-500">{message}</p>}
         {error && <p className="text-red-500">{error}</p>}
         <SubmitButton />

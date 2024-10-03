@@ -86,11 +86,11 @@ const UpdateProfileModal = ({
       dateOfBirth: date,
       state: formData.get("state") as string,
     };
-    const phoneNumber = formData.get("phone") as string;
-    if (!isValidPhoneNumber(phoneNumber)) {
-      toast.error("Please enter a valid phone number");
-      return;
-    }
+    // const phoneNumber = formData.get("phone") as string;
+    // if (!isValidPhoneNumber(phoneNumber)) {
+    //   toast.error("Please enter a valid phone number");
+    //   return;
+    // }
     const validatedData = UpdateProfileSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -268,7 +268,7 @@ const UpdateProfileModal = ({
                 defaultValue={user?.email || ""}
               />
             </div>
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="phone">Phone Number</Label>
               <PhoneInput
                 placeholder="Enter number"
@@ -278,7 +278,7 @@ const UpdateProfileModal = ({
                 name="phone"
                 value={user?.phone || ""}
               />
-            </div>
+            </div> */}
             <div className="grid sm:grid-cols-2 gap-2">
               <div className="grid gap-2">
                 <Label htmlFor="email">University Name</Label>
