@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "npm" 
+    directory: "/" 
+    schedule:
+      interval: "weekly" 
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "auto-update"
+    # Ignore certain dependencies or major version updates
+    ignore:
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
