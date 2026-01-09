@@ -31,7 +31,7 @@
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@react-email/components": "0.0.22",
-    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-table": "^8.21.3",
     "@types/bcryptjs": "^2.4.6",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.0.12",
