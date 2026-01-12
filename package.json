@@ -10,7 +10,7 @@
     "email": "email dev"
   },
   "dependencies": {
-    "@auth/mongodb-adapter": "^3.4.2",
+    "@auth/mongodb-adapter": "^3.11.1",
     "@auth/prisma-adapter": "^2.4.2",
     "@aws-sdk/client-s3": "^3.637.0",
     "@aws-sdk/s3-request-presigner": "^3.637.0",
