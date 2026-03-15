@@ -15,7 +15,9 @@ const SearchPage = async ({
   searchParams: { q?: string };
 }) => {
   const query = searchParams.q || "";
-  const results = query.length >= 2 ? await search(query) : null;
+  const rawResults = query.length >= 2 ? await search(query) : null;
+  const results =
+    rawResults && "users" in rawResults ? rawResults : null;
 
   return (
     <div className="container px-4 py-6 max-w-2xl">
