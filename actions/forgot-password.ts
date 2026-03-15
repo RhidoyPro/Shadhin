@@ -50,9 +50,7 @@ export const forgotPassword = async (
   password: string,
   setPassword: boolean = false
 ) => {
-  console.log(code);
   const existingCode = await getForgotPasswordCodeByCode(code);
-  console.log(existingCode);
 
   if (!existingCode) {
     return {

@@ -14,9 +14,11 @@ export const addMessage = async (message: string, stateName: string) => {
   }
 
   if (!message || message.trim() === "") {
-    return {
-      error: "Message cannot be empty",
-    };
+    return { error: "Message cannot be empty" };
+  }
+
+  if (message.length > 500) {
+    return { error: "Message cannot exceed 500 characters" };
   }
 
   // Save the message to the database

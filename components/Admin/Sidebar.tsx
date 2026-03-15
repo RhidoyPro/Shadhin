@@ -13,7 +13,6 @@ import LogoutBtn from "../Shared/LogoutBtn";
 
 const Sidebar = () => {
   const pathname = usePathname();
-  console.log(pathname);
   return (
     <aside className="bg-white dark:bg-neutral-900 min-w-[300px] p-4 rounded-md h-full flex flex-col justify-between">
       <div className="flex flex-col gap-4 mt-4">

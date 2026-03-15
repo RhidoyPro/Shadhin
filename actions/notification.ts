@@ -8,7 +8,6 @@ export const addNotification = async (
   eventId: string,
   recieverUserId: string
 ) => {
-  console.log("addNotification");
   const session = await auth();
 
   if (!session) {
@@ -53,21 +52,21 @@ export const readNotification = async (notificationId: string) => {
   const session = await auth();
 
   if (!session) {
-    return {
-      error: "User not authenticated",
-    };
+    return { error: "User not authenticated" };
+  }
+
+  const notification = await db.notification.findUnique({
+    where: { id: notificationId },
+  });
+
+  if (!notification || notification.userId !== session.user.id) {
+    return { error: "Unauthorized" };
   }
 
   await db.notification.update({
-    where: {
-      id: notificationId,
-    },
-    data: {
-      isRead: true,
-    },
+    where: { id: notificationId },
+    data: { isRead: true },
   });
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };

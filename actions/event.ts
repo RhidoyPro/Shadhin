@@ -9,26 +9,15 @@ import {
 } from "@/data/events";
 import { db } from "@/lib/db";
 import { sendEventEmails } from "@/lib/mail";
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import { s3 } from "@/lib/s3";
 
 const generateFileName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
-
-const s3 = new S3Client({
-  region: process.env.AWS_BUCKET_REGION!,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
 
 const acceptedFileTypes = [
   "image/jpeg",
@@ -120,9 +109,11 @@ export const createEvent = async ({
   }
 
   if (!content || content?.trim() === "") {
-    return {
-      error: "Content cannot be empty",
-    };
+    return { error: "Content cannot be empty" };
+  }
+
+  if (content.length > 2000) {
+    return { error: "Content cannot exceed 2000 characters" };
   }
 
   //we need to check if the stateName is all-districts and the user is a normal user, we throw an error

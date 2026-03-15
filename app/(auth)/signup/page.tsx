@@ -79,7 +79,6 @@ export default function SignupPage() {
       dateOfBirth: date,
       state: formData.get("state") as string,
     };
-    console.log(data);
     // const phoneNumber = formData.get("phone") as string;
     // if (!isValidPhoneNumber(phoneNumber)) {
     //   toast.error("Please enter a valid phone number");

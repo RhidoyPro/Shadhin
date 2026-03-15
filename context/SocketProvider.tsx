@@ -80,7 +80,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 
   const onNotificationReceived = useCallback((notification: INotification) => {
-    console.log("notification", notification);
     setNotifications((prevNotifications) => [
       notification,
       ...prevNotifications,
@@ -90,7 +89,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const sendMessage: ISocketContext["sendMessage"] = useCallback(
     (message) => {
-      console.log("sendMessage.socket", socket);
       if (socket) {
         socket.emit("state:message", message);
       }

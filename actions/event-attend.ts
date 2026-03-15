@@ -101,8 +101,6 @@ export const markAsAttending = async (eventId: string) => {
       },
     },
   });
-  console.log(user);
-
   return {
     success: true,
   };

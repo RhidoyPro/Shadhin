@@ -58,7 +58,6 @@ export const sendEventEmails = async (
     const batch = emailData.slice(i, i + MAX_BATCH_SIZE);
     try {
       await resend.batch.send(batch);
-      console.log(`Sent batch ${i / MAX_BATCH_SIZE + 1}`);
     } catch (error) {
       console.error(`Error sending batch ${i / MAX_BATCH_SIZE + 1}:`, error);
     }

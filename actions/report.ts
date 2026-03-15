@@ -13,9 +13,11 @@ export const addNewReport = async (eventId: string, reportReason: string) => {
   }
 
   if (!reportReason || reportReason.trim() === "") {
-    return {
-      error: "Report reason cannot be empty",
-    };
+    return { error: "Report reason cannot be empty" };
+  }
+
+  if (reportReason.length > 500) {
+    return { error: "Report reason cannot exceed 500 characters" };
   }
 
   // Save the report to the database
