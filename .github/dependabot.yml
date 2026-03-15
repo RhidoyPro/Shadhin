@@ -45,3 +45,11 @@ updates:
       # Lock recharts to v2 — chart.tsx uses v2 API
       - dependency-name: "recharts"
         update-types: ["version-update:semver-major"]
+      # Lock ESLint to v8 — Next.js 14 uses the v8 API internally
+      # (useEslintrc + extensions options removed in v9)
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      # Lock eslint-config-next to 14.x — must match Next.js major version
+      # v15+ requires eslint@>=9 which breaks Next.js 14 builds
+      - dependency-name: "eslint-config-next"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
