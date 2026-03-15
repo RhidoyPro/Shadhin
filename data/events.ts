@@ -174,7 +174,10 @@ export const getUserEvents = async (
   }
 };
 
-export const getEventsUserIsAttending = async (userId: string) => {
+export const getEventsUserIsAttending = async (
+  userId: string,
+  limit: number = 5
+) => {
   try {
     const events = await db.event.findMany({
       where: {
@@ -190,29 +193,28 @@ export const getEventsUserIsAttending = async (userId: string) => {
       },
       include: {
         user: true,
-        likes: {
-          select: {
-            id: true,
-          },
-        },
+        likes: { select: { id: true } },
         attendees: {
-          where: {
-            status: EventStatus.GOING,
-          },
-          select: {
-            id: true,
-          },
+          where: { status: EventStatus.GOING },
+          select: { id: true },
         },
-        comments: {
-          select: {
-            id: true,
-          },
-        },
+        comments: { select: { id: true } },
       },
+      take: limit,
     });
     return events;
   } catch {
     return null;
+  }
+};
+
+export const countEventsUserIsAttending = async (userId: string) => {
+  try {
+    return await db.eventAttendee.count({
+      where: { userId, status: EventStatus.GOING },
+    });
+  } catch {
+    return 0;
   }
 };
 

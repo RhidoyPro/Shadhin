@@ -70,7 +70,6 @@ export const markAsAttending = async (eventId: string) => {
     data: { points: { increment: 1 } },
   });
   revalidateTag("leaderboard");
-
   return { success: true };
 };
 
