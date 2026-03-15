@@ -50,6 +50,17 @@ export const forgotPassword = async (
   password: string,
   setPassword: boolean = false
 ) => {
+  // Rate limit code verification attempts to prevent brute-forcing
+  const limited = rateLimit(`verify-code:${code}`, {
+    limit: 5,
+    windowSeconds: 300,
+  });
+  if (limited.limited) {
+    return {
+      error: `Too many attempts. Please try again in ${limited.retryAfterSeconds} seconds.`,
+    };
+  }
+
   const existingCode = await getForgotPasswordCodeByCode(code);
 
   if (!existingCode) {
@@ -61,6 +72,8 @@ export const forgotPassword = async (
   const hasExpired = new Date(existingCode.expires) < new Date();
 
   if (hasExpired) {
+    // Clean up expired code
+    await db.forgotPasswordCode.delete({ where: { id: existingCode.id } });
     return {
       error: "Code has expired, please try again",
     };

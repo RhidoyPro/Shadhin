@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const addNotification = async (
   message: string,
@@ -11,30 +12,42 @@ export const addNotification = async (
   const session = await auth();
 
   if (!session) {
-    return {
-      error: "User not authenticated",
-    };
+    return { error: "User not authenticated" };
+  }
+
+  // Don't allow users to spam-notify others
+  const limited = rateLimit(`notification:${session.user.id}`, {
+    limit: 20,
+    windowSeconds: 60,
+  });
+  if (limited.limited) {
+    return { error: "Too many notifications. Slow down." };
   }
 
   if (!message || message.trim() === "") {
-    return {
-      error: "Message cannot be empty",
-    };
+    return { error: "Message cannot be empty" };
   }
 
-  const reciever = await db.user.findUnique({
-    where: {
-      id: recieverUserId,
-    },
-  });
+  if (message.length > 200) {
+    return { error: "Notification message too long" };
+  }
 
+  // Verify the event exists
+  const event = await db.event.findUnique({ where: { id: eventId } });
+  if (!event) {
+    return { error: "Event not found" };
+  }
+
+  // Don't notify yourself
+  if (session.user.id === recieverUserId) {
+    return { error: "Cannot notify yourself" };
+  }
+
+  const reciever = await db.user.findUnique({ where: { id: recieverUserId } });
   if (!reciever) {
-    return {
-      error: "Reciever not found",
-    };
+    return { error: "Reciever not found" };
   }
 
-  // Save the message to the database
   await db.notification.create({
     data: {
       message,
@@ -43,9 +56,7 @@ export const addNotification = async (
     },
   });
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };
 
 export const readNotification = async (notificationId: string) => {

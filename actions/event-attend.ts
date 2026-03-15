@@ -47,20 +47,18 @@ export const markAsAttending = async (eventId: string) => {
       },
     });
 
-    //we need to decrement the point of the user
-    await db.user.update({
-      where: {
-        id: session.user.id!,
-      },
-      data: {
-        points: {
-          decrement: 1,
-        },
-      },
+    // Decrement points but never below zero
+    const currentUser = await db.user.findUnique({
+      where: { id: session.user.id! },
+      select: { points: true },
     });
-    return {
-      success: true,
-    };
+    if (currentUser && currentUser.points > 0) {
+      await db.user.update({
+        where: { id: session.user.id! },
+        data: { points: { decrement: 1 } },
+      });
+    }
+    return { success: true };
   }
 
   // check if the user has marked the event as not attending
@@ -167,17 +165,17 @@ export const markAsNotAttending = async (eventId: string) => {
       },
     });
 
-    //we need to decrement the point of the user
-    await db.user.update({
-      where: {
-        id: session.user.id!,
-      },
-      data: {
-        points: {
-          decrement: 1,
-        },
-      },
+    // Decrement points but never below zero
+    const currentUser = await db.user.findUnique({
+      where: { id: session.user.id! },
+      select: { points: true },
     });
+    if (currentUser && currentUser.points > 0) {
+      await db.user.update({
+        where: { id: session.user.id! },
+        data: { points: { decrement: 1 } },
+      });
+    }
   }
 
   // Save the attendee to the database
