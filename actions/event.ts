@@ -9,6 +9,7 @@ import {
   getUserEvents,
 } from "@/data/events";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { sendEventEmails } from "@/lib/mail";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -16,6 +17,8 @@ import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { s3 } from "@/lib/s3";
+
+const VALID_STATE_SLUGS = BangladeshStates.map((s) => s.slug);
 
 const generateFileName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
@@ -109,12 +112,24 @@ export const createEvent = async ({
     };
   }
 
+  const limited = rateLimit(`create-event:${session.user.id}`, {
+    limit: 10,
+    windowSeconds: 300,
+  });
+  if (limited.limited) {
+    return { error: "Too many posts. Please slow down." };
+  }
+
   if (!content || content?.trim() === "") {
     return { error: "Content cannot be empty" };
   }
 
   if (content.length > 2000) {
     return { error: "Content cannot exceed 2000 characters" };
+  }
+
+  if (!VALID_STATE_SLUGS.includes(stateName)) {
+    return { error: "Invalid district selected" };
   }
 
   //we need to check if the stateName is all-districts and the user is a normal user, we throw an error

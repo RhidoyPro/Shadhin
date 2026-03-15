@@ -63,9 +63,8 @@ export const loginWithCreds = async (state: any, formData: ILoginData) => {
   }
 
   if (!existingUser || !existingUser.email || !existingUser.hashedPassword) {
-    return {
-      error: "User does not exist",
-    };
+    // Don't reveal whether the account exists — same message for both cases
+    return { error: "Invalid credentials" };
   }
 
   const isMatch = bcrypt.compareSync(
@@ -178,8 +177,9 @@ export const signup = async (state: any, formData: ISignupData) => {
     const user = await getUserByEmail(rawFormData.email);
 
     if (user) {
+      // Don't confirm email existence — silently redirect as if success
       return {
-        error: "User already exists with this email",
+        message: "Verification email sent! Please verify your email and login",
       };
     }
 

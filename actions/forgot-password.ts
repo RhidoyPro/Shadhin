@@ -31,18 +31,15 @@ export const sendForgotPasswordCode = async (email: string) => {
 
   const existingUser = await getUserByEmail(email);
 
+  // Don't reveal whether the email exists — always return the same message
   if (!existingUser) {
-    return {
-      error: "User does not exist",
-    };
+    return { message: "If that email is registered, a reset code has been sent" };
   }
 
   const forgotPasswordCode = await generateForgotPasswordCode(email);
   await sendForgotPasswordEmail(email, forgotPasswordCode.code);
 
-  return {
-    message: "Reset code sent to your email",
-  };
+  return { message: "If that email is registered, a reset code has been sent" };
 };
 
 export const forgotPassword = async (
@@ -50,9 +47,10 @@ export const forgotPassword = async (
   password: string,
   setPassword: boolean = false
 ) => {
-  // Rate limit code verification attempts to prevent brute-forcing
-  const limited = rateLimit(`verify-code:${code}`, {
-    limit: 5,
+  // Rate limit by IP — not by code — so spreading guesses across codes doesn't bypass this
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const limited = rateLimit(`verify-code:${ip}`, {
+    limit: 10,
     windowSeconds: 300,
   });
   if (limited.limited) {
@@ -61,62 +59,50 @@ export const forgotPassword = async (
     };
   }
 
-  const existingCode = await getForgotPasswordCodeByCode(code);
+  // Validate code format before hitting DB (8-char hex)
+  if (!code || !/^[0-9A-F]{8}$/.test(code.trim().toUpperCase())) {
+    return { error: "Invalid code, please try again" };
+  }
+
+  const existingCode = await getForgotPasswordCodeByCode(
+    code.trim().toUpperCase()
+  );
 
   if (!existingCode) {
-    return {
-      error: "Invalid code, please try again",
-    };
+    return { error: "Invalid code, please try again" };
   }
 
   const hasExpired = new Date(existingCode.expires) < new Date();
 
   if (hasExpired) {
-    // Clean up expired code
     await db.forgotPasswordCode.delete({ where: { id: existingCode.id } });
-    return {
-      error: "Code has expired, please try again",
-    };
+    return { error: "Code has expired, please try again" };
   }
 
   const existingUser = await getUserByEmail(existingCode.email);
 
   if (!existingUser) {
-    return {
-      error: "Email not found, please try again",
-    };
+    return { error: "Invalid code, please try again" };
   }
 
   if (!setPassword) {
-    return {
-      showSetPassword: true,
-    };
+    return { showSetPassword: true };
   }
 
   const validatedData = ResetPasswordSchema.safeParse({ password });
 
   if (!validatedData.success) {
-    return {
-      error: validatedData.error.issues[0].message,
-    };
+    return { error: validatedData.error.issues[0].message };
   }
 
   const newPassword = saltAndHash(password);
 
   await db.user.update({
-    where: {
-      id: existingUser.id,
-    },
-    data: {
-      hashedPassword: newPassword,
-    },
+    where: { id: existingUser.id },
+    data: { hashedPassword: newPassword },
   });
 
-  await db.forgotPasswordCode.delete({
-    where: {
-      id: existingCode.id,
-    },
-  });
+  await db.forgotPasswordCode.delete({ where: { id: existingCode.id } });
 
   return {
     message: "Password reset successful, you can now login",
