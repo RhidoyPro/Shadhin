@@ -14,6 +14,8 @@ import {
   getVerificationTokenByEmail,
   updateIsEmailSent,
 } from "@/data/verification-token";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export const login = async (provider: string) => {
   await signIn(provider, {
@@ -35,6 +37,15 @@ interface ILoginData {
 }
 
 export const loginWithCreds = async (state: any, formData: ILoginData) => {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const rateLimitKey = `login:${ip}`;
+  const result = rateLimit(rateLimitKey, { limit: 10, windowSeconds: 60 });
+  if (result.limited) {
+    return {
+      error: `Too many login attempts. Please try again in ${result.retryAfterSeconds} seconds.`,
+    };
+  }
+
   const rawFormData = {
     email: formData.email,
     password: formData.password,
@@ -133,6 +144,14 @@ interface ISignupData {
 }
 
 export const signup = async (state: any, formData: ISignupData) => {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const result = rateLimit(`signup:${ip}`, { limit: 5, windowSeconds: 300 });
+  if (result.limited) {
+    return {
+      error: `Too many signup attempts. Please try again in ${result.retryAfterSeconds} seconds.`,
+    };
+  }
+
   const rawFormData = {
     email: formData.email,
     password: formData.password,

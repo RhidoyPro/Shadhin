@@ -59,3 +59,18 @@ shadcn/ui components live in `components/ui/`. Add new ones via `npx shadcn@late
 ### Database
 
 Prisma schema at `prisma/schema.prisma` (MongoDB provider). Run `npx prisma generate` after schema changes (also runs automatically on `npm run build`). Main models: `User`, `Event`, `Comment`, `Like`, `EventAttendee`, `Message`, `Notification`, `Report`.
+
+## Coding Rules
+
+- **TypeScript always** — no `.js` files, strict mode is on.
+- **All mutations go in `actions/`** — use `"use server"` server actions, never inline API routes for mutations.
+- **Tailwind for all styling** — no inline styles, no CSS modules. Use shadcn/ui components from `components/ui/`.
+- **Never expose secrets** — all AWS, Resend, Google, and DB credentials stay server-side only. `NEXT_PUBLIC_*` vars are safe for the client.
+- **Zod validation** — validate all user input at the action level using schemas in `utils/zodSchema.ts`.
+- **Data reads in `data/`** — keep DB queries out of components and actions; import query functions from the `data/` layer.
+
+## Current Priorities
+
+1. **Feed algorithm** — Build a content ranking system with weighted scoring: engagement 40%, social graph 30%, interest tags 20%, district/location 10%.
+2. **Auth rate limiting** — `actions/auth.ts` (login, signup, forgot-password) currently has no rate limiting. Must be added before launch.
+3. **Socket.IO server** — The frontend connects to `NEXT_PUBLIC_SOCKET_URL` but the Socket.IO server is a separate service not in this repo. It needs to be set up, documented, or co-located.

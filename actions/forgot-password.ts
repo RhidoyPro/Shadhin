@@ -6,8 +6,21 @@ import { generateForgotPasswordCode } from "@/lib/forgot-code";
 import { sendForgotPasswordEmail } from "@/lib/mail";
 import { saltAndHash } from "@/utils/helper";
 import { ResetEmailSchema, ResetPasswordSchema } from "@/utils/zodSchema";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export const sendForgotPasswordCode = async (email: string) => {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const result = rateLimit(`forgot-password:${ip}`, {
+    limit: 5,
+    windowSeconds: 300,
+  });
+  if (result.limited) {
+    return {
+      error: `Too many requests. Please try again in ${result.retryAfterSeconds} seconds.`,
+    };
+  }
+
   const validatedData = ResetEmailSchema.safeParse({ email });
 
   if (!validatedData.success) {
