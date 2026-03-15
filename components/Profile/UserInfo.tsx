@@ -2,7 +2,10 @@ import React from "react";
 import UserAvatar from "../Shared/UserAvatar";
 import { User } from "@prisma/client";
 import { auth } from "@/auth";
-import { getEventsUserIsAttending } from "@/data/events";
+import {
+  getEventsUserIsAttending,
+  countEventsUserIsAttending,
+} from "@/data/events";
 import { getFollowCounts, isFollowing } from "@/data/user";
 import { format, formatDistance } from "date-fns";
 import ProfileUpdate from "./ProfileUpdate";
@@ -19,13 +22,15 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
   const session = await auth();
   const isOwnProfile = session?.user?.id === user.id;
 
-  const [attendingEvents, followCounts, userIsFollowing] = await Promise.all([
-    getEventsUserIsAttending(user.id),
-    getFollowCounts(user.id),
-    session?.user?.id && !isOwnProfile
-      ? isFollowing(session.user.id, user.id)
-      : Promise.resolve(false),
-  ]);
+  const [attendingEvents, attendingCount, followCounts, userIsFollowing] =
+    await Promise.all([
+      getEventsUserIsAttending(user.id, 5),
+      countEventsUserIsAttending(user.id),
+      getFollowCounts(user.id),
+      session?.user?.id && !isOwnProfile
+        ? isFollowing(session.user.id, user.id)
+        : Promise.resolve(false),
+    ]);
 
   return (
     <section className="rounded-lg flex-1 h-fit max-h-[80vh] overflow-y-auto custom-scrollbar md:sticky top-24 left-0">
@@ -90,11 +95,21 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
       {/* Attending events list */}
       {attendingEvents && attendingEvents.length > 0 && (
         <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
-          <h1 className="text-lg font-semibold text-primary mb-3">
-            Attending ({attendingEvents.length})
-          </h1>
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-lg font-semibold text-primary">
+              Attending ({attendingCount})
+            </h1>
+            {attendingCount > 5 && (
+              <Link
+                href={`/user/${user.id}/attending`}
+                className="text-xs text-neutral-500 hover:text-primary transition-colors"
+              >
+                View all
+              </Link>
+            )}
+          </div>
           <div className="space-y-2">
-            {attendingEvents.slice(0, 5).map((event) => (
+            {attendingEvents.map((event) => (
               <Link
                 key={event.id}
                 href={`/events/details/${event.id}`}
