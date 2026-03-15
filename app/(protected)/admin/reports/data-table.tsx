@@ -46,10 +46,10 @@ import { format } from "date-fns";
 
 export type ReportWithUserAndEvent = Prisma.ReportGetPayload<{
   include: {
-    user: true;
+    user: { select: { id: true; name: true; email: true } };
     event: {
       include: {
-        user: true;
+        user: { select: { id: true; name: true; email: true } };
       };
     };
   };
