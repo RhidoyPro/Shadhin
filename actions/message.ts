@@ -3,14 +3,26 @@
 import { auth } from "@/auth";
 import { getMessagesByStateName } from "@/data/messages";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import BangladeshStates from "@/data/bangladesh-states";
+
+const VALID_STATE_NAMES = BangladeshStates.filter(
+  (s) => s.slug !== "all-districts"
+).map((s) => s.name);
 
 export const addMessage = async (message: string, stateName: string) => {
   const session = await auth();
 
   if (!session) {
-    return {
-      error: "User not authenticated",
-    };
+    return { error: "User not authenticated" };
+  }
+
+  const limited = rateLimit(`message:${session.user.id}`, {
+    limit: 15,
+    windowSeconds: 60,
+  });
+  if (limited.limited) {
+    return { error: "Too many messages. Please slow down." };
   }
 
   if (!message || message.trim() === "") {
@@ -21,18 +33,19 @@ export const addMessage = async (message: string, stateName: string) => {
     return { error: "Message cannot exceed 500 characters" };
   }
 
-  // Save the message to the database
+  if (!VALID_STATE_NAMES.includes(stateName)) {
+    return { error: "Invalid state" };
+  }
+
   await db.message.create({
     data: {
-      message,
+      message: message.trim(),
       userId: session.user.id!,
       stateName,
     },
   });
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };
 
 export const fetchMessages = async (

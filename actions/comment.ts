@@ -3,46 +3,49 @@
 import { auth } from "@/auth";
 import { getCommentsByEventId } from "@/data/comments";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import { CommentSchema } from "@/utils/zodSchema";
 import { revalidatePath } from "next/cache";
 
 export const addComment = async (eventId: string, content: string) => {
   const session = await auth();
 
   if (!session) {
+    return { error: "User not authenticated" };
+  }
+
+  const limited = rateLimit(`comment:${session.user.id}`, {
+    limit: 20,
+    windowSeconds: 60,
+  });
+  if (limited.limited) {
     return {
-      error: "User not authenticated",
+      error: `Too many comments. Please slow down.`,
     };
   }
 
-  // Check if the event exists
-  const event = await db.event.findUnique({
-    where: {
-      id: eventId,
-    },
-  });
+  const validated = CommentSchema.safeParse({ content });
+  if (!validated.success) {
+    return { error: validated.error.issues[0].message };
+  }
+
+  const event = await db.event.findUnique({ where: { id: eventId } });
 
   if (!event) {
-    return {
-      error: "Event not found",
-    };
+    return { error: "Event not found" };
   }
-
-  // Save the comment to the database
 
   const comment = await db.comment.create({
     data: {
       eventId,
       userId: session.user.id!,
-      content,
+      content: validated.data.content,
     },
   });
 
   revalidatePath("/events/details/[eventId]", "page");
 
-  return {
-    success: true,
-    comment,
-  };
+  return { success: true, comment };
 };
 
 export const fetchEventComments = async (
@@ -58,38 +61,22 @@ export const deleteComment = async (commentId: string) => {
   const session = await auth();
 
   if (!session) {
-    return {
-      error: "User not authenticated",
-    };
+    return { error: "User not authenticated" };
   }
 
-  const comment = await db.comment.findUnique({
-    where: {
-      id: commentId,
-    },
-  });
-
-  if (!comment) {
-    return {
-      error: "Comment not found",
-    };
+  // Atomic ownership check + delete — avoids TOCTOU race condition
+  try {
+    await db.comment.delete({
+      where: {
+        id: commentId,
+        userId: session.user.id!,
+      },
+    });
+  } catch {
+    return { error: "Comment not found or unauthorized" };
   }
-
-  if (comment.userId !== session.user.id) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-
-  await db.comment.delete({
-    where: {
-      id: commentId,
-    },
-  });
 
   revalidatePath("/events/details/[eventId]", "page");
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };

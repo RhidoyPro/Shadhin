@@ -2,8 +2,8 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
-import { revalidateTag } from "next/cache";
 
 export const toggleFollow = async (targetUserId: string) => {
   const session = await auth();
@@ -14,6 +14,14 @@ export const toggleFollow = async (targetUserId: string) => {
 
   if (session.user.id === targetUserId) {
     return { error: "Cannot follow yourself" };
+  }
+
+  const limited = rateLimit(`follow:${session.user.id}`, {
+    limit: 20,
+    windowSeconds: 60,
+  });
+  if (limited.limited) {
+    return { error: "Too many actions. Please slow down." };
   }
 
   const target = await db.user.findUnique({ where: { id: targetUserId } });
