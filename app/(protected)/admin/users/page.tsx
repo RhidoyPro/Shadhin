@@ -3,7 +3,7 @@ import { UsersDataTable } from "./data-table";
 import { getAllUsers } from "@/data/user";
 import ResendVerificationEmail from "./ResendVerificationEmail";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 const AllUsersPage = async () => {
   const users = await getAllUsers();
