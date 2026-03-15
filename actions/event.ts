@@ -5,6 +5,7 @@ import BangladeshStates from "@/data/bangladesh-states";
 import {
   getEventById,
   getEventsByStatePaginated,
+  getRankedEventsByState,
   getUserEvents,
 } from "@/data/events";
 import { db } from "@/lib/db";
@@ -244,7 +245,7 @@ export const fetchEvents = async (
 ) => {
   const session = await auth();
   const events =
-    (await getEventsByStatePaginated(stateName, page, limit)) || [];
+    (await getRankedEventsByState(stateName, session?.user?.id, page, limit)) || [];
   //we need to add isLiked, isAttending, isNotAttending to the event object
   if (session?.user) {
     const eventsWithUserData = await Promise.all(
