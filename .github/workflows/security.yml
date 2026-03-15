@@ -1,0 +1,129 @@
+name: Security Scan
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 1. Dependency vulnerabilities ─────────────────────────────────────
+      - name: Audit dependencies (high/critical only)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      # ── 2. Hardcoded secrets ───────────────────────────────────────────────
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          FAIL=0
+
+          if grep -rn "AKIA[0-9A-Z]{16}" --include="*.ts" --include="*.tsx" --include="*.js" \
+            --exclude-dir=node_modules --exclude-dir=.next .; then
+            echo "❌ CRITICAL: Hardcoded AWS access key found"
+            FAIL=1
+          fi
+
+          if grep -rn "-----BEGIN.*PRIVATE KEY-----" --include="*.ts" --include="*.tsx" \
+            --exclude-dir=node_modules --exclude-dir=.next .; then
+            echo "❌ CRITICAL: Private key found in source"
+            FAIL=1
+          fi
+
+          if [ $FAIL -eq 1 ]; then exit 1; fi
+          echo "✅ No hardcoded secrets found"
+
+      # ── 3. Server-side env vars leaking to client ──────────────────────────
+      - name: Check for server secrets in client components
+        run: |
+          echo "Scanning for server env vars in client components..."
+          FAIL=0
+
+          CLIENT_FILES=$(grep -rl '"use client"' --include="*.tsx" --include="*.ts" \
+            --exclude-dir=node_modules --exclude-dir=.next . || true)
+
+          for file in $CLIENT_FILES; do
+            if grep -n 'process\.env\.[^N]' "$file" | grep -v 'NEXT_PUBLIC' | grep -v '//'; then
+              echo "❌ HIGH: Server-side env var used in client component: $file"
+              FAIL=1
+            fi
+          done
+
+          if [ $FAIL -eq 1 ]; then exit 1; fi
+          echo "✅ No server secrets leaked to client"
+
+      # ── 4. Dangerous patterns ──────────────────────────────────────────────
+      - name: Check for dangerous code patterns
+        run: |
+          echo "Scanning for dangerous patterns..."
+          FAIL=0
+
+          if grep -rn "dangerouslySetInnerHTML" --include="*.tsx" --include="*.ts" \
+            --exclude-dir=node_modules --exclude-dir=.next .; then
+            echo "❌ HIGH: dangerouslySetInnerHTML found — ensure content is sanitized"
+            FAIL=1
+          fi
+
+          if grep -rn "\$queryRaw\|\$executeRaw" --include="*.ts" --include="*.tsx" \
+            --exclude-dir=node_modules --exclude-dir=.next .; then
+            echo "❌ HIGH: Raw Prisma query found — review for injection risk"
+            FAIL=1
+          fi
+
+          if [ $FAIL -eq 1 ]; then exit 1; fi
+          echo "✅ No dangerous patterns found"
+
+      # ── 5. Debug code in production paths ─────────────────────────────────
+      - name: Check for console.log in sensitive files
+        run: |
+          echo "Scanning for console.log in sensitive files..."
+          FAIL=0
+
+          for dir in actions lib app/api; do
+            if [ -d "$dir" ]; then
+              if grep -rn "console\.log" "$dir" --include="*.ts" --include="*.tsx"; then
+                echo "⚠️  MEDIUM: console.log found in sensitive path: $dir"
+                FAIL=1
+              fi
+            fi
+          done
+
+          if [ $FAIL -eq 1 ]; then exit 1; fi
+          echo "✅ No debug logs in sensitive files"
+
+      # ── 6. Server actions missing auth check ──────────────────────────────
+      - name: Check server actions have auth() calls
+        run: |
+          echo "Scanning server actions for missing auth checks..."
+
+          for file in actions/*.ts; do
+            [ -f "$file" ] || continue
+            if grep -q "export const.*= async" "$file"; then
+              if ! grep -q "await auth()" "$file"; then
+                echo "⚠️  MEDIUM: No auth() call found in $file — verify all mutations are protected"
+              fi
+            fi
+          done
+
+          echo "✅ Auth check scan complete"
+
+      - name: Security scan summary
+        if: success()
+        run: echo "✅ All security checks passed."
