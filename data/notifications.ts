@@ -9,6 +9,7 @@ export const getUserNotifications = async (userId: string) => {
       orderBy: {
         createdAt: "desc",
       },
+      take: 30,
     });
 
     return notifications;

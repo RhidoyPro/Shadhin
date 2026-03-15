@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getIsLikedByUser } from "@/data/like";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { revalidatePath } from "next/cache";
 
 export const like = async (eventId: string) => {
   const session = await auth();
@@ -32,6 +33,7 @@ export const like = async (eventId: string) => {
 
   if (existingLike) {
     await db.like.delete({ where: { id: existingLike.id } });
+    revalidatePath(`/events/details/${eventId}`);
     return { success: true };
   }
 
@@ -39,6 +41,7 @@ export const like = async (eventId: string) => {
     data: { eventId, userId: session.user.id! },
   });
 
+  revalidatePath(`/events/details/${eventId}`);
   return { success: true };
 };
 
