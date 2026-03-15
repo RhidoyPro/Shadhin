@@ -77,7 +77,8 @@ jobs:
 
           # Exclude components/ui/ — shadcn/ui uses dangerouslySetInnerHTML for static CSS injection
           if grep -rn "dangerouslySetInnerHTML" --include="*.tsx" --include="*.ts" \
-            --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=components/ui .; then
+            --exclude-dir=node_modules --exclude-dir=.next . \
+            | grep -v "components/ui/"; then
             echo "❌ HIGH: dangerouslySetInnerHTML found outside ui/ — ensure content is sanitized"
             FAIL=1
           fi
