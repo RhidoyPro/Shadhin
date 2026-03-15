@@ -25,7 +25,7 @@ export const sendForgotPasswordCode = async (email: string) => {
 
   if (!validatedData.success) {
     return {
-      error: validatedData.error.errors[0].message || "Invalid email",
+      error: validatedData.error.issues[0].message || "Invalid email",
     };
   }
 
@@ -84,7 +84,7 @@ export const forgotPassword = async (
 
   if (!validatedData.success) {
     return {
-      error: validatedData.error.errors[0].message,
+      error: validatedData.error.issues[0].message,
     };
   }
 

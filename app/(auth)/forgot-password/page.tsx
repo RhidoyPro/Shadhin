@@ -44,7 +44,7 @@ function ForgotPasswordPage() {
     const validatedEmail = ResetEmailSchema.safeParse({ email });
 
     if (!validatedEmail.success) {
-      toast.error(validatedEmail.error.errors[0].message || "Invalid email");
+      toast.error(validatedEmail.error.issues[0].message || "Invalid email");
       return;
     }
 
