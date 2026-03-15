@@ -1,16 +1,44 @@
 version: 2
 updates:
-  - package-ecosystem: "npm" 
-    directory: "/" 
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
-      interval: "weekly" 
+      interval: "weekly"
     commit-message:
       prefix: "chore"
       include: "scope"
     labels:
       - "dependencies"
       - "auto-update"
-    # Ignore certain dependencies or major version updates
     ignore:
+      # Never bump major versions of framework/runtime packages
       - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      # Lock Tailwind to v3 — project uses v3 config/directives throughout
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      # Lock Zod to v4 — v4 has breaking API changes already applied
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
+      # Lock date-fns to v3 — react-day-picker@8 requires ^2||^3
+      - dependency-name: "date-fns"
+        update-types: ["version-update:semver-major"]
+      # Lock react-day-picker to v8 — calendar.tsx uses v8 API
+      - dependency-name: "react-day-picker"
+        update-types: ["version-update:semver-major"]
+      # Lock NextAuth to beta series in use
+      - dependency-name: "next-auth"
+        update-types: ["version-update:semver-major"]
+      # Lock Prisma client and CLI together
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prisma"
         update-types: ["version-update:semver-major"]
