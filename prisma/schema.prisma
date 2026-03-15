@@ -37,9 +37,14 @@ model User {
   reports       Report[]
   
   points        Int             @default(0)
- 
+  following     Follow[]        @relation("Following")
+  followers     Follow[]        @relation("Followers")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([stateName])
+  @@index([points])
 }
  
 model Account {
@@ -107,6 +112,7 @@ model Event {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([stateName, createdAt])
 }
 
 model Comment {
@@ -168,6 +174,8 @@ model Message {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([stateName, createdAt])
 }
 
 model Notification {
@@ -181,6 +189,22 @@ model Notification {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Follow {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String @db.ObjectId
+  followingId String @db.ObjectId
+  follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Report {

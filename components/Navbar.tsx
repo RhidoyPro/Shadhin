@@ -14,7 +14,7 @@ import {
 import LogoutBtn from "./Shared/LogoutBtn";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { UserRound } from "lucide-react";
+import { Search, UserRound } from "lucide-react";
 import Notifications from "./Notifications";
 import { getUserNotifications } from "@/data/notifications";
 import { UserRole } from "@prisma/client";
@@ -26,6 +26,13 @@ const Navbar = async () => {
     <nav className="py-4 px-4 flex justify-between items-center gap-3 bg-white dark:bg-black shadow-md sticky top-0 left-0 z-40">
       <Logo />
       <div className="flex items-center gap-1 sm:gap-3">
+        {session?.user && (
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/search" aria-label="Search">
+              <Search size={20} />
+            </Link>
+          </Button>
+        )}
         {session?.user && (
           <Notifications userNotifications={userNotifications || []} />
         )}

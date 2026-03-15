@@ -3,9 +3,12 @@ import UserAvatar from "../Shared/UserAvatar";
 import { User } from "@prisma/client";
 import { auth } from "@/auth";
 import { getEventsUserIsAttending } from "@/data/events";
-import { format } from "date-fns";
+import { getFollowCounts, isFollowing } from "@/data/user";
+import { format, formatDistance } from "date-fns";
 import ProfileUpdate from "./ProfileUpdate";
 import VerifiedBadge from "../Shared/VerifiedBadge";
+import FollowButton from "./FollowButton";
+import Link from "next/link";
 
 type UserInfoProps = {
   user: User;
@@ -14,8 +17,15 @@ type UserInfoProps = {
 
 const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
   const session = await auth();
+  const isOwnProfile = session?.user?.id === user.id;
 
-  const attendingEvents = await getEventsUserIsAttending(user.id);
+  const [attendingEvents, followCounts, userIsFollowing] = await Promise.all([
+    getEventsUserIsAttending(user.id),
+    getFollowCounts(user.id),
+    session?.user?.id && !isOwnProfile
+      ? isFollowing(session.user.id, user.id)
+      : Promise.resolve(false),
+  ]);
 
   return (
     <section className="rounded-lg flex-1 h-fit max-h-[80vh] overflow-y-auto custom-scrollbar md:sticky top-24 left-0">
@@ -32,8 +42,35 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
             </p>
           </div>
         </div>
-        {session?.user?.id === user.id && <ProfileUpdate user={user} />}
+        {isOwnProfile && <ProfileUpdate user={user} />}
+        {!isOwnProfile && session?.user && (
+          <FollowButton
+            targetUserId={user.id}
+            initialFollowing={userIsFollowing as boolean}
+          />
+        )}
       </div>
+
+      {/* Follow counts */}
+      <div className="bg-white dark:bg-neutral-900 p-4 mt-4 flex gap-6">
+        <div className="text-center">
+          <p className="text-primary font-bold text-lg">
+            {followCounts.followers}
+          </p>
+          <p className="text-neutral-500 text-sm">Followers</p>
+        </div>
+        <div className="text-center">
+          <p className="text-primary font-bold text-lg">
+            {followCounts.following}
+          </p>
+          <p className="text-neutral-500 text-sm">Following</p>
+        </div>
+        <div className="text-center">
+          <p className="text-primary font-bold text-lg">{eventsCreated}</p>
+          <p className="text-neutral-500 text-sm">Posts</p>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
         <h1 className="text-lg font-semibold text-primary">About</h1>
         <p className="text-neutral-500 dark:text-neutral-400 mt-2">
@@ -49,23 +86,33 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
           </span>
         </p>
       </div>
-      <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
-        <h1 className="text-lg font-semibold text-primary">Events</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 my-2">
-          {user.name} has{" "}
-          <span className="text-primary font-semibold">
-            posted {eventsCreated}
-          </span>{" "}
-          events
-        </p>
-        <p className="text-neutral-500 dark:text-neutral-400">
-          {user.name} is{" "}
-          <span className="text-primary font-semibold">
-            attending {attendingEvents?.length}
-          </span>{" "}
-          events
-        </p>
-      </div>
+
+      {/* Attending events list */}
+      {attendingEvents && attendingEvents.length > 0 && (
+        <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
+          <h1 className="text-lg font-semibold text-primary mb-3">
+            Attending ({attendingEvents.length})
+          </h1>
+          <div className="space-y-2">
+            {attendingEvents.slice(0, 5).map((event) => (
+              <Link
+                key={event.id}
+                href={`/events/details/${event.id}`}
+                className="block p-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <p className="text-sm text-primary line-clamp-2">
+                  {event.content}
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {formatDistance(new Date(event.createdAt), new Date(), {
+                    addSuffix: true,
+                  })}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };
