@@ -92,7 +92,7 @@ const EventActionsCtn = ({
   return (
     <>
       <div className="flex-1">
-        <div className="flex justify-between items-center gap-4 mt-3 text-sm text-slate-500">
+        <div className="flex justify-between items-center gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1">
             <Heart className="fill-red-500 stroke-none h-4 w-4" />
             <span>
@@ -128,7 +128,7 @@ const EventActionsCtn = ({
                     onClick={eventLikeHandler}
                     className={
                       isLiked
-                        ? "bg-blue-100 text-blue-500 hover:bg-blue-100 hover:text-blue-500"
+                        ? "bg-blue-100 text-blue-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/40 dark:hover:text-blue-400"
                         : ""
                     }
                   >
@@ -198,7 +198,7 @@ const EventActionsCtn = ({
                       size={"sm"}
                       className={`w-full xs:w-auto ${
                         isAttending
-                          ? "bg-green-100 text-green-500 hover:bg-green-100"
+                          ? "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-400 dark:hover:bg-green-900/40"
                           : ""
                       }`}
                       onClick={eventAttendHandler}
@@ -222,7 +222,7 @@ const EventActionsCtn = ({
                       size={"sm"}
                       className={`w-full xs:w-auto ${
                         isNotAttending
-                          ? "bg-red-100 text-red-500 hover:bg-red-100"
+                          ? "bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-400 dark:hover:bg-red-900/40"
                           : ""
                       }`}
                       onClick={eventNotAttendHandler}
