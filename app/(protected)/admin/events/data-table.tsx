@@ -62,7 +62,7 @@ import { deleteEvent } from "@/actions/event";
 
 export type EventWithData = Prisma.EventGetPayload<{
   include: {
-    user: { select: { id: true; name: true; image: true; email: true } };
+    user: { select: { id: true; name: true; image: true; email: true; role: true } };
     likes: {
       select: {
         id: true;

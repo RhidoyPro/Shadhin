@@ -40,7 +40,7 @@ import FormattedContent from "./FormattedContent";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
-    user: { select: { id: true; name: true; image: true; email: true } };
+    user: { select: { id: true; name: true; image: true; email: true; role: true } };
     likes: {
       select: {
         id: true;
