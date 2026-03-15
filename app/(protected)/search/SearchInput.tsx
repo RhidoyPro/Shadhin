@@ -1,23 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export default function SearchInput({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
-  const [, startTransition] = useTransition();
+  const [value, setValue] = useState(initialQuery);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const q = e.target.value;
-      startTransition(() => {
-        router.push(`/search?q=${encodeURIComponent(q)}`);
-      });
-    },
-    [router]
-  );
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      router.push(`/search?q=${encodeURIComponent(value)}`);
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [value, router]);
 
   return (
     <div className="relative">
@@ -27,8 +28,8 @@ export default function SearchInput({ initialQuery }: { initialQuery: string }) 
       />
       <Input
         autoFocus
-        defaultValue={initialQuery}
-        onChange={handleChange}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         placeholder="Search people, posts, events..."
         className="pl-9"
       />

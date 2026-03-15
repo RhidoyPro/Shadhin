@@ -7,6 +7,7 @@ import {
 } from "@/data/event-attend";
 import { db } from "@/lib/db";
 import { EventStatus } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 
 export const markAsAttending = async (eventId: string) => {
   const session = await auth();
@@ -57,6 +58,7 @@ export const markAsAttending = async (eventId: string) => {
         where: { id: session.user.id! },
         data: { points: { decrement: 1 } },
       });
+      revalidateTag("leaderboard");
     }
     return { success: true };
   }
@@ -88,20 +90,12 @@ export const markAsAttending = async (eventId: string) => {
     },
   });
 
-  //we need to increment the point of the user
-  const user = await db.user.update({
-    where: {
-      id: session.user.id!,
-    },
-    data: {
-      points: {
-        increment: 1,
-      },
-    },
+  await db.user.update({
+    where: { id: session.user.id! },
+    data: { points: { increment: 1 } },
   });
-  return {
-    success: true,
-  };
+  revalidateTag("leaderboard");
+  return { success: true };
 };
 
 export const markAsNotAttending = async (eventId: string) => {
@@ -175,6 +169,7 @@ export const markAsNotAttending = async (eventId: string) => {
         where: { id: session.user.id! },
         data: { points: { decrement: 1 } },
       });
+      revalidateTag("leaderboard");
     }
   }
 
