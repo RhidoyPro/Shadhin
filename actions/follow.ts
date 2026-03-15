@@ -16,7 +16,7 @@ export const toggleFollow = async (targetUserId: string) => {
     return { error: "Cannot follow yourself" };
   }
 
-  const limited = rateLimit(`follow:${session.user.id}`, {
+  const limited = await rateLimit(`follow:${session.user.id}`, {
     limit: 20,
     windowSeconds: 60,
   });

@@ -12,7 +12,7 @@ export const like = async (eventId: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`like:${session.user.id}`, {
+  const limited = await rateLimit(`like:${session.user.id}`, {
     limit: 30,
     windowSeconds: 60,
   });

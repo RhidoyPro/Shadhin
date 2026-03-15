@@ -14,7 +14,7 @@ export const addComment = async (eventId: string, content: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`comment:${session.user.id}`, {
+  const limited = await rateLimit(`comment:${session.user.id}`, {
     limit: 20,
     windowSeconds: 60,
   });

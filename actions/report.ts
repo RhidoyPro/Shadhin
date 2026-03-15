@@ -11,7 +11,7 @@ export const addNewReport = async (eventId: string, reportReason: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`report:${session.user.id}`, {
+  const limited = await rateLimit(`report:${session.user.id}`, {
     limit: 5,
     windowSeconds: 300,
   });

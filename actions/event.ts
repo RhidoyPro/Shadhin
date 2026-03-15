@@ -112,7 +112,7 @@ export const createEvent = async ({
     };
   }
 
-  const limited = rateLimit(`create-event:${session.user.id}`, {
+  const limited = await rateLimit(`create-event:${session.user.id}`, {
     limit: 10,
     windowSeconds: 300,
   });

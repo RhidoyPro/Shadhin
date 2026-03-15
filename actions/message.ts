@@ -17,7 +17,7 @@ export const addMessage = async (message: string, stateName: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`message:${session.user.id}`, {
+  const limited = await rateLimit(`message:${session.user.id}`, {
     limit: 15,
     windowSeconds: 60,
   });

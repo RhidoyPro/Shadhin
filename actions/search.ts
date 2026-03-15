@@ -11,7 +11,7 @@ export const search = async (query: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`search:${session.user.id}`, {
+  const limited = await rateLimit(`search:${session.user.id}`, {
     limit: 20,
     windowSeconds: 60,
   });
