@@ -1,46 +1,98 @@
-/**
- * Simple in-memory rate limiter compatible with Next.js App Router server actions.
- * Uses a Map to track attempt counts per key (IP or identifier).
- * Note: This resets on server restarts and does not share state across multiple
- * server instances. For multi-instance deployments, replace with a Redis-backed solution.
- */
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const store = new Map<string, RateLimitEntry>();
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 interface RateLimitOptions {
-  /** Maximum number of attempts allowed within the window */
   limit: number;
-  /** Window duration in seconds */
   windowSeconds: number;
 }
 
-/**
- * Check and increment rate limit for a given key.
- * Returns { limited: true, retryAfterSeconds } if the limit is exceeded,
- * or { limited: false } if the request is allowed.
- */
-export function rateLimit(
+type RateLimitResult =
+  | { limited: false }
+  | { limited: true; retryAfterSeconds: number };
+
+// ── Redis-backed (production) ─────────────────────────────────────────────────
+// When UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are set, all rate
+// limit state is stored in Redis and shared across every Vercel serverless
+// instance. Without this, each cold-start gets its own empty counter and the
+// limit is trivially bypassed.
+
+let redis: Redis | null = null;
+
+if (
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+}
+
+// Cache Ratelimit instances so we don't recreate them on every call
+const limiterCache = new Map<string, Ratelimit>();
+
+function getRedisLimiter(limit: number, windowSeconds: number): Ratelimit {
+  const cacheKey = `${limit}:${windowSeconds}`;
+  if (!limiterCache.has(cacheKey)) {
+    limiterCache.set(
+      cacheKey,
+      new Ratelimit({
+        redis: redis!,
+        limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
+        analytics: false,
+      })
+    );
+  }
+  return limiterCache.get(cacheKey)!;
+}
+
+// ── In-memory fallback (local dev / no Redis configured) ─────────────────────
+interface InMemoryEntry {
+  count: number;
+  resetAt: number;
+}
+const memoryStore = new Map<string, InMemoryEntry>();
+
+function memoryRateLimit(
   key: string,
   { limit, windowSeconds }: RateLimitOptions
-): { limited: false } | { limited: true; retryAfterSeconds: number } {
+): RateLimitResult {
   const now = Date.now();
-  const entry = store.get(key);
+  const entry = memoryStore.get(key);
 
   if (!entry || now > entry.resetAt) {
-    store.set(key, { count: 1, resetAt: now + windowSeconds * 1000 });
+    memoryStore.set(key, { count: 1, resetAt: now + windowSeconds * 1000 });
     return { limited: false };
   }
 
   if (entry.count >= limit) {
-    const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
-    return { limited: true, retryAfterSeconds };
+    return {
+      limited: true,
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    };
   }
 
   entry.count += 1;
   return { limited: false };
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+export async function rateLimit(
+  key: string,
+  options: RateLimitOptions
+): Promise<RateLimitResult> {
+  if (!redis) {
+    // No Redis configured — use in-memory fallback
+    return memoryRateLimit(key, options);
+  }
+
+  const limiter = getRedisLimiter(options.limit, options.windowSeconds);
+  const result = await limiter.limit(key);
+
+  if (result.success) {
+    return { limited: false };
+  }
+
+  const retryAfterSeconds = Math.ceil((result.reset - Date.now()) / 1000);
+  return { limited: true, retryAfterSeconds: Math.max(1, retryAfterSeconds) };
 }

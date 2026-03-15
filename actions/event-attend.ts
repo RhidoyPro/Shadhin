@@ -18,7 +18,7 @@ export const markAsAttending = async (eventId: string) => {
   }
 
   // Rate limit to prevent points farming (toggling attend/unattend rapidly)
-  const limited = rateLimit(`attend:${session.user.id}:${eventId}`, {
+  const limited = await rateLimit(`attend:${session.user.id}:${eventId}`, {
     limit: 5,
     windowSeconds: 60,
   });
@@ -80,7 +80,7 @@ export const markAsNotAttending = async (eventId: string) => {
     return { error: "User not authenticated" };
   }
 
-  const limited = rateLimit(`attend:${session.user.id}:${eventId}`, {
+  const limited = await rateLimit(`attend:${session.user.id}:${eventId}`, {
     limit: 5,
     windowSeconds: 60,
   });

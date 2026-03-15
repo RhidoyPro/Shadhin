@@ -11,7 +11,7 @@ import { headers } from "next/headers";
 
 export const sendForgotPasswordCode = async (email: string) => {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  const result = rateLimit(`forgot-password:${ip}`, {
+  const result = await rateLimit(`forgot-password:${ip}`, {
     limit: 5,
     windowSeconds: 300,
   });
@@ -49,7 +49,7 @@ export const forgotPassword = async (
 ) => {
   // Rate limit by IP — not by code — so spreading guesses across codes doesn't bypass this
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  const limited = rateLimit(`verify-code:${ip}`, {
+  const limited = await rateLimit(`verify-code:${ip}`, {
     limit: 10,
     windowSeconds: 300,
   });

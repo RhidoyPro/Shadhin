@@ -16,7 +16,7 @@ export const addNotification = async (
   }
 
   // Don't allow users to spam-notify others
-  const limited = rateLimit(`notification:${session.user.id}`, {
+  const limited = await rateLimit(`notification:${session.user.id}`, {
     limit: 20,
     windowSeconds: 60,
   });
