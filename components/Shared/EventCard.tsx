@@ -1,17 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -27,16 +19,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
-import { formatDistance } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { EventType, Prisma, UserRole } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
-import UserAvatar from "./UserAvatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { EyeIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react";
+import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
+import { cn } from "@/lib/utils";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -90,144 +83,168 @@ const EventCard = ({
   useEffect(() => {
     const checkContentOverflow = () => {
       if (contentRef.current) {
-        const isOverflowing =
-          contentRef.current.scrollHeight > contentRef.current.clientHeight;
-        setIsContentClamped(isOverflowing);
+        setIsContentClamped(
+          contentRef.current.scrollHeight > contentRef.current.clientHeight
+        );
       }
     };
-
     checkContentOverflow();
     window.addEventListener("resize", checkContentOverflow);
-
-    return () => {
-      window.removeEventListener("resize", checkContentOverflow);
-    };
+    return () => window.removeEventListener("resize", checkContentOverflow);
   }, [event.content]);
 
+  const isEvent = event.eventType === EventType.EVENT;
+  const isOwner = user?.id === event.user.id;
+
   return (
-    <Card>
-      <CardHeader className="py-4">
-        <CardTitle className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <UserAvatar
-              size={14}
-              image={event?.user?.image || ""}
-              id={event?.user?.id}
-            />
-            <div>
-              <h1 className="text-base font-semibold flex items-center gap-1">
-                {event?.user?.name}
-                <VerifiedBadge userRole={event?.user?.role as UserRole} />
-              </h1>
-              <p className="text-sm text-slate-400 dark:text-slate-300 font-medium">
-                {formatDistance(event.createdAt, new Date(), {
-                  addSuffix: true,
-                })}
-              </p>
+    <article className="group relative bg-card transition-colors hover:bg-muted/30">
+      <div className="flex gap-3 p-4 sm:gap-3.5">
+        {/* Avatar */}
+        <Link href={`/user/${event.user.id}`} className="shrink-0">
+          <Avatar className="h-10 w-10 ring-2 ring-border/50 transition-all hover:ring-primary/30 hover:scale-105">
+            <AvatarImage src={event.user.image || undefined} alt={event.user.name || ""} />
+            <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+              {event.user.name?.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Link
+                href={`/user/${event.user.id}`}
+                className="font-semibold text-foreground hover:underline text-[15px]"
+              >
+                {event.user.name}
+              </Link>
+              <VerifiedBadge userRole={event.user.role as UserRole} />
+              <span className="text-muted-foreground text-sm">·</span>
+              <time className="text-sm text-muted-foreground" suppressHydrationWarning>
+                {formatDistanceToNow(event.createdAt, { addSuffix: true })}
+              </time>
+              {isEvent && (
+                <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  Event
+                </span>
+              )}
             </div>
+
+            {/* Actions menu */}
+            <AlertDialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100 hover:bg-muted"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/events/details/${event.id}`} className="flex items-center gap-2 cursor-pointer">
+                      <Eye className="h-4 w-4" />
+                      View {isEvent ? "Event" : "Post"}
+                    </Link>
+                  </DropdownMenuItem>
+                  {isOwner && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete {isEvent ? "Event" : "Post"}
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Delete this {isEvent ? "event" : "post"}?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the{" "}
+                    {isEvent ? "event" : "post"}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDeleteEvent}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
-          <AlertDialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="p-2">
-                  <MoreHorizontalIcon size={20} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Event Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" asChild>
-                  <Link href={`/events/details/${event.id}`}>
-                    <EyeIcon size={16} className="mr-2" />
-                    View{" "}
-                    {event.eventType === EventType.EVENT ? "Event" : "Post"}
-                  </Link>
-                </DropdownMenuItem>
-                {user?.id === event.user.id && (
-                  <AlertDialogTrigger asChild>
-                    <p className="text-sm flex items-center p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
-                      <Trash2Icon size={16} className="mr-2" />
-                      Delete{" "}
-                      {event.eventType === EventType.EVENT ? "Event" : "Post"}
-                    </p>
-                  </AlertDialogTrigger>
-                )}
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you sure you want to delete this{" "}
-                      {event.eventType === EventType.EVENT ? "event" : "post"}?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      the{" "}
-                      {event.eventType === EventType.EVENT ? "event" : "post"}.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={onDeleteEvent}>
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </AlertDialog>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div
-          ref={contentRef}
-          className={`${
-            showFullContent ? "" : "line-clamp-2 sm:line-clamp-4"
-          } break-words`}
-        >
-          <FormattedContent content={event.content} />
-        </div>
-        {!showFullContent && isContentClamped && (
-          <Link href={`/events/details/${event.id}`} passHref>
-            <Button variant="link" className="p-0 h-auto font-semibold mt-1">
-              Show more
-            </Button>
-          </Link>
-        )}
-        <div className="mt-2">
-          {event?.type === "image" && event.mediaUrl && (
-            <Image
-              src={event.mediaUrl}
-              alt={event.content.trim() !== "" ? event.content : "Post image"}
-              width={500}
-              height={500}
-              sizes="(max-width: 768px) 100vw, 600px"
-              className="w-full rounded-lg"
-            />
+
+          {/* Post content */}
+          <div className="mt-2">
+            <div
+              ref={contentRef}
+              className={cn(
+                "break-words text-[15px] leading-relaxed text-foreground",
+                !showFullContent && "line-clamp-4"
+              )}
+            >
+              <FormattedContent content={event.content} />
+            </div>
+            {!showFullContent && isContentClamped && (
+              <Link
+                href={`/events/details/${event.id}`}
+                className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
+              >
+                Show more
+              </Link>
+            )}
+          </div>
+
+          {/* Media */}
+          {event.type === "image" && event.mediaUrl && (
+            <div className="mt-3 overflow-hidden rounded-xl border border-border">
+              <Image
+                src={event.mediaUrl}
+                alt={event.content.trim() !== "" ? event.content : "Post image"}
+                width={600}
+                height={400}
+                sizes="(max-width: 768px) 100vw, 600px"
+                className="w-full object-cover"
+              />
+            </div>
           )}
-          {event?.type === "video" && event.mediaUrl && (
-            <video
-              src={event.mediaUrl}
-              controls
-              className="w-full rounded-lg"
-            ></video>
+          {event.type === "video" && event.mediaUrl && (
+            <div className="mt-3 overflow-hidden rounded-xl border border-border">
+              <video src={event.mediaUrl} controls className="w-full" />
+            </div>
           )}
+
+          {/* Actions */}
+          <EventActionsCtn
+            eventId={event.id}
+            isLiked={event.isLikedByUser}
+            isAttending={event.isUserAttending}
+            isNotAttending={event.isUserNotAttending}
+            likes={event.likes?.length}
+            attendees={event.attendees?.length}
+            comments={event.comments?.length}
+            eventType={event.eventType}
+            eventLikeHandler={eventLikeHandler}
+            eventAttendHandler={eventAttendHandler}
+            eventNotAttendHandler={eventNotAttendHandler}
+          />
         </div>
-      </CardContent>
-      <CardFooter className="pt-0 pb-2">
-        <EventActionsCtn
-          eventId={event.id}
-          isLiked={event.isLikedByUser}
-          isAttending={event.isUserAttending}
-          isNotAttending={event.isUserNotAttending}
-          likes={event.likes?.length}
-          attendees={event.attendees?.length}
-          comments={event.comments?.length}
-          eventType={event.eventType}
-          eventLikeHandler={eventLikeHandler}
-          eventAttendHandler={eventAttendHandler}
-          eventNotAttendHandler={eventNotAttendHandler}
-        />
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
 };
 

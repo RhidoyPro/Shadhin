@@ -1,15 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { CalendarCheck2Icon, ImageIcon, Video } from "lucide-react";
+import { Calendar, ImageIcon, Video } from "lucide-react";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 import UploadEventModal from "../Shared/UploadEventModal";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 
 const UploadCard = () => {
   const [isEventModalOpen, setEventModalOpen] = useState(false);
-  // Add a new state to manage the status of the modal, as we have eventType and if clicked on post event we will set it to false
   const [isStatus, setStatus] = useState(true);
 
   const handleCloseEventModal = () => {
@@ -19,53 +16,60 @@ const UploadCard = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center gap-3 pb-4">
+      <div className="border-b border-border bg-card p-4">
+        <div className="flex gap-3">
           <CurrentUserAvatar />
-          <div
-            className="bg-slate-100 dark:bg-neutral-700 flex-1 px-4 py-2 rounded-full transition-all duration-200 ease-in hover:bg-slate-200 cursor-pointer"
-            onClick={() => setEventModalOpen(true)}
-          >
-            <p className="dark:text-slate-200">What&apos;s on your mind ?</p>
+          <div className="flex-1 min-w-0">
+            <div
+              className="min-h-[44px] rounded-2xl bg-muted/50 px-4 py-2.5 cursor-text transition-all hover:bg-muted/70"
+              onClick={() => setEventModalOpen(true)}
+            >
+              <p className="text-sm text-muted-foreground">What&apos;s on your mind?</p>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  onClick={() => setEventModalOpen(true)}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  <span className="hidden text-xs sm:inline">Photo</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-full px-3 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500"
+                  onClick={() => setEventModalOpen(true)}
+                >
+                  <Video className="h-4 w-4" />
+                  <span className="hidden text-xs sm:inline">Video</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-full px-3 text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500"
+                  onClick={() => {
+                    setStatus(false);
+                    setEventModalOpen(true);
+                  }}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden text-xs sm:inline">Event</span>
+                </Button>
+              </div>
+              <Button
+                size="sm"
+                className="h-8 rounded-full px-4 text-xs font-medium shadow-md shadow-primary/25"
+                onClick={() => setEventModalOpen(true)}
+              >
+                Post
+              </Button>
+            </div>
           </div>
-        </CardHeader>
-        <Separator />
-        <CardContent className="hidden sm:flex items-center justify-between gap-3 pb-2 mt-2">
-          <Button variant="ghost" onClick={() => setEventModalOpen(true)}>
-            <Video className="mr-2" />
-            Upload Video
-          </Button>
-          <Separator className="h-6" orientation="vertical" />
-          <Button variant="ghost" onClick={() => setEventModalOpen(true)}>
-            <ImageIcon className="mr-2" />
-            Upload Photo
-          </Button>
-          <Separator className="h-6" orientation="vertical" />
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setEventModalOpen(true);
-              setStatus(false);
-            }}
-          >
-            <CalendarCheck2Icon className="mr-2" />
-            Post Events
-          </Button>
-        </CardContent>
-        <CardContent className="sm:hidden pb-2 mt-2">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setEventModalOpen(true);
-              setStatus(false);
-            }}
-            className="w-full"
-          >
-            <CalendarCheck2Icon className="mr-2" />
-            <span>Post Events</span>
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       <UploadEventModal
         isOpen={isEventModalOpen}
         onClose={handleCloseEventModal}

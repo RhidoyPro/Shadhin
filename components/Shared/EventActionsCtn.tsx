@@ -3,34 +3,34 @@ import React from "react";
 import { Button } from "../ui/button";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  BadgeAlertIcon,
-  CircleCheck,
-  CircleX,
-  Heart,
-  MessageCircle,
-  Share,
-  ThumbsUp,
-} from "lucide-react";
-import { Separator } from "../ui/separator";
-import { toast } from "sonner";
-import { Textarea } from "../ui/textarea";
-import { addNewReport } from "@/actions/report";
-import { EventType } from "@prisma/client";
-import Link from "next/link";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Flag,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Textarea } from "../ui/textarea";
+import { addNewReport } from "@/actions/report";
+import { EventType } from "@prisma/client";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type EventActionsCtnProps = {
   eventId: string;
@@ -66,215 +66,203 @@ const EventActionsCtn = ({
     navigator.clipboard.writeText(
       `${window.location.origin}/events/details/${eventId}`
     );
-    toast.success("Event link copied to clipboard");
+    toast.success("Link copied to clipboard");
   };
 
   const reportEventHandler = async () => {
     if (reportReason.trim() === "") {
-      return toast.error("Please provide a reason for reporting the event");
+      return toast.error("Please provide a reason for reporting");
     }
-
     try {
       const reportResponse = await addNewReport(eventId, reportReason);
-
       if (reportResponse.error !== undefined) {
         toast.error(reportResponse.error);
+        return;
       }
-
       setIsReportDialogOpen(false);
       setReportReason("");
-      toast.success("Event reported successfully");
-    } catch (err) {
-      toast.error("An error occurred while reporting the event");
+      toast.success("Reported successfully");
+    } catch {
+      toast.error("An error occurred while reporting");
     }
   };
 
+  const isEvent = eventType === EventType.EVENT;
+
   return (
     <>
-      <div className="flex-1">
-        <div className="flex justify-between items-center gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-1">
-            <Heart className="fill-red-500 stroke-none h-4 w-4" />
-            <span>
-              {likes} {likes === 1 ? "like" : "likes"}
+      {/* Stats row */}
+      {(likes > 0 || comments > 0 || (isEvent && attendees > 0)) && (
+        <div className="mt-3 flex items-center gap-4 text-[13px] text-muted-foreground">
+          {likes > 0 && (
+            <span className="flex items-center gap-1">
+              <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+              {likes}
             </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/events/details/${eventId}`}
-              className="hover:underline cursor-pointer"
-            >
+          )}
+          {comments > 0 && (
+            <Link href={`/events/details/${eventId}`} className="hover:underline">
               {comments} {comments === 1 ? "comment" : "comments"}
             </Link>
-            {eventType === EventType.EVENT && (
-              <>
-                <Separator className="h-4" orientation="vertical" />
-                <span>
-                  {attendees} {attendees === 1 ? "person" : "people"} going
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <Separator className="my-3" />
-        <div className="flex flex-col-reverse xs:flex-row xs:justify-between xs:items-center w-full">
-          <div className="flex items-center justify-between xs:justify-normal gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size={"iconRounded"}
-                    onClick={eventLikeHandler}
-                    className={
-                      isLiked
-                        ? "bg-blue-100 text-blue-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/40 dark:hover:text-blue-400"
-                        : ""
-                    }
-                  >
-                    <ThumbsUp />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm">{isLiked ? "Unlike" : "Like"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size={"iconRounded"} asChild>
-                    <Link href={`/events/details/${eventId}`}>
-                      <MessageCircle />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm">Comment</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size={"iconRounded"}
-                    onClick={shareEventHandler}
-                  >
-                    <Share />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm">Share</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size={"iconRounded"}
-                    onClick={() => setIsReportDialogOpen(true)}
-                  >
-                    <BadgeAlertIcon />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm">Report</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Separator className="mt-3 xs:hidden" />
-          {eventType === EventType.EVENT && (
-            <div className="flex items-center gap-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size={"sm"}
-                      className={`w-full xs:w-auto ${
-                        isAttending
-                          ? "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-400 dark:hover:bg-green-900/40"
-                          : ""
-                      }`}
-                      onClick={eventAttendHandler}
-                    >
-                      <CircleCheck className="mr-2" />
-                      Going
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm">
-                      Mark yourself as going to this event
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size={"sm"}
-                      className={`w-full xs:w-auto ${
-                        isNotAttending
-                          ? "bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-400 dark:hover:bg-red-900/40"
-                          : ""
-                      }`}
-                      onClick={eventNotAttendHandler}
-                    >
-                      <CircleX className="mr-2" />
-                      Not Going
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm">
-                      Mark yourself as not going to this event
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+          )}
+          {isEvent && attendees > 0 && (
+            <span>{attendees} going</span>
           )}
         </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-3">
+        <div className="flex items-center gap-0.5">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={eventLikeHandler}
+                  className={cn(
+                    "h-9 gap-1.5 rounded-full px-3 transition-colors",
+                    isLiked
+                      ? "bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500"
+                      : "text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
+                  )}
+                >
+                  <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
+                  <span className="hidden text-sm font-medium sm:inline">Like</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>{isLiked ? "Unlike" : "Like"}</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="h-9 gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                >
+                  <Link href={`/events/details/${eventId}`}>
+                    <MessageCircle className="h-[18px] w-[18px]" />
+                    <span className="hidden text-sm font-medium sm:inline">Comment</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>Comment</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={shareEventHandler}
+                  className="h-9 gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  <Share2 className="h-[18px] w-[18px]" />
+                  <span className="hidden text-sm font-medium sm:inline">Share</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>Copy link</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsReportDialogOpen(true)}
+                  className="h-9 rounded-full px-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Flag className="h-[18px] w-[18px]" />
+                  <span className="sr-only">Report</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>Report</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* RSVP buttons */}
+        {isEvent && (
+          <div className="flex items-center gap-1.5">
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isAttending ? "default" : "outline"}
+                    size="sm"
+                    onClick={eventAttendHandler}
+                    className={cn(
+                      "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
+                      isAttending
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "border-border hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
+                    )}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Going</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>Mark as going</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isNotAttending ? "default" : "outline"}
+                    size="sm"
+                    onClick={eventNotAttendHandler}
+                    className={cn(
+                      "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
+                      isNotAttending
+                        ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "border-border hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <XCircle className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Not Going</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>Mark as not going</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       </div>
-      <AlertDialog
-        open={isReportDialogOpen}
-        onOpenChange={(isOpen) => setIsReportDialogOpen(isOpen)}
-      >
-        <AlertDialogTrigger asChild></AlertDialogTrigger>
+
+      {/* Report dialog */}
+      <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to report this event?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Report this {isEvent ? "event" : "post"}</AlertDialogTitle>
             <AlertDialogDescription>
-              Please make sure to provide a valid reason for reporting this
-              event.
+              Please provide a reason. Our team will review this report.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
-            placeholder="Type your reason here"
-            className="w-full"
-            rows={4}
+            placeholder="Describe why you're reporting this..."
+            className="min-h-[100px] resize-none"
             value={reportReason}
             onChange={(e) => setReportReason(e.target.value)}
           />
           <AlertDialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsReportDialogOpen(false);
-                setReportReason("");
-              }}
+            <AlertDialogCancel onClick={() => setReportReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={reportEventHandler}
+              disabled={!reportReason.trim()}
             >
-              Cancel
-            </Button>
-            <Button onClick={reportEventHandler}>Report</Button>
+              Submit Report
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

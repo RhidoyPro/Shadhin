@@ -1,45 +1,78 @@
 import { getTopUsers } from "@/data/user";
 import React from "react";
-import { Award, UserRound } from "lucide-react";
-import { Separator } from "../ui/separator";
-import UserAvatar from "../Shared/UserAvatar";
+import { Trophy } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "../Shared/VerifiedBadge";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { UserRole } from "@prisma/client";
+import { cn } from "@/lib/utils";
+
+function getRankStyle(rank: number) {
+  if (rank === 1) return "bg-amber-500/15 text-amber-500 font-bold";
+  if (rank === 2) return "bg-slate-400/15 text-slate-400 font-bold";
+  if (rank === 3) return "bg-amber-700/15 text-amber-600 font-bold";
+  return "bg-muted text-muted-foreground";
+}
 
 const LeaderBoard = async () => {
   const topUsers = await getTopUsers();
   return (
-    <section className="hidden lg:block bg-white dark:bg-neutral-900 rounded-lg flex-[1.2] h-fit max-h-[80vh] overflow-y-auto custom-scrollbar sticky top-32 left-0 p-4">
-      <h1 className="text-center text-xl font-bold text-primary">
-        LeaderBoard 🏆
-      </h1>
-      <Separator className="my-3" />
-      <div>
+    <section className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden sticky top-[120px]">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 p-4 border-b border-border">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <Trophy className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="font-semibold text-foreground text-sm">Leaderboard</h2>
+          <p className="text-[11px] text-muted-foreground">Top contributors</p>
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="divide-y divide-border/50">
         {topUsers?.length ? (
-          topUsers?.map((user) => (
-            <div
-              key={user.id}
-              className="flex items-center justify-between p-2 my-3 bg-slate-100 dark:bg-neutral-700 rounded-md"
-            >
-              <div className="flex items-center">
-                <UserAvatar image={user?.image || ""} id={user.id} />
-                <p className="ml-2 dark:text-white">{user.name}</p>
-                <VerifiedBadge userRole={user.role} />
-              </div>
-              <p className="font-bold flex items-center gap-1 text-primary">
-                {user.points}
-                <Award />
-              </p>
-            </div>
-          ))
+          topUsers.map((user, index) => {
+            const rank = index + 1;
+            return (
+              <Link
+                key={user.id}
+                href={`/user/${user.id}`}
+                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+              >
+                <div className={cn("flex h-6 w-6 items-center justify-center rounded-md text-xs shrink-0", getRankStyle(rank))}>
+                  {rank}
+                </div>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={user.image || undefined} alt={user.name || ""} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                    {user.name?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground flex items-center gap-1">
+                    {user.name}
+                    <VerifiedBadge userRole={user.role as UserRole} />
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-primary tabular-nums shrink-0">
+                  {user.points}
+                </span>
+              </Link>
+            );
+          })
         ) : (
-          <p className="text-center">There are no users available</p>
+          <p className="text-center text-sm text-muted-foreground py-6">No users yet</p>
         )}
       </div>
-      <Button variant={"secondary"} className="w-full mt-3" asChild>
-        <Link href="/leaderboard">View More</Link>
-      </Button>
+
+      {/* Footer */}
+      <div className="border-t border-border p-3">
+        <Button variant="ghost" size="sm" className="w-full text-xs font-medium text-primary hover:text-primary/80 hover:bg-primary/5" asChild>
+          <Link href="/leaderboard">View Full Leaderboard</Link>
+        </Button>
+      </div>
     </section>
   );
 };

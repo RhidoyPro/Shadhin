@@ -141,34 +141,36 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
   };
 
   return (
-    <section className="flex-[2.5] flex flex-col gap-3">
+    <section className="rounded-xl border border-border bg-card overflow-hidden">
       <UploadCard />
-      {events?.length ? (
-        events.map((event) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            eventLikeHandler={() => likeEventHandler(event.id, event.user.id)}
-            eventAttendHandler={() =>
-              attendEventHandler(event.id, event.user.id)
-            }
-            eventNotAttendHandler={() =>
-              notAttendEventHandler(event.id, event.user.id)
-            }
-            onDeleteEvent={() => onDeleteEvent(event.id)}
-          />
-        ))
-      ) : (
-        <p className="text-center text-lg text-gray-600 dark:text-gray-300 mt-4">
-          No events found for{" "}
-          <span className="text-gray-800 dark:text-white font-semibold capitalize">
-            {activeState}
-          </span>
-        </p>
-      )}
+      <div className="divide-y divide-border/50">
+        {events?.length ? (
+          events.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              eventLikeHandler={() => likeEventHandler(event.id, event.user.id)}
+              eventAttendHandler={() =>
+                attendEventHandler(event.id, event.user.id)
+              }
+              eventNotAttendHandler={() =>
+                notAttendEventHandler(event.id, event.user.id)
+              }
+              onDeleteEvent={() => onDeleteEvent(event.id)}
+            />
+          ))
+        ) : (
+          <p className="text-center text-sm text-muted-foreground py-10">
+            No events found for{" "}
+            <span className="font-semibold text-foreground capitalize">
+              {activeState}
+            </span>
+          </p>
+        )}
+      </div>
       {hasMore && (
-        <div ref={ref} className="flex items-center justify-center my-4">
-          <ClipLoader color="#16a34a" size={30} />
+        <div ref={ref} className="flex items-center justify-center py-6 border-t border-border/50">
+          <ClipLoader color="#16a34a" size={24} />
         </div>
       )}
     </section>

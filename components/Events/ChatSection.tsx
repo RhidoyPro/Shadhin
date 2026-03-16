@@ -1,17 +1,15 @@
 "use client";
 import React, { useEffect } from "react";
-import { Separator } from "../ui/separator";
-import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
-import { Input } from "../ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
-import { SendIcon, XIcon } from "lucide-react";
-import UserAvatar from "../Shared/UserAvatar";
-import VerifiedBadge from "../Shared/VerifiedBadge";
+import { Input } from "../ui/input";
+import { Send, Radio, X } from "lucide-react";
 import { IMessage, useSocket } from "@/context/SocketProvider";
 import { toast } from "sonner";
 import { addMessage, fetchMessages } from "@/actions/message";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type ChatSectionProps = {
   activeState: string;
@@ -35,7 +33,6 @@ const ChatSection = ({
   hiddenOnMobile = true,
 }: ChatSectionProps) => {
   const chatBoxRef = React.useRef<HTMLDivElement>(null);
-
   const { setStateName, messages, sendMessage, setMessages } = useSocket();
   const [message, setMessage] = React.useState("");
   const [page, setPage] = React.useState(1);
@@ -44,7 +41,6 @@ const ChatSection = ({
 
   useEffect(() => {
     setStateName(activeState);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeState]);
 
@@ -56,11 +52,8 @@ const ChatSection = ({
   };
 
   useEffect(() => {
-    if (savedMessages.length < 20) {
-      setHasMore(false);
-    }
+    if (savedMessages.length < 20) setHasMore(false);
     setMessages(savedMessages);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedMessages]);
 
@@ -82,95 +75,94 @@ const ChatSection = ({
   };
 
   useEffect(() => {
-    if (loadPrevious) {
-      fetchPaginatedMessages();
-    }
+    if (loadPrevious) fetchPaginatedMessages();
   }, [loadPrevious]);
 
   return (
     <section
-      className={`${
-        hiddenOnMobile
-          ? "hidden md:flex h-[79vh] flex-[1.3] sticky top-32 left-0"
-          : "flex h-[91vh] flex-1"
-      } flex-col bg-white dark:bg-neutral-900 rounded-lg  p-4`}
+      className={cn(
+        "flex flex-col rounded-xl border border-border bg-card overflow-hidden sticky top-[120px]",
+        hiddenOnMobile ? "hidden lg:flex h-[520px]" : "flex h-[91vh]"
+      )}
     >
-      <div
-        className={`flex items-center ${
-          hiddenOnMobile ? "justify-center" : "justify-between"
-        }`}
-      >
-        <h1 className="text-center text-2xl font-bold text-primary">
-          Live Chat - <span className="capitalize">{activeState}</span>
-        </h1>
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-border shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Radio className="h-4 w-4 text-primary" />
+            <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+            </span>
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground text-sm">Live Chat</h2>
+            <p className="text-[11px] text-muted-foreground capitalize">{activeState.replace("-", " ")}</p>
+          </div>
+        </div>
         {!hiddenOnMobile && (
-          <Button variant={"ghost"} size={"iconRounded"} asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
             <Link href={`/events/${activeState}`}>
-              <XIcon />
+              <X className="h-4 w-4" />
             </Link>
           </Button>
         )}
       </div>
-      <Separator className="my-3" />
-      <div className="flex-1 relative">
-        <div
-          className={`overflow-y-auto ${
-            hiddenOnMobile ? "h-[60vh]" : "h-[70vh]"
-          } custom-scrollbar`}
-          ref={chatBoxRef}
-        >
-          {hasMore && (
-            <div className="flex items-center justify-center">
-              <Button variant={"link"} onClick={() => setLoadPrevious(true)}>
-                Load previous messages
-              </Button>
-            </div>
-          )}
-          {messages.map((message: IMessage) => (
-            <div key={message.id} className="flex my-2 gap-2">
-              <UserAvatar
-                size={8}
-                image={message?.user?.image || ""}
-                id={message?.user?.id}
-              />
-              <div>
-                <div className="flex items-center gap-1">
-                  <h1 className="text-sm font-semibold">
-                    {message?.user?.name}
-                  </h1>
-                  <VerifiedBadge
-                    userRole={
-                      Number(message?.user?.id) % 2 === 0
-                        ? "SUPER_USER"
-                        : "USER"
-                    }
-                    size={4}
-                  />
-                </div>
-                <p className="text-sm text-slate-400 dark:text-slate-200">{message.message}</p>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar" ref={chatBoxRef}>
+        {hasMore && (
+          <div className="flex justify-center">
+            <Button variant="link" size="sm" className="text-xs" onClick={() => setLoadPrevious(true)}>
+              Load previous messages
+            </Button>
+          </div>
+        )}
+        {messages.map((msg: IMessage) => (
+          <div key={msg.id} className="flex gap-2">
+            <Avatar className="h-6 w-6 shrink-0 mt-0.5">
+              <AvatarImage src={msg?.user?.image || undefined} alt={msg?.user?.name || ""} />
+              <AvatarFallback className="bg-primary/10 text-[9px] text-primary">
+                {msg?.user?.name?.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <Link href={`/user/${msg?.user?.id}`} className="text-[11px] font-medium text-foreground hover:underline">
+                  {msg?.user?.name}
+                </Link>
               </div>
+              <p className="text-[13px] leading-relaxed text-muted-foreground break-words">
+                {msg.message}
+              </p>
             </div>
-          ))}
-          {messages.length === 0 && (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-lg text-slate-400 dark:text-slate-300">No messages yet</p>
-            </div>
-          )}
-        </div>
-        <div className="absolute bottom-0 left-0 w-full flex items-center gap-2">
-          <CurrentUserAvatar />
+          </div>
+        ))}
+        {messages.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-sm text-muted-foreground">No messages yet. Say hi!</p>
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border p-3 bg-muted/20 shrink-0">
+        <div className="flex items-center gap-2">
           <Input
-            placeholder="Type your message"
+            placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessageHandler()}
+            className="flex-1 h-9 rounded-full border-0 bg-muted/50 text-sm focus-visible:ring-1 focus-visible:ring-primary"
           />
           <Button
-            variant="ghost"
-            size="iconRounded"
+            size="icon"
             onClick={sendMessageHandler}
+            disabled={!message.trim()}
+            className="h-8 w-8 shrink-0 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-30"
           >
-            <SendIcon />
+            <Send className="h-3.5 w-3.5" />
+            <span className="sr-only">Send</span>
           </Button>
         </div>
       </div>

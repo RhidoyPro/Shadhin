@@ -7,7 +7,7 @@ const ProtectedLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <main className="bg-slate-100 dark:bg-neutral-700 min-h-screen relative">
+    <main className="bg-background min-h-screen relative">
       <Navbar />
       {children}
     </main>

@@ -1,6 +1,7 @@
 import BangladeshStates from "@/data/bangladesh-states";
 import Link from "next/link";
 import React from "react";
+import { cn } from "@/lib/utils";
 
 type StatesSectionProps = {
   activeState: string;
@@ -8,18 +9,23 @@ type StatesSectionProps = {
 
 const StatesSection = ({ activeState }: StatesSectionProps) => {
   return (
-    <section className="bg-primary flex items-center justify-between gap-4 py-3 px-4 sm:px-10 sticky top-[72px] left-0 z-50 overflow-x-auto no-scrollbar">
-      {BangladeshStates.map((state) => (
-        <Link
-          href={`/events/${state.slug}`}
-          key={state.id}
-          className={`text-white uppercase font-medium text-sm transition-all duration-300 ease-in-out hover:text-slate-100 ${
-            activeState === state.slug ? "border-b-2 border-white" : ""
-          }`}
-        >
-          {state.name}
-        </Link>
-      ))}
+    <section className="bg-muted/50 border-b border-border sticky top-[57px] z-30 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1 px-3 py-2">
+        {BangladeshStates.map((state) => (
+          <Link
+            href={`/events/${state.slug}`}
+            key={state.id}
+            className={cn(
+              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
+              activeState === state.slug
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {state.name}
+          </Link>
+        ))}
+      </div>
     </section>
   );
 };
