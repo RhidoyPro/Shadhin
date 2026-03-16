@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <main className="bg-slate-100 dark:bg-neutral-700">
-      <Navbar />
+      <Navbar session={session} userNotifications={[]} />
     </main>
   );
 }
