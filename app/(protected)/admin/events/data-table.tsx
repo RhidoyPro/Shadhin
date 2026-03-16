@@ -251,7 +251,7 @@ export const columns: ColumnDef<EventWithData>[] = [
                 View Event Creator Profile
               </DropdownMenuItem>
               <DialogTrigger asChild>
-                <p className="text-sm p-2 text-red-500 hover:bg-gray-100 cursor-pointer">
+                <p className="text-sm p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
                   Delete Event
                 </p>
               </DialogTrigger>

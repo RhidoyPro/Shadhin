@@ -145,7 +145,7 @@ const EventCard = ({
                 </DropdownMenuItem>
                 {user?.id === event.user.id && (
                   <AlertDialogTrigger asChild>
-                    <p className="text-sm flex items-center p-2 text-red-500 hover:bg-gray-100 cursor-pointer">
+                    <p className="text-sm flex items-center p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
                       <Trash2Icon size={16} className="mr-2" />
                       Delete{" "}
                       {event.eventType === EventType.EVENT ? "Event" : "Post"}

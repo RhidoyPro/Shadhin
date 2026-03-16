@@ -214,12 +214,12 @@ export const columns: ColumnDef<User>[] = [
                 Verify Email ✔
               </DropdownMenuItem>
               <DialogTrigger asChild onClick={() => setIsDeleting(false)}>
-                <p className="text-sm p-2 hover:bg-gray-100 cursor-pointer">
+                <p className="text-sm p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
                   Update User Role
                 </p>
               </DialogTrigger>
               <DialogTrigger asChild onClick={() => setIsDeleting(true)}>
-                <p className="text-sm p-2 text-red-500 hover:bg-gray-100 cursor-pointer">
+                <p className="text-sm p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
                   Delete User
                 </p>
               </DialogTrigger>

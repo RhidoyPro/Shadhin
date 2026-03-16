@@ -53,7 +53,7 @@ const Navbar = async () => {
               <Avatar className="cursor-pointer">
                 <AvatarImage
                   src={session?.user?.image || ""}
-                  className="object-contain bg-gray-100"
+                  className="object-contain bg-gray-100 dark:bg-neutral-700"
                 />
                 <AvatarFallback>
                   <UserRound className="text-slate-500" />

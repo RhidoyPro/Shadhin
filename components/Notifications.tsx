@@ -51,8 +51,8 @@ const NotificationItem = ({
             </div>
           )}
           {isRead && (
-            <div className="flex items-center justify-center rounded-full bg-gray-100 h-8 w-8">
-              <Bell className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-700 h-8 w-8">
+              <Bell className="h-4 w-4 text-gray-500 dark:text-gray-300" />
             </div>
           )}
           <div className="flex flex-col">

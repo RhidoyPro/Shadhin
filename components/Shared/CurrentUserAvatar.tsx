@@ -17,10 +17,10 @@ const CurrentUserAvatar = ({ size = 10 }: CurrentUserAvatarProps) => {
       <Link href={`/user/${user?.id}`}>
         <AvatarImage
           src={user?.image || ""}
-          className="object-contain bg-gray-100"
+          className="object-contain bg-gray-100 dark:bg-neutral-700"
         />
         <AvatarFallback>
-          <UserRound className="text-slate-500" />
+          <UserRound className="text-slate-500 dark:text-slate-300" />
         </AvatarFallback>
       </Link>
     </Avatar>
