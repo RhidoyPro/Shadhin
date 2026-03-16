@@ -20,7 +20,7 @@ const AttendingEventsPage = async ({
     <div className="container px-4 py-6 max-w-2xl">
       <Link
         href={`/user/${userId}`}
-        className="flex items-center gap-2 text-sm text-neutral-500 hover:text-primary mb-4 transition-colors"
+        className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-300 hover:text-primary mb-4 transition-colors"
       >
         <ArrowLeft size={16} />
         Back to {user.name}&apos;s profile
@@ -44,7 +44,7 @@ const AttendingEventsPage = async ({
                 <p className="text-sm text-primary line-clamp-3">
                   {event.content}
                 </p>
-                <p className="text-xs text-neutral-500 mt-1">
+                <p className="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
                   {formatDistance(new Date(event.createdAt), new Date(), {
                     addSuffix: true,
                   })}

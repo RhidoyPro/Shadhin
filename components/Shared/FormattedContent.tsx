@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 const FormattedContent = ({ content }: { content: string }) => {
   return (
-    <pre className={`prose whitespace-pre-wrap break-words ${inter.className}`}>
+    <pre className={`prose dark:prose-invert whitespace-pre-wrap break-words ${inter.className}`}>
       <ReactMarkdown>{content}</ReactMarkdown>
     </pre>
   );
