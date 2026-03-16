@@ -72,5 +72,5 @@ Prisma schema at `prisma/schema.prisma` (MongoDB provider). Run `npx prisma gene
 ## Current Priorities
 
 1. **Feed algorithm** — Build a content ranking system with weighted scoring: engagement 40%, social graph 30%, interest tags 20%, district/location 10%.
-2. **Auth rate limiting** — `actions/auth.ts` (login, signup, forgot-password) currently has no rate limiting. Must be added before launch.
-3. **Socket.IO server** — The frontend connects to `NEXT_PUBLIC_SOCKET_URL` but the Socket.IO server is a separate service not in this repo. It needs to be set up, documented, or co-located.
+2. **Socket.IO server** — The frontend connects to `NEXT_PUBLIC_SOCKET_URL` but the Socket.IO server is a separate service not in this repo. It needs to be set up, documented, or co-located.
+3. **Old S3 images lost** — Previous AWS account was deleted. All images stored under `utopia-web-app.s3.ap-south-1.amazonaws.com` are gone. Fallback UI is in place, but users need to re-upload profile pictures and event media.

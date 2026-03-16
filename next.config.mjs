@@ -39,13 +39,13 @@ const securityHeaders = [
       // unsafe-inline needed for Next.js inline scripts
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
       // Images from R2, Google (user avatars), and data URIs
-      "img-src 'self' data: blob: https://*.r2.dev https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://*.r2.dev https://lh3.googleusercontent.com https://utopia-web-app.s3.ap-south-1.amazonaws.com",
       // API calls, WebSocket for Socket.IO, Google Analytics
       "connect-src 'self' wss: ws: https://www.google-analytics.com https://analytics.google.com",
       // Font sources
       "font-src 'self' data:",
       // Media (video/audio) from R2
-      "media-src 'self' https://*.r2.dev blob:",
+      "media-src 'self' https://*.r2.dev https://utopia-web-app.s3.ap-south-1.amazonaws.com blob:",
       // Forms only submit to same origin
       "form-action 'self'",
       // Only same-origin pages can embed this site
@@ -76,6 +76,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "utopia-web-app.s3.ap-south-1.amazonaws.com",
         port: "",
       },
     ],

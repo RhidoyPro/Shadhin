@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, ImageOff, MoreHorizontal, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
 import { cn } from "@/lib/utils";
@@ -78,6 +78,7 @@ const EventCard = ({
 }: EventCardProps) => {
   const user = useCurrentUser();
   const [isContentClamped, setIsContentClamped] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -210,7 +211,7 @@ const EventCard = ({
           </div>
 
           {/* Media */}
-          {event.type === "image" && event.mediaUrl && (
+          {event.type === "image" && event.mediaUrl && !mediaError && (
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
               <Image
                 src={event.mediaUrl}
@@ -219,12 +220,30 @@ const EventCard = ({
                 height={400}
                 sizes="(max-width: 768px) 100vw, 600px"
                 className="w-full object-cover"
+                onError={() => setMediaError(true)}
               />
             </div>
           )}
-          {event.type === "video" && event.mediaUrl && (
+          {event.type === "image" && event.mediaUrl && mediaError && (
+            <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 py-12 text-muted-foreground">
+              <ImageOff className="h-5 w-5" />
+              <span className="text-sm">Image unavailable</span>
+            </div>
+          )}
+          {event.type === "video" && event.mediaUrl && !mediaError && (
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
-              <video src={event.mediaUrl} controls className="w-full" />
+              <video
+                src={event.mediaUrl}
+                controls
+                className="w-full"
+                onError={() => setMediaError(true)}
+              />
+            </div>
+          )}
+          {event.type === "video" && event.mediaUrl && mediaError && (
+            <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 py-12 text-muted-foreground">
+              <ImageOff className="h-5 w-5" />
+              <span className="text-sm">Video unavailable</span>
             </div>
           )}
 

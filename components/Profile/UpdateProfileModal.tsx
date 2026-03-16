@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +54,7 @@ const UpdateProfileModal = ({
     user?.dateOfBirth || undefined
   );
   const [isUploading, setIsUploading] = React.useState<boolean>(false);
+  const [profileImgError, setProfileImgError] = useState(false);
 
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -199,14 +200,20 @@ const UpdateProfileModal = ({
                   <UserRound className="text-white" size={32} />
                 </div>
               )}
-              {user?.image && !file && (
+              {user?.image && !file && !profileImgError && (
                 <Image
                   src={user.image}
                   alt="profile"
                   className="w-28 h-28 object-cover rounded-full cursor-pointer"
                   width={100}
                   height={100}
+                  onError={() => setProfileImgError(true)}
                 />
+              )}
+              {user?.image && !file && profileImgError && (
+                <div className="w-28 h-28 rounded-full flex justify-center items-center cursor-pointer">
+                  <UserRound className="text-white" size={32} />
+                </div>
               )}
               {file && (
                 <Image
