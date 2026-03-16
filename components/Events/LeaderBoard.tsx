@@ -24,7 +24,7 @@ const LeaderBoard = async () => {
             >
               <div className="flex items-center">
                 <UserAvatar image={user?.image || ""} id={user.id} />
-                <p className="ml-2">{user.name}</p>
+                <p className="ml-2 dark:text-white">{user.name}</p>
                 <VerifiedBadge userRole={user.role} />
               </div>
               <p className="font-bold flex items-center gap-1 text-primary">

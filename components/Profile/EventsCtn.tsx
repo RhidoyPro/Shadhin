@@ -141,9 +141,9 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
           />
         ))
       ) : (
-        <p className="text-center text-lg text-gray-600 mt-4">
+        <p className="text-center text-lg text-gray-600 dark:text-gray-300 mt-4">
           There are no events for{" "}
-          <span className="text-gray-800 font-semibold capitalize">
+          <span className="text-gray-800 dark:text-white font-semibold capitalize">
             {username}
           </span>
         </p>

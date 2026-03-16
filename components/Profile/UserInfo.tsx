@@ -62,17 +62,17 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
           <p className="text-primary font-bold text-lg">
             {followCounts.followers}
           </p>
-          <p className="text-neutral-500 text-sm">Followers</p>
+          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Followers</p>
         </div>
         <div className="text-center">
           <p className="text-primary font-bold text-lg">
             {followCounts.following}
           </p>
-          <p className="text-neutral-500 text-sm">Following</p>
+          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Following</p>
         </div>
         <div className="text-center">
           <p className="text-primary font-bold text-lg">{eventsCreated}</p>
-          <p className="text-neutral-500 text-sm">Posts</p>
+          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Posts</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
             {attendingCount > 5 && (
               <Link
                 href={`/user/${user.id}/attending`}
-                className="text-xs text-neutral-500 hover:text-primary transition-colors"
+                className="text-xs text-neutral-500 dark:text-neutral-300 hover:text-primary transition-colors"
               >
                 View all
               </Link>
@@ -118,7 +118,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
                 <p className="text-sm text-primary line-clamp-2">
                   {event.content}
                 </p>
-                <p className="text-xs text-neutral-500 mt-1">
+                <p className="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
                   {formatDistance(new Date(event.createdAt), new Date(), {
                     addSuffix: true,
                   })}

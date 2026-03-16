@@ -26,7 +26,7 @@ const UploadCard = () => {
             className="bg-slate-100 dark:bg-neutral-700 flex-1 px-4 py-2 rounded-full transition-all duration-200 ease-in hover:bg-slate-200 cursor-pointer"
             onClick={() => setEventModalOpen(true)}
           >
-            <p>What&apos;s on your mind ?</p>
+            <p className="dark:text-slate-200">What&apos;s on your mind ?</p>
           </div>
         </CardHeader>
         <Separator />

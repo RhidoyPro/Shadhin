@@ -119,7 +119,7 @@ const EventCard = ({
                 {event?.user?.name}
                 <VerifiedBadge userRole={event?.user?.role as UserRole} />
               </h1>
-              <p className="text-sm text-slate-400 font-medium">
+              <p className="text-sm text-slate-400 dark:text-slate-300 font-medium">
                 {formatDistance(event.createdAt, new Date(), {
                   addSuffix: true,
                 })}

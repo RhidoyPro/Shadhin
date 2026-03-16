@@ -144,9 +144,9 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
           />
         ))
       ) : (
-        <p className="text-center text-lg text-gray-600 mt-4">
+        <p className="text-center text-lg text-gray-600 dark:text-gray-300 mt-4">
           No events found for{" "}
-          <span className="text-gray-800 font-semibold capitalize">
+          <span className="text-gray-800 dark:text-white font-semibold capitalize">
             {activeState}
           </span>
         </p>

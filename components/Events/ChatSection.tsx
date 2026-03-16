@@ -147,13 +147,13 @@ const ChatSection = ({
                     size={4}
                   />
                 </div>
-                <p className="text-sm text-slate-400">{message.message}</p>
+                <p className="text-sm text-slate-400 dark:text-slate-200">{message.message}</p>
               </div>
             </div>
           ))}
           {messages.length === 0 && (
             <div className="flex items-center justify-center h-full">
-              <p className="text-lg text-slate-400">No messages yet</p>
+              <p className="text-lg text-slate-400 dark:text-slate-300">No messages yet</p>
             </div>
           )}
         </div>
