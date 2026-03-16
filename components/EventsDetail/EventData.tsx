@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { deleteEventByUser } from "@/actions/event";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface IEventData {
   event: EventWithUser;
@@ -29,7 +30,12 @@ const EventData = ({ event: initialEvent }: IEventData) => {
         : [...prevEvent.likes, { id: user?.id!, userId: user?.id! }],
     }));
 
-    await like(eventId);
+    const likeRes = await like(eventId);
+    if (likeRes.error) {
+      toast.error(likeRes.error);
+      setEvent(initialEvent); // revert
+      return;
+    }
     if (!wasLiked) sendNotification(`Liked your event`, eventUserId, eventId);
   };
 
@@ -52,7 +58,12 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       };
     });
 
-    await markAsAttending(eventId);
+    const attendRes = await markAsAttending(eventId);
+    if (attendRes.error) {
+      toast.error(attendRes.error);
+      setEvent(initialEvent); // revert
+      return;
+    }
     if (!event.isUserAttending) {
       sendNotification(`Attending your event`, eventUserId, eventId);
     }
@@ -71,7 +82,12 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       ),
     }));
 
-    await markAsNotAttending(eventId);
+    const notAttendRes = await markAsNotAttending(eventId);
+    if (notAttendRes.error) {
+      toast.error(notAttendRes.error);
+      setEvent(initialEvent); // revert
+      return;
+    }
     if (!event.isUserNotAttending) {
       sendNotification(`Not attending your event`, eventUserId, eventId);
     }

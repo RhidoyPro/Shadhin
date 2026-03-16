@@ -10,6 +10,7 @@ import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { useSocket } from "@/context/SocketProvider";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
+import { toast } from "sonner";
 
 type FeedSectionProps = {
   activeState: string;
@@ -59,9 +60,13 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     });
     setEvents(updatedEvents);
 
-    await like(eventId);
+    const res = await like(eventId);
+    if (res.error) {
+      toast.error(res.error);
+      setEvents(events); // revert
+      return;
+    }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
-    // send notification if the event is liked by the user
     if (updatedEvent && updatedEvent.isLikedByUser) {
       sendNotification(`Liked your event`, eventUserId, eventId);
     }
@@ -87,7 +92,12 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     });
     setEvents(updatedEvents);
 
-    await markAsAttending(eventId);
+    const res = await markAsAttending(eventId);
+    if (res.error) {
+      toast.error(res.error);
+      setEvents(events); // revert
+      return;
+    }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
     if (updatedEvent && updatedEvent.isUserAttending) {
       sendNotification(`Attending your event`, eventUserId, eventId);
@@ -113,7 +123,12 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     });
     setEvents(updatedEvents);
 
-    await markAsNotAttending(eventId);
+    const res = await markAsNotAttending(eventId);
+    if (res.error) {
+      toast.error(res.error);
+      setEvents(events); // revert
+      return;
+    }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
     if (updatedEvent && updatedEvent.isUserNotAttending) {
       sendNotification(`Not attending your event`, eventUserId, eventId);
