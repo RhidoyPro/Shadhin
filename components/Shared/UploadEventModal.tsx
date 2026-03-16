@@ -110,7 +110,7 @@ const UploadEventModal = ({
           return;
         }
 
-        const { url } = signedUrlResult.success;
+        const { url, publicUrl } = signedUrlResult.success;
 
         const res = await fetch(url, {
           method: "PUT",
@@ -129,7 +129,7 @@ const UploadEventModal = ({
         const createEventResult = await createEvent({
           content,
           type: file.type.includes("image") ? "image" : "video",
-          url: url.split("?")[0],
+          url: publicUrl,
           stateName,
           eventType: isStatus ? EventType.STATUS : EventType.EVENT,
         });

@@ -67,12 +67,13 @@ export const getSignedURL = async (
     };
   }
 
+  const key = generateFileName();
+
   const putObjectCommand = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME!,
-    Key: generateFileName(),
+    Key: key,
     ContentType: fileType,
     ContentLength: fileSize,
-    ChecksumSHA256: checkSum,
     Metadata: {
       userId: session.user.id!,
     },
@@ -85,6 +86,7 @@ export const getSignedURL = async (
   return {
     success: {
       url: signedUrl,
+      publicUrl: `${process.env.R2_PUBLIC_URL}/${key}`,
     },
   };
 };

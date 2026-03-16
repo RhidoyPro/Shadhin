@@ -64,7 +64,6 @@ export const getSignedURLForImage = async (
     Key,
     ContentType: fileType,
     ContentLength: fileSize,
-    ChecksumSHA256: checkSum,
     Metadata: {
       userId: session.user.id!,
     },
@@ -77,6 +76,7 @@ export const getSignedURLForImage = async (
   return {
     success: {
       url: signedUrl,
+      publicUrl: `${process.env.R2_PUBLIC_URL}/${Key}`,
     },
   };
 };

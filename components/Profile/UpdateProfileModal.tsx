@@ -142,7 +142,7 @@ const UpdateProfileModal = ({
         return;
       }
 
-      const { url } = signedUrlResult.success;
+      const { url, publicUrl } = signedUrlResult.success;
 
       const res = await fetch(url, {
         method: "PUT",
@@ -160,7 +160,7 @@ const UpdateProfileModal = ({
 
       const updateUserImageResult = await updateUserImage(
         user.id,
-        url.split("?")[0]
+        publicUrl
       );
 
       if (updateUserImageResult.error !== undefined) {
@@ -170,7 +170,7 @@ const UpdateProfileModal = ({
         ...session,
         user: {
           ...session?.user,
-          image: url.split("?")[0],
+          image: publicUrl,
         },
       });
       setIsUploading(false);
