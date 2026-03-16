@@ -37,6 +37,7 @@ model User {
   reports       Report[]
   
   points        Int             @default(0)
+  previousPoints Int            @default(0)
   following     Follow[]        @relation("Following")
   followers     Follow[]        @relation("Followers")
 

@@ -56,6 +56,7 @@ export const getTopUsers = unstable_cache(
         name: true,
         image: true,
         points: true,
+        previousPoints: true,
         role: true,
       },
       orderBy: {

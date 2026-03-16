@@ -1,6 +1,6 @@
 import { getTopUsers } from "@/data/user";
 import React from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "../Shared/VerifiedBadge";
 import Link from "next/link";
@@ -14,6 +14,12 @@ function getRankStyle(rank: number) {
   return "bg-muted text-muted-foreground";
 }
 
+function TrendIndicator({ points, previousPoints }: { points: number; previousPoints: number }) {
+  if (points > previousPoints) return <TrendingUp className="h-3 w-3 text-primary shrink-0" />;
+  if (points < previousPoints) return <TrendingDown className="h-3 w-3 text-rose-500 shrink-0" />;
+  return <Minus className="h-3 w-3 text-muted-foreground shrink-0" />;
+}
+
 const LeaderBoard = async () => {
   const topUsers = await getTopUsers();
   return (
@@ -25,7 +31,7 @@ const LeaderBoard = async () => {
         </div>
         <div>
           <h2 className="font-semibold text-foreground text-sm">Leaderboard</h2>
-          <p className="text-[11px] text-muted-foreground">Top contributors</p>
+          <p className="text-[11px] text-muted-foreground">Top contributors this week</p>
         </div>
       </div>
 
@@ -61,10 +67,13 @@ const LeaderBoard = async () => {
                   </p>
                 </div>
 
-                {/* Points */}
-                <span className="text-xs font-semibold text-primary tabular-nums shrink-0">
-                  {user.points.toLocaleString()}
-                </span>
+                {/* Trend + Points */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <TrendIndicator points={user.points} previousPoints={user.previousPoints} />
+                  <span className="text-xs font-medium text-foreground tabular-nums">
+                    {user.points.toLocaleString()}
+                  </span>
+                </div>
               </Link>
             );
           })
