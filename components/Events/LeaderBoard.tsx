@@ -3,7 +3,6 @@ import React from "react";
 import { Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "../Shared/VerifiedBadge";
-import { Button } from "../ui/button";
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils";
@@ -31,7 +30,7 @@ const LeaderBoard = async () => {
       </div>
 
       {/* List */}
-      <div className="divide-y divide-border/50">
+      <div className="divide-y divide-border/50 animate-stagger">
         {topUsers?.length ? (
           topUsers.map((user, index) => {
             const rank = index + 1;
@@ -41,23 +40,30 @@ const LeaderBoard = async () => {
                 href={`/user/${user.id}`}
                 className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
               >
+                {/* Rank */}
                 <div className={cn("flex h-6 w-6 items-center justify-center rounded-md text-xs shrink-0", getRankStyle(rank))}>
                   {rank}
                 </div>
+
+                {/* Avatar */}
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={user.image || undefined} alt={user.name || ""} />
                   <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
                     {user.name?.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
+
+                {/* Info */}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground flex items-center gap-1">
                     {user.name}
                     <VerifiedBadge userRole={user.role as UserRole} />
                   </p>
                 </div>
+
+                {/* Points */}
                 <span className="text-xs font-semibold text-primary tabular-nums shrink-0">
-                  {user.points}
+                  {user.points.toLocaleString()}
                 </span>
               </Link>
             );
@@ -69,9 +75,12 @@ const LeaderBoard = async () => {
 
       {/* Footer */}
       <div className="border-t border-border p-3">
-        <Button variant="ghost" size="sm" className="w-full text-xs font-medium text-primary hover:text-primary/80 hover:bg-primary/5" asChild>
-          <Link href="/leaderboard">View Full Leaderboard</Link>
-        </Button>
+        <Link
+          href="/leaderboard"
+          className="block w-full text-center text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          View Full Leaderboard
+        </Link>
       </div>
     </section>
   );
