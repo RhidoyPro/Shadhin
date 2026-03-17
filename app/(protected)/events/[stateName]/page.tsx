@@ -1,4 +1,5 @@
 import React from "react";
+import type { Metadata } from "next";
 import ChatSection from "@/components/Events/ChatSection";
 import FeedSection from "@/components/Events/FeedSection";
 import LeaderBoard from "@/components/Events/LeaderBoard";
@@ -8,6 +9,20 @@ import { MessageCircleMoreIcon } from "lucide-react";
 import Link from "next/link";
 import { fetchEvents } from "@/actions/event";
 import { fetchMessages } from "@/actions/message";
+import BangladeshStates from "@/data/bangladesh-states";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { stateName: string };
+}): Promise<Metadata> {
+  const state = BangladeshStates.find((s) => s.slug === params.stateName);
+  const name = state?.name || params.stateName;
+  return {
+    title: `${name} — Events & Community`,
+    description: `See what's happening in ${name}. Local events, discussions, and community posts on Shadhin.io.`,
+  };
+}
 
 const StateEventsPage = async ({
   params,

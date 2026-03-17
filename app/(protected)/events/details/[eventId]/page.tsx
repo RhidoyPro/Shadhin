@@ -1,10 +1,25 @@
 import React from "react";
+import type { Metadata } from "next";
 import EventComments from "@/components/EventsDetail/EventComments";
 import { fetchEventComments } from "@/actions/comment";
 import EventData from "@/components/EventsDetail/EventData";
 import { fetchEventById } from "@/actions/event";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { eventId: string };
+}): Promise<Metadata> {
+  const event = await fetchEventById(params.eventId);
+  if (!event) return { title: "Post Not Found" };
+  const snippet = event.content.slice(0, 120) + (event.content.length > 120 ? "..." : "");
+  return {
+    title: `${event.user.name}'s Post`,
+    description: snippet,
+  };
+}
 
 const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
   const event = await fetchEventById(params.eventId);
