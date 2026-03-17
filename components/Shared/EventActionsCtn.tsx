@@ -24,10 +24,12 @@ import {
   Flag,
   CheckCircle2,
   XCircle,
+  Bookmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "../ui/textarea";
 import { addNewReport } from "@/actions/report";
+import { toggleBookmark } from "@/actions/bookmark";
 import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,7 @@ type EventActionsCtnProps = {
   attendees: number;
   comments: number;
   eventType: EventType;
+  initialBookmarked?: boolean;
   eventLikeHandler: () => void;
   eventAttendHandler: () => void;
   eventNotAttendHandler: () => void;
@@ -55,12 +58,25 @@ const EventActionsCtn = ({
   attendees,
   comments,
   eventType,
+  initialBookmarked = false,
   eventLikeHandler,
   eventAttendHandler,
   eventNotAttendHandler,
 }: EventActionsCtnProps) => {
   const [reportReason, setReportReason] = React.useState("");
   const [isReportDialogOpen, setIsReportDialogOpen] = React.useState(false);
+  const [isBookmarked, setIsBookmarked] = React.useState(initialBookmarked);
+
+  const bookmarkHandler = async () => {
+    setIsBookmarked((prev) => !prev);
+    const res = await toggleBookmark(eventId);
+    if ("error" in res) {
+      setIsBookmarked((prev) => !prev);
+      toast.error(res.error);
+      return;
+    }
+    toast.success(res.bookmarked ? "Saved" : "Removed from saved");
+  };
 
   const shareEventHandler = () => {
     navigator.clipboard.writeText(
@@ -169,6 +185,28 @@ const EventActionsCtn = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom"><p>Copy link</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={bookmarkHandler}
+                  className={cn(
+                    "h-9 rounded-full px-3 transition-colors",
+                    isBookmarked
+                      ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-500"
+                      : "text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500"
+                  )}
+                >
+                  <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
+                  <span className="sr-only">{isBookmarked ? "Unsave" : "Save"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>{isBookmarked ? "Unsave" : "Save"}</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 

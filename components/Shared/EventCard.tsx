@@ -65,6 +65,7 @@ export type EventWithUser = Prisma.EventGetPayload<{
 type EventCardProps = {
   event: EventWithUser;
   showFullContent?: boolean;
+  initialBookmarked?: boolean;
   eventLikeHandler: () => void;
   eventAttendHandler: () => void;
   eventNotAttendHandler: () => void;
@@ -74,6 +75,7 @@ type EventCardProps = {
 const EventCard = ({
   event,
   showFullContent = false,
+  initialBookmarked = false,
   eventLikeHandler,
   eventAttendHandler,
   eventNotAttendHandler,
@@ -312,6 +314,7 @@ const EventCard = ({
             attendees={event.attendees?.length}
             comments={event.comments?.length}
             eventType={event.eventType}
+            initialBookmarked={initialBookmarked}
             eventLikeHandler={eventLikeHandler}
             eventAttendHandler={eventAttendHandler}
             eventNotAttendHandler={eventNotAttendHandler}

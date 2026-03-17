@@ -7,6 +7,7 @@ import { addNotification } from "@/actions/notification";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { deleteEventByUser } from "@/actions/event";
+import { getUserBookmarkIds } from "@/actions/bookmark";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -17,7 +18,12 @@ interface IEventData {
 const EventData = ({ event: initialEvent }: IEventData) => {
   const router = useRouter();
   const [event, setEvent] = useState<EventWithUser>(initialEvent);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const user = useCurrentUser();
+
+  useEffect(() => {
+    getUserBookmarkIds().then((ids) => setIsBookmarked(ids.includes(event.id)));
+  }, [event.id]);
 
   const likeEventHandler = async (eventId: string, eventUserId: string) => {
     const wasLiked = event.isLikedByUser;
@@ -105,6 +111,7 @@ const EventData = ({ event: initialEvent }: IEventData) => {
     <EventCard
       showFullContent
       event={event}
+      initialBookmarked={isBookmarked}
       eventLikeHandler={() => likeEventHandler(event.id, event.user.id)}
       eventAttendHandler={() => attendEventHandler(event.id, event.user.id)}
       eventNotAttendHandler={() =>

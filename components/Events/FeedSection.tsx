@@ -8,6 +8,7 @@ import { deleteEventByUser, fetchEvents } from "@/actions/event";
 import { like } from "@/actions/like";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { addNotification } from "@/actions/notification";
+import { getUserBookmarkIds } from "@/actions/bookmark";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { toast } from "sonner";
@@ -25,7 +26,12 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
   );
   const [page, setPage] = React.useState<number>(1);
   const [hasMore, setHasMore] = React.useState<boolean>(true);
+  const [bookmarkIds, setBookmarkIds] = React.useState<Set<string>>(new Set());
   const [ref, inView] = useInView();
+
+  useEffect(() => {
+    getUserBookmarkIds().then((ids) => setBookmarkIds(new Set(ids)));
+  }, []);
 
   const fetchMoreEvents = async () => {
     const newEvents = await fetchEvents(activeState, page + 1);
@@ -148,6 +154,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
             <EventCard
               key={event.id}
               event={event}
+              initialBookmarked={bookmarkIds.has(event.id)}
               eventLikeHandler={() => likeEventHandler(event.id, event.user.id)}
               eventAttendHandler={() =>
                 attendEventHandler(event.id, event.user.id)

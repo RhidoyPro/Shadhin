@@ -2,7 +2,6 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
 
 export const toggleBookmark = async (eventId: string) => {
   const session = await auth();
@@ -32,6 +31,18 @@ export const toggleBookmark = async (eventId: string) => {
   });
 
   return { bookmarked: true };
+};
+
+export const getUserBookmarkIds = async (): Promise<string[]> => {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const bookmarks = await db.bookmark.findMany({
+    where: { userId: session.user.id },
+    select: { eventId: true },
+  });
+
+  return bookmarks.map((b) => b.eventId);
 };
 
 export const getBookmarkedEvents = async (page = 1, limit = 20) => {

@@ -7,6 +7,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { like } from "@/actions/like";
 import { addNotification } from "@/actions/notification";
+import { getUserBookmarkIds } from "@/actions/bookmark";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { toast } from "sonner";
@@ -23,7 +24,12 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
   const [events, setEvents] = useState<EventWithUser[]>(initialEvents || []);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const [bookmarkIds, setBookmarkIds] = useState<Set<string>>(new Set());
   const [ref, inView] = useInView();
+
+  useEffect(() => {
+    getUserBookmarkIds().then((ids) => setBookmarkIds(new Set(ids)));
+  }, []);
 
   const fetchMoreEvents = async () => {
     const newEvents = await fetchUserEvents(userId, page + 1);
@@ -144,6 +150,7 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
           <EventCard
             key={event.id}
             event={event}
+            initialBookmarked={bookmarkIds.has(event.id)}
             eventLikeHandler={() => likeEventHandler(event.id, event.user.id)}
             eventAttendHandler={() =>
               attendEventHandler(event.id, event.user.id)
