@@ -26,10 +26,13 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, ImageOff, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, ImageOff, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
 import { cn } from "@/lib/utils";
+import { editEvent } from "@/actions/event";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -79,6 +82,9 @@ const EventCard = ({
   const user = useCurrentUser();
   const [isContentClamped, setIsContentClamped] = useState(false);
   const [mediaError, setMediaError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(event.content);
+  const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -156,6 +162,16 @@ const EventCard = ({
                   {isOwner && (
                     <>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setEditContent(event.content);
+                          setIsEditing(true);
+                        }}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit {isEvent ? "Event" : "Post"}
+                      </DropdownMenuItem>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -191,22 +207,61 @@ const EventCard = ({
 
           {/* Post content */}
           <div className="mt-2">
-            <div
-              ref={contentRef}
-              className={cn(
-                "break-words text-[15px] leading-relaxed text-foreground",
-                !showFullContent && "line-clamp-4"
-              )}
-            >
-              <FormattedContent content={event.content} />
-            </div>
-            {!showFullContent && isContentClamped && (
-              <Link
-                href={`/events/details/${event.id}`}
-                className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
-              >
-                Show more
-              </Link>
+            {isEditing ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="min-h-[80px] text-[15px]"
+                  maxLength={2000}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    disabled={isSaving || !editContent.trim()}
+                    onClick={async () => {
+                      setIsSaving(true);
+                      const res = await editEvent(event.id, editContent);
+                      setIsSaving(false);
+                      if (res.error) {
+                        toast.error(res.error);
+                        return;
+                      }
+                      toast.success("Updated");
+                      setIsEditing(false);
+                    }}
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div
+                  ref={contentRef}
+                  className={cn(
+                    "break-words text-[15px] leading-relaxed text-foreground",
+                    !showFullContent && "line-clamp-4"
+                  )}
+                >
+                  <FormattedContent content={event.content} />
+                </div>
+                {!showFullContent && isContentClamped && (
+                  <Link
+                    href={`/events/details/${event.id}`}
+                    className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
+                  >
+                    Show more
+                  </Link>
+                )}
+              </>
             )}
           </div>
 

@@ -14,6 +14,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       role: UserRole;
+      isSuspended: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -93,6 +94,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role;
       }
 
+      session.user.isSuspended = token.isSuspended ?? false;
+
       return session;
     },
     async jwt({ token, trigger, session }) {
@@ -104,6 +107,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       token.role = existingUser.role;
       token.userId = existingUser.id;
+      token.isSuspended = existingUser.isSuspended;
       if (trigger === "update") {
         return {
           ...token,

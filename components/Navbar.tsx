@@ -181,8 +181,16 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                     <Link href="/leaderboard" className="cursor-pointer">Leaderboard 🏆</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/bookmarks" className="cursor-pointer">Saved Posts</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href={`/user/${session.user.id}`} className="cursor-pointer">
                       View/Update Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer">
+                      Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

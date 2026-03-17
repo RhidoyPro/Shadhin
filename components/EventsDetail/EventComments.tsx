@@ -5,6 +5,8 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
   EyeIcon,
+  Loader2Icon,
+  MessageCircleIcon,
   MoreHorizontalIcon,
   SendIcon,
   Trash2Icon,
@@ -18,7 +20,7 @@ import {
   fetchEventComments,
 } from "@/actions/comment";
 import { formatDistance } from "date-fns";
-import { useSocket } from "@/context/SocketProvider";
+import { addNotification } from "@/actions/notification";
 import { v4 as uuidv4 } from "uuid";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import UserAvatar from "../Shared/UserAvatar";
@@ -68,7 +70,6 @@ const EventComments = ({
   eventUserId,
 }: EventCommentsProps) => {
   const user = useCurrentUser();
-  const { sendNotification } = useSocket();
   const [isPending, startTransition] = useTransition();
 
   const [newComment, setNewComment] = React.useState("");
@@ -126,7 +127,7 @@ const EventComments = ({
             : comment
         )
       );
-      sendNotification("Added a new comment", eventUserId, eventId);
+      addNotification(`${user?.name}: Added a new comment`, eventId, eventUserId);
     } catch (err) {
       toast.error("Failed to add comment");
       setEventComments((prevComments) =>
@@ -179,113 +180,178 @@ const EventComments = ({
   };
 
   return (
-    <Card className="p-4 mt-4">
-      <div className="flex items-center gap-2">
-        <CurrentUserAvatar />
-        <Input
-          placeholder="Write a comment"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              startTransition(() => addNewCommentHandler());
-            }
-          }}
-        />
-        <Button
-          variant="ghost"
-          size="iconRounded"
-          onClick={() => startTransition(() => addNewCommentHandler())}
-          disabled={isPending || !newComment.trim()}
-        >
-          <SendIcon />
-        </Button>
+    <Card className="overflow-hidden border-border/50">
+      {/* Section header */}
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-border/50">
+        <h3 className="font-semibold text-base">Comments</h3>
+        <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+          {eventComments.length}
+        </span>
       </div>
-      <div className="mt-4 space-y-3">
-        {eventComments.map((comment) => (
-          <div
-            key={comment.id}
-            className="flex items-center gap-2 relative group"
-          >
-            <UserAvatar
-              id={comment.user.id}
-              image={comment?.user?.image || ""}
-              size={8}
-            />
-            <div className="bg-slate-100 dark:bg-neutral-700 px-3 py-2 rounded-md w-fit">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-sm">{comment.user.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-300">
-                  {formatDistance(new Date(comment.createdAt), new Date(), {
-                    addSuffix: true,
-                  })}
-                </p>
-              </div>
-              <p className="text-sm break-words mt-1">{comment.content}</p>
-            </div>
-            <AlertDialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="p-2 text-slate-500 dark:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:ring-primary focus-visible:ring-offset-primary/20"
-                  >
-                    <MoreHorizontalIcon size={20} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Event Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" asChild>
-                    <Link href={`/user/${comment.user.id}`}>
-                      <EyeIcon size={16} className="mr-2" />
-                      View Commenter Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  {user?.id === comment.user.id && (
-                    <AlertDialogTrigger asChild>
-                      <p className="text-sm flex items-center p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">
-                        <Trash2Icon size={16} className="mr-2" />
-                        Delete
-                      </p>
-                    </AlertDialogTrigger>
-                  )}
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you sure you want to delete this comment? ?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the comment.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => deleteCommentHandler(comment.id)}
-                      >
-                        Continue
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </AlertDialog>
+
+      {/* Comment input */}
+      <div className="px-5 py-4 border-b border-border/40 bg-muted/30">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <CurrentUserAvatar size={9} />
           </div>
+          <div className="relative flex-1">
+            <Input
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  startTransition(() => addNewCommentHandler());
+                }
+              }}
+              className="rounded-full bg-background border-border/60 pr-11 h-10 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
+            />
+            <div
+              className={`absolute right-1 top-1/2 -translate-y-1/2 transition-all duration-200 ${
+                newComment.trim()
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-75 pointer-events-none"
+              }`}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full text-primary hover:text-primary hover:bg-primary/10"
+                onClick={() => startTransition(() => addNewCommentHandler())}
+                disabled={isPending || !newComment.trim()}
+              >
+                {isPending ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
+                ) : (
+                  <SendIcon className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Comments list */}
+      <div className="divide-y divide-border/30">
+        {eventComments.map((comment) => (
+          <AlertDialog key={comment.id}>
+            <div className="group relative px-5 py-4 transition-colors hover:bg-muted/20">
+              <div className="flex gap-3">
+                {/* Avatar */}
+                <div className="flex-shrink-0 pt-0.5">
+                  <UserAvatar
+                    id={comment.user.id}
+                    image={comment?.user?.image || ""}
+                    size={8}
+                  />
+                </div>
+
+                {/* Comment body */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/user/${comment.user.id}`}
+                      className="font-semibold text-sm hover:underline truncate"
+                    >
+                      {comment.user.name}
+                    </Link>
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {formatDistance(new Date(comment.createdAt), new Date(), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground/90 break-words mt-1 leading-relaxed">
+                    {comment.content}
+                  </p>
+                </div>
+
+                {/* Actions dropdown */}
+                <div className="flex-shrink-0 -mt-1 -mr-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <MoreHorizontalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                        Actions
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="cursor-pointer text-sm" asChild>
+                        <Link href={`/user/${comment.user.id}`}>
+                          <EyeIcon className="h-4 w-4 mr-2" />
+                          View Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      {user?.id === comment.user.id && (
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10">
+                            <Trash2Icon className="h-4 w-4 mr-2" />
+                            Delete Comment
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {/* Subtle left accent on hover */}
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full" />
+            </div>
+
+            {/* AlertDialog content at the same level as DropdownMenu */}
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  comment.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteCommentHandler(comment.id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         ))}
+
+        {/* Empty state */}
         {eventComments.length === 0 && (
-          <div className="flex items-center justify-center">
-            <p className="text-lg text-slate-400 dark:text-slate-300">No comments yet</p>
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
+              <MessageCircleIcon className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              No comments yet
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Be the first to share your thoughts
+            </p>
           </div>
         )}
       </div>
+
+      {/* Infinite scroll trigger */}
       {hasMore && <div id="load-more-trigger" className="h-1" />}
       {isLoadingMore && (
-        <div className="flex justify-center mt-4">
-          <p className="text-sm text-slate-500 dark:text-slate-300">Loading more comments...</p>
+        <div className="flex items-center justify-center gap-2 py-4 border-t border-border/30">
+          <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading more...</p>
         </div>
       )}
     </Card>

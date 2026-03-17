@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Trash2, ShieldBan, ShieldX, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -43,6 +43,8 @@ import {
 } from "@/components/ui/table";
 import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
+import { deleteEventAndStrike, suspendUser, dismissReport } from "@/actions/moderation";
+import { toast } from "sonner";
 
 export type ReportWithUserAndEvent = Prisma.ReportGetPayload<{
   include: {
@@ -159,8 +161,41 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const report = row.original;
+
+      const handleDeleteAndStrike = async () => {
+        const res = await deleteEventAndStrike(report.eventId);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success(
+          res.strikeResult?.suspended
+            ? "Event deleted, strike added, user suspended"
+            : `Event deleted, strike added (${res.strikeResult?.strikes}/3)`
+        );
+        window.location.reload();
+      };
+
+      const handleSuspend = async () => {
+        const res = await suspendUser(report.event.userId, 7);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success("User suspended for 7 days");
+      };
+
+      const handleDismiss = async () => {
+        const res = await dismissReport(report.id);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success("Report dismissed");
+        window.location.reload();
+      };
 
       return (
         <DropdownMenu>
@@ -187,6 +222,25 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
               onClick={() => window.open(`/user/${report.userId}`)}
             >
               View Reporter Profile
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleDeleteAndStrike}
+              className="text-red-600 focus:text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete + Strike
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleSuspend}
+              className="text-red-600 focus:text-red-600"
+            >
+              <ShieldBan className="mr-2 h-4 w-4" />
+              Suspend User (7d)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDismiss}>
+              <X className="mr-2 h-4 w-4" />
+              Dismiss Report
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

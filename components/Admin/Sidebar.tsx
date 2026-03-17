@@ -1,67 +1,135 @@
 "use client";
 import React from "react";
-import { Button } from "../ui/button";
 import Link from "next/link";
 import {
   BadgeAlertIcon,
   CalendarCheck2Icon,
   LayoutDashboardIcon,
+  MenuIcon,
+  ShieldIcon,
   UserIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import LogoutBtn from "../Shared/LogoutBtn";
+import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "../ui/sheet";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  {
+    label: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboardIcon,
+    exact: true,
+  },
+  {
+    label: "Users",
+    href: "/admin/users",
+    icon: UserIcon,
+    exact: false,
+  },
+  {
+    label: "Events",
+    href: "/admin/events",
+    icon: CalendarCheck2Icon,
+    exact: false,
+  },
+  {
+    label: "Reports",
+    href: "/admin/reports",
+    icon: BadgeAlertIcon,
+    exact: false,
+  },
+];
+
+function NavLink({
+  item,
+  isActive,
+}: {
+  item: (typeof navItems)[number];
+  isActive: boolean;
+}) {
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary/10 text-primary border-l-2 border-primary"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      <item.icon className="h-4 w-4 shrink-0" />
+      {item.label}
+    </Link>
+  );
+}
+
+function SidebarContent({ pathname }: { pathname: string }) {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Logo / Title */}
+      <div className="flex items-center gap-2.5 px-3 py-1">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <ShieldIcon className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Admin</p>
+          <p className="text-xs text-muted-foreground">Shadhin.io</p>
+        </div>
+      </div>
+
+      <Separator className="my-4" />
+
+      {/* Navigation */}
+      <nav className="flex flex-1 flex-col gap-1">
+        {navItems.map((item) => {
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
+          return <NavLink key={item.href} item={item} isActive={isActive} />;
+        })}
+      </nav>
+
+      <Separator className="my-4" />
+
+      {/* Logout */}
+      <LogoutBtn className="justify-start gap-3 text-sm font-medium" />
+    </div>
+  );
+}
 
 const Sidebar = () => {
   const pathname = usePathname();
+
   return (
-    <aside className="bg-white dark:bg-neutral-900 min-w-[300px] p-4 rounded-md h-full flex flex-col justify-between">
-      <div className="flex flex-col gap-4 mt-4">
-        <h1 className="text-2xl font-semibold text-center text-primary">
-          Admin Controls
-        </h1>
-        <Button
-          asChild
-          variant={pathname === "/admin" ? "default" : "secondary"}
-          className="w-full text-xl py-6"
-        >
-          <Link href="/admin">
-            <LayoutDashboardIcon className="mr-1" />
-            Dashboard
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant={pathname === "/admin/users" ? "default" : "secondary"}
-          className="w-full text-xl py-6"
-        >
-          <Link href="/admin/users">
-            <UserIcon className="mr-1" />
-            Users
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant={pathname === "/admin/events" ? "default" : "secondary"}
-          className="w-full text-xl py-6"
-        >
-          <Link href="/admin/events">
-            <CalendarCheck2Icon className="mr-1" />
-            Events
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant={pathname === "/admin/reports" ? "default" : "secondary"}
-          className="w-full text-xl py-6"
-        >
-          <Link href="/admin/reports">
-            <BadgeAlertIcon className="mr-1" />
-            Reports
-          </Link>
-        </Button>
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border p-4">
+        <SidebarContent pathname={pathname} />
+      </aside>
+
+      {/* Mobile trigger + sheet */}
+      <div className="md:hidden fixed bottom-4 right-4 z-50">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" className="h-12 w-12 rounded-full shadow-lg">
+              <MenuIcon className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-4">
+            <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
+            <SidebarContent pathname={pathname} />
+          </SheetContent>
+        </Sheet>
       </div>
-      <LogoutBtn className="py-6" />
-    </aside>
+    </>
   );
 };
 

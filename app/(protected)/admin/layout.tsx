@@ -7,11 +7,11 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="container flex gap-4 px-4 py-6 relative h-[90vh]">
+    <div className="container flex h-[calc(100vh-4rem)] px-0 py-0 md:py-4 md:px-4">
       <Sidebar />
-      <div className="h-full overflow-y-auto custom-scrollbar pr-4 bg-white dark:bg-neutral-900 rounded-md p-4 w-full">
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
         {children}
-      </div>
+      </main>
     </div>
   );
 }

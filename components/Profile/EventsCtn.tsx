@@ -6,7 +6,7 @@ import { deleteEventByUser, fetchUserEvents } from "@/actions/event";
 import ClipLoader from "react-spinners/ClipLoader";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { like } from "@/actions/like";
-import { useSocket } from "@/context/SocketProvider";
+import { addNotification } from "@/actions/notification";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ interface EventsCtnProps {
 }
 
 const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
-  const { sendNotification } = useSocket();
   const user = useCurrentUser();
 
   const [events, setEvents] = useState<EventWithUser[]>(initialEvents || []);
@@ -66,7 +65,7 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
     }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
     if (updatedEvent && updatedEvent.isLikedByUser) {
-      sendNotification(`Liked your event`, eventUserId, eventId);
+      addNotification(`${user?.name}: Liked your event`, eventId, eventUserId);
     }
   };
 
@@ -98,7 +97,7 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
     }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
     if (updatedEvent && updatedEvent.isUserAttending) {
-      sendNotification(`Attending your event`, eventUserId, eventId);
+      addNotification(`${user?.name}: Attending your event`, eventId, eventUserId);
     }
   };
 
@@ -129,7 +128,7 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
     }
     const updatedEvent = updatedEvents.find((e) => e.id === eventId);
     if (updatedEvent && updatedEvent.isUserNotAttending) {
-      sendNotification(`Not attending your event`, eventUserId, eventId);
+      addNotification(`${user?.name}: Not attending your event`, eventId, eventUserId);
     }
   };
 

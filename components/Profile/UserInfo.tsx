@@ -12,6 +12,15 @@ import ProfileUpdate from "./ProfileUpdate";
 import VerifiedBadge from "../Shared/VerifiedBadge";
 import FollowButton from "./FollowButton";
 import Link from "next/link";
+import {
+  GraduationCap,
+  CalendarDays,
+  MapPin,
+  Quote,
+  CalendarCheck,
+  ChevronRight,
+} from "lucide-react";
+import { Separator } from "../ui/separator";
 
 type UserInfoProps = {
   user: User;
@@ -33,92 +42,150 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
     ]);
 
   return (
-    <section className="rounded-lg flex-1 h-fit max-h-[80vh] overflow-y-auto custom-scrollbar md:sticky top-24 left-0">
-      <div className="bg-white dark:bg-neutral-900 p-4">
-        <div className="flex items-center gap-3">
-          <UserAvatar size={14} image={user?.image || ""} id={user.id} />
-          <div>
-            <div className="flex items-center gap-1">
-              <h1 className="text-2xl font-bold text-primary">{user.name}</h1>
-              <VerifiedBadge userRole={user.role} />
-            </div>
-            <p className="text-neutral-500 dark:text-neutral-400">
-              {user.email}
-            </p>
+    <section className="flex-1 h-fit max-h-[80vh] overflow-y-auto custom-scrollbar md:sticky top-24 left-0 space-y-4">
+      {/* Hero Profile Header */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        {/* Gradient banner */}
+        <div className="h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
+
+        {/* Avatar + Name */}
+        <div className="flex flex-col items-center -mt-12 px-5 pb-5">
+          <div className="ring-4 ring-background rounded-full">
+            <UserAvatar size={20} image={user?.image || ""} id={user.id} />
+          </div>
+
+          <div className="flex items-center gap-1.5 mt-3">
+            <h1 className="text-xl font-bold text-foreground">{user.name}</h1>
+            <VerifiedBadge userRole={user.role} />
+          </div>
+
+          <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>
+
+          {/* Action Button */}
+          <div className="flex justify-center">
+            {isOwnProfile && <ProfileUpdate user={user} />}
+            {!isOwnProfile && session?.user && (
+              <FollowButton
+                targetUserId={user.id}
+                initialFollowing={userIsFollowing as boolean}
+              />
+            )}
           </div>
         </div>
-        {isOwnProfile && <ProfileUpdate user={user} />}
-        {!isOwnProfile && session?.user && (
-          <FollowButton
-            targetUserId={user.id}
-            initialFollowing={userIsFollowing as boolean}
-          />
+
+        <Separator />
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 py-3">
+          <div className="text-center">
+            <p className="text-lg font-bold text-foreground">
+              {followCounts.followers}
+            </p>
+            <p className="text-xs text-muted-foreground">Followers</p>
+          </div>
+          <div className="text-center border-x border-border">
+            <p className="text-lg font-bold text-foreground">
+              {followCounts.following}
+            </p>
+            <p className="text-xs text-muted-foreground">Following</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold text-foreground">{eventsCreated}</p>
+            <p className="text-xs text-muted-foreground">Posts</p>
+          </div>
+        </div>
+      </div>
+
+      {/* About Card */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
+          About
+        </h2>
+
+        {user.bio && (
+          <div className="flex gap-2 mb-4">
+            <Quote className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground leading-relaxed italic">
+              {user.bio}
+            </p>
+          </div>
         )}
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
+              <GraduationCap className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">University</p>
+              <p className="text-sm font-medium text-foreground">
+                {user?.university || "Not specified"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
+              <CalendarDays className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Joined</p>
+              <p className="text-sm font-medium text-foreground">
+                {format(new Date(user.createdAt), "MMMM dd, yyyy")}
+              </p>
+            </div>
+          </div>
+
+          {user.stateName && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10">
+                <MapPin className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">District</p>
+                <p className="text-sm font-medium text-foreground">
+                  {user.stateName}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Follow counts */}
-      <div className="bg-white dark:bg-neutral-900 p-4 mt-4 flex gap-6">
-        <div className="text-center">
-          <p className="text-primary font-bold text-lg">
-            {followCounts.followers}
-          </p>
-          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Followers</p>
-        </div>
-        <div className="text-center">
-          <p className="text-primary font-bold text-lg">
-            {followCounts.following}
-          </p>
-          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Following</p>
-        </div>
-        <div className="text-center">
-          <p className="text-primary font-bold text-lg">{eventsCreated}</p>
-          <p className="text-neutral-500 dark:text-neutral-300 text-sm">Posts</p>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
-        <h1 className="text-lg font-semibold text-primary">About</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 mt-2">
-          University{" "}
-          <span className="text-primary font-semibold">
-            {user?.university || "-"}
-          </span>
-        </p>
-        <p className="text-neutral-500 dark:text-neutral-400 mt-2">
-          Joined on{" "}
-          <span className="text-primary font-semibold">
-            {format(new Date(user.createdAt), "MMMM dd, yyyy")}
-          </span>
-        </p>
-      </div>
-
-      {/* Attending events list */}
+      {/* Attending Events Card */}
       {attendingEvents && attendingEvents.length > 0 && (
-        <div className="bg-white dark:bg-neutral-900 p-4 mt-4">
+        <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-semibold text-primary">
-              Attending ({attendingCount})
-            </h1>
+            <div className="flex items-center gap-2">
+              <CalendarCheck className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                Attending
+              </h2>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                {attendingCount}
+              </span>
+            </div>
             {attendingCount > 5 && (
               <Link
                 href={`/user/${user.id}/attending`}
-                className="text-xs text-neutral-500 dark:text-neutral-300 hover:text-primary transition-colors"
+                className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5"
               >
                 View all
+                <ChevronRight className="h-3 w-3" />
               </Link>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {attendingEvents.map((event) => (
               <Link
                 key={event.id}
                 href={`/events/details/${event.id}`}
-                className="block p-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                className="block p-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
               >
-                <p className="text-sm text-primary line-clamp-2">
+                <p className="text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                   {event.content}
                 </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {formatDistance(new Date(event.createdAt), new Date(), {
                     addSuffix: true,
                   })}

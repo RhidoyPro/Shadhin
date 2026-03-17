@@ -5,5 +5,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: UserRole;
     userId: string;
+    isSuspended: boolean;
   }
 }

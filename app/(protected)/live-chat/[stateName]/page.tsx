@@ -1,5 +1,4 @@
 import React from "react";
-import { getMessagesByStateName } from "@/data/messages";
 import ChatSection from "@/components/Events/ChatSection";
 import { fetchMessages } from "@/actions/message";
 

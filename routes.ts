@@ -6,7 +6,7 @@
 
 import BangladeshStates from "./data/bangladesh-states";
 
-export const publicRoutes = ["/auth/error", "/verify-email", ,];
+export const publicRoutes = ["/auth/error", "/verify-email", "/terms", "/privacy"];
 
 /**
  * An array of routes that are used for authentication

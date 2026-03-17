@@ -11,7 +11,9 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
-import { Upload, X } from "lucide-react";
+import { Upload, X, CalendarDays } from "lucide-react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { createEvent, getSignedURL } from "@/actions/event";
 import ErrorMessage from "./ErrorMessage";
 import { useParams } from "next/navigation";
@@ -50,10 +52,12 @@ const UploadEventModal = ({
   const [stateName, setStateName] = React.useState<string>(
     params.stateName || BangladeshStates[1].slug
   );
+  const [eventDate, setEventDate] = React.useState<string>("");
 
   const resetData = () => {
     setFile(undefined);
     setContent("");
+    setEventDate("");
     setError(null);
   };
 
@@ -132,6 +136,7 @@ const UploadEventModal = ({
           url: publicUrl,
           stateName,
           eventType: isStatus ? EventType.STATUS : EventType.EVENT,
+          eventDate: !isStatus && eventDate ? eventDate : undefined,
         });
 
         if (createEventResult.error !== undefined) {
@@ -147,6 +152,7 @@ const UploadEventModal = ({
         content,
         stateName,
         eventType: isStatus ? EventType.STATUS : EventType.EVENT,
+        eventDate: !isStatus && eventDate ? eventDate : undefined,
       });
 
       if (createEventResult.error !== undefined) {
@@ -215,6 +221,24 @@ const UploadEventModal = ({
                   autoFocus
                 />
               </div>
+              {!isStatus && (
+                <div className="mt-4 flex items-center gap-3">
+                  <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <Label htmlFor="eventDate" className="text-sm text-muted-foreground">
+                      Event Date & Time (optional)
+                    </Label>
+                    <Input
+                      id="eventDate"
+                      type="datetime-local"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              )}
               <section className="text-center mt-4 border-2 border-dashed border-slate-200 p-4 rounded-sm h-24 flex items-center justify-center flex-col cursor-pointer transition-all duration-200 ease-in hover:bg-slate-100 dark:hover:bg-neutral-700">
                 <div {...getRootProps({ className: "dropzone" })}>
                   <input {...getInputProps()} />

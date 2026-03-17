@@ -104,7 +104,7 @@ export const EventBroadcastEmail = ({
               color: "rgb(0,0,0, 0.7)",
             }}
           >
-            Shadhin.io - All rights reserved 2024
+            Shadhin.io - All rights reserved 2025
           </Text>
         </Container>
       </Body>

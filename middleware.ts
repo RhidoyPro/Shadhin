@@ -42,6 +42,14 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Check if suspended user is trying to access protected routes
+  if (isLoggedIn && session?.user?.isSuspended) {
+    const isSuspendedPage = nextUrl.pathname === "/suspended";
+    if (!isSuspendedPage && !isPublicRoute && !isAuthRoute) {
+      return NextResponse.redirect(new URL("/suspended", nextUrl));
+    }
+  }
+
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }

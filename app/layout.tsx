@@ -5,15 +5,40 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
-import { SocketProvider } from "@/context/SocketProvider";
+
 import NextTopLoader from "nextjs-toploader";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Shadhin.io",
-  description: "Free speech platform for bangladeshi people",
+  title: {
+    default: "Shadhin.io — Bangladesh's District-Based Social Platform",
+    template: "%s | Shadhin.io",
+  },
+  description:
+    "Connect with your local community. Events, live chat, and discussions organized by Bangladesh's districts.",
+  metadataBase: new URL(process.env.FRONTEND_URL || "https://shadhin.io"),
+  openGraph: {
+    type: "website",
+    siteName: "Shadhin.io",
+    title: "Shadhin.io — Bangladesh's District-Based Social Platform",
+    description:
+      "Connect with your local community. Events, live chat, and discussions organized by Bangladesh's districts.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shadhin.io",
+    description:
+      "Bangladesh's district-based social platform for events, chat, and community.",
+  },
+  manifest: "/manifest.json",
+  themeColor: "#16a34a",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Shadhin.io",
+  },
 };
 
 export default async function RootLayout({
@@ -25,6 +50,10 @@ export default async function RootLayout({
   return (
     <SessionProvider session={session}>
       <html lang="en">
+        <head>
+          <link rel="apple-touch-icon" href="/logo.png" />
+          <meta name="mobile-web-app-capable" content="yes" />
+        </head>
         <body className={inter.className}>
           <NextTopLoader color="#16a34a" />
           <ThemeProvider
@@ -33,7 +62,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <SocketProvider>{children}</SocketProvider>
+            {children}
             <Toaster richColors />
           </ThemeProvider>
         </body>

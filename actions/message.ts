@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getMessagesByStateName } from "@/data/messages";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { moderateText } from "@/lib/moderation";
 import BangladeshStates from "@/data/bangladesh-states";
 
 const VALID_STATE_NAMES = BangladeshStates.filter(
@@ -35,6 +36,12 @@ export const addMessage = async (message: string, stateName: string) => {
 
   if (!VALID_STATE_NAMES.includes(stateName)) {
     return { error: "Invalid state" };
+  }
+
+  // Content moderation check
+  const moderation = await moderateText(message);
+  if (moderation.flagged) {
+    return { error: "Message flagged for inappropriate content. Please revise." };
   }
 
   await db.message.create({

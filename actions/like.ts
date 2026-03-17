@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getIsLikedByUser } from "@/data/like";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendPushToUser } from "@/lib/push";
 import { revalidatePath } from "next/cache";
 
 export const like = async (eventId: string) => {
@@ -40,6 +41,16 @@ export const like = async (eventId: string) => {
   await db.like.create({
     data: { eventId, userId: session.user.id! },
   });
+
+  // Push notification to post owner (non-blocking)
+  if (event.userId !== session.user.id) {
+    sendPushToUser(
+      event.userId,
+      "New like!",
+      `${session.user.name || "Someone"} liked your post`,
+      `/events/details/${eventId}`
+    ).catch(() => {});
+  }
 
   revalidatePath(`/events/details/${eventId}`);
   return { success: true };

@@ -7,6 +7,7 @@ import {
 } from "@/data/event-attend";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendPushToUser } from "@/lib/push";
 import { EventStatus } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
@@ -64,6 +65,16 @@ export const markAsAttending = async (eventId: string) => {
   await db.eventAttendee.create({
     data: { status: EventStatus.GOING, eventId, userId: session.user.id! },
   });
+
+  // Push notification to event creator (non-blocking)
+  if (event.userId !== session.user.id) {
+    sendPushToUser(
+      event.userId,
+      "New RSVP!",
+      `${session.user.name || "Someone"} is attending your event`,
+      `/events/details/${eventId}`
+    ).catch(() => {});
+  }
 
   await db.user.update({
     where: { id: session.user.id! },

@@ -44,7 +44,7 @@ export const ResetPasswordEmail = ({ code }: ResetPasswordEmailProps) => (
         </Text>
         <Hr style={hr} />
         <Link href={baseUrl} style={reportLink}>
-          Shadhin.io - All rights reserved 2024
+          Shadhin.io - All rights reserved 2025
         </Link>
       </Container>
     </Body>

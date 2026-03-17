@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "../ui/button";
 import UpdateProfileModal from "./UpdateProfileModal";
 import { User } from "@prisma/client";
+import { Pencil } from "lucide-react";
 
 type ProfileUpdateProps = {
   user: User;
@@ -14,10 +15,13 @@ const ProfileUpdate = ({ user }: ProfileUpdateProps) => {
   return (
     <>
       <Button
-        className="mt-4 w-full"
+        variant="outline"
+        size="default"
+        className="mt-4 rounded-full px-6 gap-2"
         onClick={() => setIsUpdateProfileModalOpen(true)}
       >
-        Update Profile
+        <Pencil className="h-4 w-4" />
+        Edit Profile
       </Button>
       <UpdateProfileModal
         isOpen={isUpdateProfileModalOpen}

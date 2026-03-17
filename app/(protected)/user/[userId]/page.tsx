@@ -5,6 +5,7 @@ import UserInfo from "@/components/Profile/UserInfo";
 import { auth } from "@/auth";
 import { fetchUserEvents } from "@/actions/event";
 import EventsCtn from "@/components/Profile/EventsCtn";
+import { Separator } from "@/components/ui/separator";
 
 const UserProfilePage = async ({
   params: { userId },
@@ -17,9 +18,12 @@ const UserProfilePage = async ({
   return (
     <>
       {user && (
-        <div className="container flex flex-col md:flex-row gap-4 px-4 py-6 relative">
-          <UserInfo user={user} eventsCreated={events?.length || 0} />
-          <section className="flex-[2.5] flex flex-col gap-3">
+        <div className="container max-w-6xl mx-auto flex flex-col md:flex-row gap-6 px-4 py-6 relative">
+          <div className="w-full md:w-[380px] shrink-0">
+            <UserInfo user={user} eventsCreated={events?.length || 0} />
+          </div>
+          <Separator orientation="vertical" className="hidden md:block h-auto self-stretch" />
+          <section className="flex-1 min-w-0 flex flex-col gap-4">
             {session?.user?.id === user.id && <UploadCard />}
             <EventsCtn
               initialEvents={events || []}

@@ -77,6 +77,7 @@ export const UpdateProfileSchema = z.object({
   dateOfBirth: z
     .date({ message: "Please enter a valid date of birth" })
     .optional(),
+  bio: z.string().max(300, "Bio cannot exceed 300 characters").optional(),
 });
 
 export const CommentSchema = z.object({

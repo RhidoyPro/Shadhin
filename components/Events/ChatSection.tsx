@@ -1,82 +1,124 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Send, Radio, X } from "lucide-react";
-import { IMessage, useSocket } from "@/context/SocketProvider";
 import { toast } from "sonner";
-import { addMessage, fetchMessages } from "@/actions/message";
+import { addMessage } from "@/actions/message";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type ChatSectionProps = {
-  activeState: string;
-  savedMessages: Prisma.MessageGetPayload<{
-    include: {
-      user: {
-        select: {
-          id: true;
-          name: true;
-          image: true;
-        };
+export type ChatMessage = Prisma.MessageGetPayload<{
+  include: {
+    user: {
+      select: {
+        id: true;
+        name: true;
+        image: true;
       };
     };
-  }>[];
+  };
+}>;
+
+type ChatSectionProps = {
+  activeState: string;
+  savedMessages: ChatMessage[];
   hiddenOnMobile?: boolean;
 };
+
+const POLL_INTERVAL = 4000; // 4 seconds
 
 const ChatSection = ({
   activeState,
   savedMessages,
   hiddenOnMobile = true,
 }: ChatSectionProps) => {
-  const chatBoxRef = React.useRef<HTMLDivElement>(null);
-  const { setStateName, messages, sendMessage, setMessages } = useSocket();
+  const chatBoxRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = React.useState<ChatMessage[]>(savedMessages);
   const [message, setMessage] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [loadPrevious, setLoadPrevious] = React.useState(false);
+  const [autoScroll, setAutoScroll] = React.useState(true);
 
-  useEffect(() => {
-    setStateName(activeState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeState]);
-
-  const sendMessageHandler = () => {
-    if (message.trim() === "") return toast.error("Message cannot be empty");
-    addMessage(message, activeState);
-    sendMessage(message);
-    setMessage("");
-  };
-
+  // Initialize with saved messages
   useEffect(() => {
     if (savedMessages.length < 20) setHasMore(false);
     setMessages(savedMessages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedMessages]);
 
+  // Poll for new messages
   useEffect(() => {
-    if (loadPrevious) return;
-    chatBoxRef.current?.scrollTo(0, chatBoxRef.current?.scrollHeight);
-  }, [messages]);
+    const poll = async () => {
+      try {
+        const lastMessage = messages[messages.length - 1];
+        const after = lastMessage ? new Date(lastMessage.createdAt).toISOString() : "";
+        const params = new URLSearchParams({ stateName: activeState });
+        if (after) params.set("after", after);
 
-  const fetchPaginatedMessages = async () => {
-    const prevMessages = await fetchMessages(activeState, page + 1);
-    if (prevMessages?.length) {
-      setPage(page + 1);
-      setMessages([...prevMessages, ...messages]);
-      setLoadPrevious(false);
-      return;
+        const res = await fetch(`/api/chat/messages?${params}`);
+        if (!res.ok) return;
+
+        const newMessages: ChatMessage[] = await res.json();
+        if (newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const unique = newMessages.filter((m) => !existingIds.has(m.id));
+            return unique.length > 0 ? [...prev, ...unique] : prev;
+          });
+        }
+      } catch {
+        // Silently fail — next poll will retry
+      }
+    };
+
+    const interval = setInterval(poll, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [activeState, messages]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (autoScroll && !loadPrevious) {
+      chatBoxRef.current?.scrollTo(0, chatBoxRef.current?.scrollHeight);
     }
-    setLoadPrevious(false);
-    setHasMore(false);
+  }, [messages, autoScroll, loadPrevious]);
+
+  const sendMessageHandler = async () => {
+    if (message.trim() === "") return toast.error("Message cannot be empty");
+    const text = message;
+    setMessage("");
+    const res = await addMessage(text, activeState);
+    if (res.error) {
+      toast.error(res.error);
+      setMessage(text); // restore on error
+    }
+    // Polling will pick up the new message
   };
 
+  const fetchPaginatedMessages = useCallback(async () => {
+    try {
+      const { fetchMessages } = await import("@/actions/message");
+      const prevMessages = await fetchMessages(activeState, page + 1);
+      if (prevMessages?.length) {
+        setPage(page + 1);
+        setMessages((prev) => [...prevMessages, ...prev]);
+        setAutoScroll(false);
+      } else {
+        setHasMore(false);
+      }
+    } finally {
+      setLoadPrevious(false);
+    }
+  }, [activeState, page]);
+
   useEffect(() => {
-    if (loadPrevious) fetchPaginatedMessages();
-  }, [loadPrevious]);
+    if (loadPrevious) {
+      setAutoScroll(false);
+      fetchPaginatedMessages();
+    }
+  }, [loadPrevious, fetchPaginatedMessages]);
 
   return (
     <section
@@ -118,7 +160,7 @@ const ChatSection = ({
             </Button>
           </div>
         )}
-        {messages.map((msg: IMessage) => (
+        {messages.map((msg) => (
           <div key={msg.id} className="flex gap-2">
             <Avatar className="h-6 w-6 shrink-0 mt-0.5">
               <AvatarImage src={msg?.user?.image || undefined} alt={msg?.user?.name || ""} />

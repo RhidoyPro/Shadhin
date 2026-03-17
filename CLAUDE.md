@@ -16,7 +16,7 @@ There are no automated tests in this project.
 
 ## Architecture Overview
 
-This is a **Next.js 14 App Router** full-stack application — a social/community platform for Bangladesh called Shadhin.io. It uses the MongoDB + Prisma ORM for data, NextAuth.js v5 (beta) for authentication, AWS S3 for media storage, Resend for emails, and Socket.IO for real-time features.
+This is a **Next.js 14 App Router** full-stack application — a social/community platform for Bangladesh called Shadhin.io. It uses the MongoDB + Prisma ORM for data, NextAuth.js v5 (beta) for authentication, AWS S3 for media storage, Resend for emails, and HTTP polling for real-time features.
 
 ### Route Structure
 
@@ -38,7 +38,7 @@ This is a **Next.js 14 App Router** full-stack application — a social/communit
 
 **Auth** (`auth.ts` + `middleware.ts` + `routes.ts`): NextAuth JWT sessions. Middleware enforces route protection using `routes.ts` which defines public, auth-only, and admin-only route arrays. Session includes `role` and `id` fields (augmented in `next-auth.d.ts`).
 
-**Real-time** (`context/SocketProvider.tsx`): Socket.IO client wraps protected routes. Users auto-join rooms by `stateName` for chat and notifications.
+**Real-time** (polling): Chat messages poll every 4s via `GET /api/chat/messages`, notifications poll every 10s via `GET /api/notifications/poll`. No external Socket.IO server needed.
 
 **File Uploads**: AWS S3 with pre-signed URLs. Media URLs are stored in MongoDB; S3 bucket is `utopia-web-app` (ap-south-1 region).
 
@@ -46,7 +46,7 @@ This is a **Next.js 14 App Router** full-stack application — a social/communit
 
 ### Environment Variables
 
-See `.env.example` — requires: `DATABASE_URL`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`, `AWS_BUCKET_NAME`, `AWS_BUCKET_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `NEXT_PUBLIC_SOCKET_URL`, `NEXT_PUBLIC_MEASUREMENT_ID`.
+See `.env.example` — requires: `DATABASE_URL`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`, `AWS_BUCKET_NAME`, `AWS_BUCKET_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `NEXT_PUBLIC_MEASUREMENT_ID`.
 
 ### Path Aliases
 
@@ -72,5 +72,4 @@ Prisma schema at `prisma/schema.prisma` (MongoDB provider). Run `npx prisma gene
 ## Current Priorities
 
 1. **Feed algorithm** — Build a content ranking system with weighted scoring: engagement 40%, social graph 30%, interest tags 20%, district/location 10%.
-2. **Socket.IO server** — The frontend connects to `NEXT_PUBLIC_SOCKET_URL` but the Socket.IO server is a separate service not in this repo. It needs to be set up, documented, or co-located.
-3. **Old S3 images lost** — Previous AWS account was deleted. All images stored under `utopia-web-app.s3.ap-south-1.amazonaws.com` are gone. Fallback UI is in place, but users need to re-upload profile pictures and event media.
+2. **Old S3 images lost** — Previous AWS account was deleted. All images stored under `utopia-web-app.s3.ap-south-1.amazonaws.com` are gone. Fallback UI is in place, but users need to re-upload profile pictures and event media.

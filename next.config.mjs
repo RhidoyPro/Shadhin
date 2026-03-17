@@ -64,6 +64,7 @@ const nextConfig = {
       "@aws-sdk/s3-request-presigner",
       "@react-email/render",
       "@react-email/components",
+      "web-push",
     ],
   },
   images: {

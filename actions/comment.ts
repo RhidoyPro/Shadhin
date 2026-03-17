@@ -4,7 +4,9 @@ import { auth } from "@/auth";
 import { getCommentsByEventId } from "@/data/comments";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { moderateText } from "@/lib/moderation";
 import { CommentSchema } from "@/utils/zodSchema";
+import { sendPushToUser } from "@/lib/push";
 import { revalidatePath } from "next/cache";
 
 export const addComment = async (eventId: string, content: string) => {
@@ -29,6 +31,12 @@ export const addComment = async (eventId: string, content: string) => {
     return { error: validated.error.issues[0].message };
   }
 
+  // Content moderation check
+  const moderation = await moderateText(validated.data.content);
+  if (moderation.flagged) {
+    return { error: `Comment flagged for: ${moderation.categories.join(", ")}. Please revise.` };
+  }
+
   const event = await db.event.findUnique({ where: { id: eventId } });
 
   if (!event) {
@@ -42,6 +50,16 @@ export const addComment = async (eventId: string, content: string) => {
       content: validated.data.content,
     },
   });
+
+  // Push notification to post owner (non-blocking)
+  if (event.userId !== session.user.id) {
+    sendPushToUser(
+      event.userId,
+      "New comment!",
+      `${session.user.name || "Someone"} commented on your post`,
+      `/events/details/${eventId}`
+    ).catch(() => {});
+  }
 
   revalidatePath("/events/details/[eventId]", "page");
 

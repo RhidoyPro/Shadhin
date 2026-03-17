@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import EventCard, { EventWithUser } from "../Shared/EventCard";
 import { like } from "@/actions/like";
 import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
-import { useSocket } from "@/context/SocketProvider";
+import { addNotification } from "@/actions/notification";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { EventStatus } from "@prisma/client";
 import { deleteEventByUser } from "@/actions/event";
@@ -17,7 +17,6 @@ interface IEventData {
 const EventData = ({ event: initialEvent }: IEventData) => {
   const router = useRouter();
   const [event, setEvent] = useState<EventWithUser>(initialEvent);
-  const { sendNotification } = useSocket();
   const user = useCurrentUser();
 
   const likeEventHandler = async (eventId: string, eventUserId: string) => {
@@ -36,7 +35,7 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       setEvent(initialEvent); // revert
       return;
     }
-    if (!wasLiked) sendNotification(`Liked your event`, eventUserId, eventId);
+    if (!wasLiked) addNotification(`${user?.name}: Liked your event`, eventId, eventUserId);
   };
 
   const attendEventHandler = async (eventId: string, eventUserId: string) => {
@@ -65,7 +64,7 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       return;
     }
     if (!event.isUserAttending) {
-      sendNotification(`Attending your event`, eventUserId, eventId);
+      addNotification(`${user?.name}: Attending your event`, eventId, eventUserId);
     }
   };
 
@@ -89,7 +88,7 @@ const EventData = ({ event: initialEvent }: IEventData) => {
       return;
     }
     if (!event.isUserNotAttending) {
-      sendNotification(`Not attending your event`, eventUserId, eventId);
+      addNotification(`${user?.name}: Not attending your event`, eventId, eventUserId);
     }
   };
 

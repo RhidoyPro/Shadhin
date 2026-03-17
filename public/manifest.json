@@ -1,0 +1,26 @@
+{
+  "name": "Shadhin.io",
+  "short_name": "Shadhin",
+  "description": "Bangladesh's District-Based Social Platform",
+  "start_url": "/events/dhaka",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "categories": ["social", "news", "lifestyle"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

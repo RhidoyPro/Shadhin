@@ -10,11 +10,13 @@ import {
 } from "@/data/events";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { moderateText } from "@/lib/moderation";
 import { sendEventEmails } from "@/lib/mail";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
+import { invalidateFeedCache } from "@/lib/cache";
 import { revalidatePath } from "next/cache";
 import { s3 } from "@/lib/s3";
 
@@ -97,6 +99,7 @@ type CreateEventInput = {
   url?: string;
   stateName: string;
   eventType: EventType;
+  eventDate?: string;
 };
 
 export const createEvent = async ({
@@ -105,6 +108,7 @@ export const createEvent = async ({
   url,
   stateName,
   eventType,
+  eventDate,
 }: CreateEventInput) => {
   const session = await auth();
 
@@ -134,6 +138,12 @@ export const createEvent = async ({
     return { error: "Invalid district selected" };
   }
 
+  // Content moderation check
+  const moderation = await moderateText(content);
+  if (moderation.flagged) {
+    return { error: `Content flagged for: ${moderation.categories.join(", ")}. Please revise your post.` };
+  }
+
   //we need to check if the stateName is all-districts and the user is a normal user, we throw an error
   if (
     stateName === BangladeshStates[0].slug &&
@@ -153,8 +163,12 @@ export const createEvent = async ({
       userId: session.user.id!,
       stateName,
       eventType,
+      eventDate: eventDate ? new Date(eventDate) : undefined,
     },
   });
+
+  // Invalidate feed cache for this state
+  invalidateFeedCache(stateName).catch(() => {});
 
   if (eventType === EventType.EVENT) {
     //then send email to all users
@@ -196,6 +210,46 @@ export const createEvent = async ({
   return {
     success: true,
   };
+};
+
+export const editEvent = async (eventId: string, content: string) => {
+  const session = await auth();
+
+  if (!session) {
+    return { error: "User not authenticated" };
+  }
+
+  if (!content || content.trim() === "") {
+    return { error: "Content cannot be empty" };
+  }
+
+  if (content.length > 2000) {
+    return { error: "Content cannot exceed 2000 characters" };
+  }
+
+  const moderation = await moderateText(content);
+  if (moderation.flagged) {
+    return { error: `Content flagged for: ${moderation.categories.join(", ")}. Please revise.` };
+  }
+
+  const event = await db.event.findUnique({ where: { id: eventId } });
+  if (!event) {
+    return { error: "Event not found" };
+  }
+
+  if (event.userId !== session.user.id) {
+    return { error: "Unauthorized" };
+  }
+
+  await db.event.update({
+    where: { id: eventId },
+    data: { content: content.trim() },
+  });
+
+  revalidatePath("/events/[stateName]", "page");
+  revalidatePath("/events/details/[eventId]", "page");
+
+  return { success: true };
 };
 
 export const deleteEvent = async (eventId: string) => {
@@ -242,6 +296,7 @@ export const deleteEvent = async (eventId: string) => {
       },
     });
 
+    invalidateFeedCache(event.stateName).catch(() => {});
     revalidatePath("/admin/events", "page");
 
     return {
@@ -433,6 +488,8 @@ export const deleteEventByUser = async (eventId: string) => {
         id: eventId,
       },
     });
+
+    invalidateFeedCache(event.stateName).catch(() => {});
 
     return {
       success: true,

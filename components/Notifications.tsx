@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Bell, BellDot } from "lucide-react";
-import { useSocket } from "@/context/SocketProvider";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Prisma } from "@prisma/client";
@@ -66,40 +65,49 @@ const NotificationItem = ({
   );
 };
 
+type NotificationData = Prisma.NotificationGetPayload<{
+  select: {
+    id: boolean;
+    message: boolean;
+    userId: boolean;
+    createdAt: boolean;
+    eventId: boolean;
+    isRead: boolean;
+  };
+}>;
+
 interface INotifications {
-  userNotifications: Prisma.NotificationGetPayload<{
-    select: {
-      id: boolean;
-      message: boolean;
-      userId: boolean;
-      createdAt: boolean;
-      eventId: boolean;
-      isRead: boolean;
-    };
-  }>[];
+  userNotifications: NotificationData[];
 }
 
+const POLL_INTERVAL = 10000; // 10 seconds
+
 const Notifications = ({ userNotifications }: INotifications) => {
-  const { notifications, newNotification, setNotifications } = useSocket();
-  const [numberOfUnreadNotifications, setNumberOfUnreadNotifications] =
-    useState(0);
+  const [notifications, setNotifications] = useState<NotificationData[]>(userNotifications);
+  const [numberOfUnreadNotifications, setNumberOfUnreadNotifications] = useState(0);
 
+  // Count unread whenever notifications change
   useEffect(() => {
-    setNotifications(userNotifications);
-    const unreadNotifications = userNotifications?.filter(
-      (notification) => !notification.isRead
-    );
-    setNumberOfUnreadNotifications(unreadNotifications.length || 0);
+    const unread = notifications.filter((n) => !n.isRead);
+    setNumberOfUnreadNotifications(unread.length);
+  }, [notifications]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Poll for new notifications
+  const pollNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications/poll");
+      if (!res.ok) return;
+      const data: NotificationData[] = await res.json();
+      setNotifications(data);
+    } catch {
+      // Silently fail — next poll will retry
+    }
   }, []);
 
   useEffect(() => {
-    const unreadNotifications = notifications?.filter(
-      (notification) => !notification.isRead
-    );
-    setNumberOfUnreadNotifications(unreadNotifications.length || 0);
-  }, [notifications]);
+    const interval = setInterval(pollNotifications, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [pollNotifications]);
 
   return (
     <DropdownMenu>
@@ -107,7 +115,7 @@ const Notifications = ({ userNotifications }: INotifications) => {
         <Button variant="outline" size="icon" className="relative">
           <Bell className="h-[1.3rem] w-[1.3rem]" />
           <span className="sr-only">Notifications</span>
-          {(newNotification || numberOfUnreadNotifications > 0) && (
+          {numberOfUnreadNotifications > 0 && (
             <div className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-xs">
               {numberOfUnreadNotifications}
             </div>

@@ -35,7 +35,15 @@ model User {
   messages      Message[]
   notifications Notification[]
   reports       Report[]
-  
+  bookmarks     Bookmark[]
+  pushSubscriptions PushSubscription[]
+
+  strikes       Int             @default(0)
+  isSuspended   Boolean         @default(false)
+  suspendedUntil DateTime?
+  bio           String?
+  isBot         Boolean         @default(false)
+
   points        Int             @default(0)
   previousPoints Int            @default(0)
   following     Follow[]        @relation("Following")
@@ -100,6 +108,7 @@ model Event {
   eventType EventType
   type      String?
   mediaUrl  String?
+  eventDate DateTime?
   stateName String
   userId    String  @db.ObjectId
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -108,12 +117,14 @@ model Event {
   attendees EventAttendee[]
   notifications Notification[]
   reports   Report[]
+  bookmarks Bookmark[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([stateName, createdAt])
+  @@index([eventType])
 }
 
 model Comment {
@@ -129,6 +140,7 @@ model Comment {
 
   @@index([eventId])
   @@index([userId])
+  @@index([createdAt])
 }
 
 model Like {
@@ -192,6 +204,7 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
+  @@index([isRead])
 }
 
 model Follow {
@@ -218,4 +231,32 @@ model Report {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model Bookmark {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  eventId  String @db.ObjectId
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@index([userId])
+}
+
+model PushSubscription {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

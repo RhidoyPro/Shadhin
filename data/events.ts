@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getCached, setCache } from "@/lib/cache";
 import { EventStatus } from "@prisma/client";
 import {
   buildViewerContext,
@@ -232,59 +233,52 @@ export const getRankedEventsByState = async (
     const fetchLimit = limit * FEED_CONFIG.fetchMultiplier;
     const skip = (page - 1) * limit;
 
-    // Fetch a larger pool to rank from
-    const events = await db.event.findMany({
-      where: { stateName },
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
-        likes: { select: { id: true, userId: true } },
-        attendees: {
-          where: { status: EventStatus.GOING },
-          select: { id: true, userId: true, status: true },
+    // Try cache first (cache raw event pool, personalization applied after)
+    const cacheKey = `feed:${stateName}:${page}:${limit}`;
+
+    const fetchFresh = async () => {
+      const fresh = await db.event.findMany({
+        where: { stateName },
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: { select: { id: true, name: true, image: true, email: true, role: true } },
+          likes: { select: { id: true, userId: true } },
+          attendees: {
+            where: { status: EventStatus.GOING },
+            select: { id: true, userId: true, status: true },
+          },
+          comments: { select: { id: true } },
         },
-        comments: { select: { id: true } },
-      },
-      skip,
-      take: fetchLimit,
-    });
+        skip,
+        take: fetchLimit,
+      });
+      // Cache for 60 seconds
+      await setCache(cacheKey, fresh, 60);
+      return fresh;
+    };
+
+    type FeedEvent = Awaited<ReturnType<typeof fetchFresh>>[number];
+    const cached = await getCached<FeedEvent[]>(cacheKey);
+    const events = cached || await fetchFresh();
 
     if (!userId) {
       return events.slice(0, limit);
     }
 
-    // Build viewer context from their interaction history
-    const [likedEvents, commentedEvents, attendedEvents, viewer] =
-      await Promise.all([
-        db.like.findMany({
-          where: { userId },
-          select: { event: { select: { userId: true, stateName: true } } },
-          take: 100,
-        }),
-        db.comment.findMany({
-          where: { userId },
-          select: { event: { select: { userId: true, stateName: true } } },
-          take: 100,
-        }),
-        db.eventAttendee.findMany({
-          where: { userId, status: EventStatus.GOING },
-          select: { event: { select: { userId: true, stateName: true } } },
-          take: 100,
-        }),
-        db.user.findUnique({
-          where: { id: userId },
-          select: { stateName: true },
-        }),
-      ]);
+    // Build viewer context from follow list and home state
+    const [follows, viewer] = await Promise.all([
+      db.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      db.user.findUnique({
+        where: { id: userId },
+        select: { stateName: true },
+      }),
+    ]);
 
     const ctx = buildViewerContext(userId, {
-      likedUserIds: likedEvents.map((l) => l.event.userId),
-      commentedUserIds: commentedEvents.map((c) => c.event.userId),
-      attendedUserIds: attendedEvents.map((a) => a.event.userId),
-      interactedStates: [
-        ...likedEvents.map((l) => l.event.stateName),
-        ...commentedEvents.map((c) => c.event.stateName),
-      ],
+      followingUserIds: follows.map((f) => f.followingId),
       stateName: viewer?.stateName ?? null,
     });
 

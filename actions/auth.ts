@@ -9,7 +9,7 @@ import { saltAndHash } from "@/utils/helper";
 import { SignupSchema } from "@/utils/zodSchema";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { sendVerificationEmail } from "@/lib/mail";
+import { sendVerificationEmail, sendWelcomeEmail, sendNewDistrictMemberEmail } from "@/lib/mail";
 import {
   getVerificationTokenByEmail,
   updateIsEmailSent,
@@ -210,6 +210,32 @@ export const signup = async (state: any, formData: ISignupData) => {
 
     //we need to update isEmailSent to true
     await updateIsEmailSent(verificationToken.token);
+
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(
+      rawFormData.email,
+      rawFormData.firstName,
+      rawFormData.state
+    ).catch(() => {});
+
+    // Notify up to 10 recent users in the same district (non-blocking)
+    db.user.findMany({
+      where: {
+        stateName: rawFormData.state,
+        emailVerified: { not: null },
+        email: { not: rawFormData.email },
+      },
+      select: { email: true },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }).then((users) => {
+      const fullName = `${rawFormData.firstName} ${rawFormData.lastName}`;
+      for (const u of users) {
+        if (u.email) {
+          sendNewDistrictMemberEmail(u.email, fullName, rawFormData.state).catch(() => {});
+        }
+      }
+    }).catch(() => {});
 
     return {
       message: "Verification email sent! Please verify your email and login",

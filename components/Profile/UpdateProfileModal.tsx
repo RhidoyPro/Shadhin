@@ -10,6 +10,7 @@ import { CalendarIcon, EditIcon, UserRound } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
@@ -86,6 +87,7 @@ const UpdateProfileModal = ({
       university: formData.get("university") as string,
       dateOfBirth: date,
       state: formData.get("state") as string,
+      bio: formData.get("bio") as string,
     };
     // const phoneNumber = formData.get("phone") as string;
     // if (!isValidPhoneNumber(phoneNumber)) {
@@ -323,6 +325,18 @@ const UpdateProfileModal = ({
                   </PopoverContent>
                 </Popover>
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                name="bio"
+                placeholder="Tell us about yourself..."
+                maxLength={300}
+                defaultValue={user?.bio || ""}
+                className="resize-none"
+                rows={3}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="state">State</Label>

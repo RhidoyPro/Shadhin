@@ -21,17 +21,17 @@ export default function SearchInput({ initialQuery }: { initialQuery: string }) 
   }, [value, router]);
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <Search
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-300"
-        size={16}
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
+        size={18}
       />
       <Input
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search people, posts, events..."
-        className="pl-9"
+        className="h-12 pl-11 text-base rounded-xl border-border bg-card shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 focus-visible:shadow-md transition-shadow placeholder:text-muted-foreground/60"
       />
     </div>
   );

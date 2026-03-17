@@ -3,6 +3,26 @@
     {
       "path": "/api/cron/snapshot-leaderboard",
       "schedule": "0 0 * * 0"
+    },
+    {
+      "path": "/api/cron/welcome-sequence",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/admin-summary",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/event-reminders",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/bot-posts",
+      "schedule": "0 */2 * * *"
     }
   ]
 }
