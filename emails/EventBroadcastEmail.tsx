@@ -1,20 +1,9 @@
+import { Button, Heading, Section, Text } from "@react-email/components";
 import * as React from "react";
-import {
-  Body,
-  Button,
-  Container,
-  Column,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Row,
-  Section,
-  Text,
-} from "@react-email/components";
 import { format } from "date-fns";
+import EmailLayout, { emailStyles } from "./components/EmailLayout";
 
-const baseUrl = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}` : "";
+const baseUrl = process.env.FRONTEND_URL || "https://shadhin.io";
 
 interface EventBroadcastEmailProps {
   stateName: string;
@@ -28,143 +17,40 @@ export const EventBroadcastEmail = ({
   eventId,
   createdAt,
   createdBy,
-}: EventBroadcastEmailProps) => {
-  return (
-    <Html>
-      <Head />
-      <Preview>New event in {stateName}</Preview>
-      <Body style={main}>
-        <Container>
-          <Section style={logo}>
-            <Text style={logoText}>Shadhin.io</Text>
-          </Section>
-
-          <Section style={content}>
-            <Row style={{ ...boxInfos, paddingBottom: "0" }}>
-              <Column>
-                <Heading
-                  style={{
-                    fontSize: 32,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                  }}
-                >
-                  Hi there!
-                </Heading>
-                <Heading
-                  as="h2"
-                  style={{
-                    fontSize: 26,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                  }}
-                >
-                  New event in {stateName}
-                </Heading>
-
-                <Text style={paragraph}>
-                  <b>State Name: </b>
-                  {stateName}
-                </Text>
-                <Text style={{ ...paragraph, marginTop: -5 }}>
-                  <b>Event Created At: </b>
-                  {format(new Date(createdAt), "MMMM dd, yyyy 'at' hh:mm a")}
-                </Text>
-                <Text style={{ ...paragraph, marginTop: -5 }}>
-                  <b>Event Created By: </b>
-                  {createdBy}
-                </Text>
-                <Text
-                  style={{
-                    color: "rgb(0,0,0, 0.5)",
-                    fontSize: 14,
-                    marginTop: -5,
-                  }}
-                >
-                  Click the button below to view the event details.
-                </Text>
-              </Column>
-            </Row>
-            <Row style={{ ...boxInfos, paddingTop: "0" }}>
-              <Column style={containerButton} colSpan={2}>
-                <Button
-                  style={button}
-                  href={`${baseUrl}/events/details/${eventId}`}
-                >
-                  View Event
-                </Button>
-              </Column>
-            </Row>
-          </Section>
-
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              color: "rgb(0,0,0, 0.7)",
-            }}
-          >
-            Shadhin.io - All rights reserved 2025
-          </Text>
-        </Container>
-      </Body>
-    </Html>
-  );
-};
+}: EventBroadcastEmailProps) => (
+  <EmailLayout preview={`New event in ${stateName}`}>
+    <Heading style={emailStyles.heading}>New event in {stateName}</Heading>
+    <Section style={emailStyles.infoBox}>
+      <Text style={{ fontSize: "14px", color: "#374151", margin: "0 0 6px" }}>
+        <strong>District:</strong> {stateName}
+      </Text>
+      <Text style={{ fontSize: "14px", color: "#374151", margin: "0 0 6px" }}>
+        <strong>Posted by:</strong> {createdBy}
+      </Text>
+      <Text style={{ fontSize: "14px", color: "#374151", margin: "0" }}>
+        <strong>Date:</strong>{" "}
+        {format(new Date(createdAt), "MMMM dd, yyyy 'at' hh:mm a")}
+      </Text>
+    </Section>
+    <Text style={emailStyles.paragraph}>
+      Check out the latest event in your district.
+    </Text>
+    <Section style={emailStyles.buttonContainer}>
+      <Button
+        style={emailStyles.button}
+        href={`${baseUrl}/events/details/${eventId}`}
+      >
+        View Event
+      </Button>
+    </Section>
+  </EmailLayout>
+);
 
 EventBroadcastEmail.PreviewProps = {
-  stateName: "California",
+  stateName: "Dhaka",
   eventId: "123",
   createdAt: new Date(),
   createdBy: "John Doe",
 } as EventBroadcastEmailProps;
 
 export default EventBroadcastEmail;
-
-const main = {
-  backgroundColor: "#fff",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-};
-
-const paragraph = {
-  fontSize: 16,
-};
-
-const logo = {
-  padding: "30px 20px",
-};
-const logoText = {
-  fontSize: "30px",
-  fontWeight: "700",
-  color: "#16a34a",
-  margin: "0 0 10px",
-};
-
-const containerButton = {
-  display: "flex",
-  justifyContent: "center",
-  width: "100%",
-};
-
-const button = {
-  backgroundColor: "#16a34a",
-  borderRadius: 3,
-  color: "#FFF",
-  fontWeight: "bold",
-  border: "1px solid rgb(0,0,0, 0.1)",
-  cursor: "pointer",
-  padding: "12px 30px",
-  width: "100%",
-  textAlign: "center" as const,
-};
-
-const content = {
-  border: "1px solid rgb(0,0,0, 0.1)",
-  borderRadius: "3px",
-  overflow: "hidden",
-};
-
-const boxInfos = {
-  padding: "20px",
-};

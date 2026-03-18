@@ -15,20 +15,32 @@ const getResend = () => {
   return _resend;
 };
 
+const FROM = "Shadhin.io <help@shadhin.io>";
+const REPLY_TO = "help@shadhin.io";
+
+// Headers that improve deliverability and reduce spam scoring
+const defaultHeaders = {
+  "X-Entity-Ref-ID": `shadhin-${Date.now()}`,
+};
+
 export const sendVerificationEmail = async (email: string, token: string) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: "Verify your email address",
+    subject: "Verify your email — Shadhin.io",
+    headers: defaultHeaders,
     react: AccountVerificationEmail({ token }),
   });
 };
 
 export const sendForgotPasswordEmail = async (email: string, code: string) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: "Reset your password",
+    subject: "Your password reset code — Shadhin.io",
+    headers: defaultHeaders,
     react: ResetPasswordEmail({ code }),
   });
 };
@@ -39,9 +51,11 @@ export const sendWelcomeEmail = async (
   stateName: string
 ) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: "Welcome to Shadhin.io!",
+    subject: `Welcome to Shadhin.io, ${name}!`,
+    headers: defaultHeaders,
     react: WelcomeEmail({ name, stateName }),
   });
 };
@@ -58,9 +72,11 @@ export const sendEventReminderEmail = async (
   }
 ) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: `Reminder: Event starting ${data.hoursUntil <= 3 ? "soon" : "tomorrow"}`,
+    subject: `Event reminder: Starting ${data.hoursUntil <= 3 ? "soon" : "tomorrow"} — Shadhin.io`,
+    headers: defaultHeaders,
     react: EventReminderEmail(data),
   });
 };
@@ -71,9 +87,11 @@ export const sendNewDistrictMemberEmail = async (
   stateName: string
 ) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: `${memberName} just joined ${stateName} on Shadhin.io!`,
+    subject: `${memberName} joined ${stateName} — Shadhin.io`,
+    headers: defaultHeaders,
     react: NewDistrictMemberEmail({ memberName, stateName }),
   });
 };
@@ -88,9 +106,11 @@ export const sendLeaderboardAlertEmail = async (
   }
 ) => {
   await getResend().emails.send({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: email,
-    subject: `Leaderboard update: You're now #${data.currentRank}`,
+    subject: `Leaderboard update: You're now #${data.currentRank} — Shadhin.io`,
+    headers: defaultHeaders,
     react: LeaderboardAlertEmail(data),
   });
 };
@@ -102,7 +122,6 @@ export const sendEventEmails = async (
   emails: string[],
   event: { stateName: string; id: string; createdAt: Date; createdBy: string }
 ) => {
-  // Group emails into chunks of 50 recipients
   const emailGroups = emails.reduce((acc, email, i) => {
     const groupIndex = Math.floor(i / RECIPIENTS_PER_EMAIL);
     if (!acc[groupIndex]) {
@@ -112,11 +131,12 @@ export const sendEventEmails = async (
     return acc;
   }, [] as string[][]);
 
-  // Prepare email data for each group
   const emailData = emailGroups.map((group) => ({
-    from: "Shadhin.io <help@shadhin.io>",
+    from: FROM,
+    replyTo: REPLY_TO,
     to: group,
-    subject: `New event in ${event.stateName}`,
+    subject: `New event in ${event.stateName} — Shadhin.io`,
+    headers: defaultHeaders,
     react: EventBroadcastEmail({
       stateName: event.stateName,
       eventId: event.id,
@@ -125,7 +145,6 @@ export const sendEventEmails = async (
     }),
   }));
 
-  // Send emails in batches of 100
   for (let i = 0; i < emailData.length; i += MAX_BATCH_SIZE) {
     const batch = emailData.slice(i, i + MAX_BATCH_SIZE);
     try {
