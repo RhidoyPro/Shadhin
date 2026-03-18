@@ -25,6 +25,7 @@ export const adminRoutes = [
   "/admin/users",
   "/admin/events",
   "/admin/reports",
+  "/admin/broadcast",
 ];
 
 /**

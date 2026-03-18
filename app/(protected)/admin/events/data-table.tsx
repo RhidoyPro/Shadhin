@@ -320,7 +320,7 @@ export function EventsDataTable({ events }: { events: EventWithData[] }) {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: 20,
       },
     },
   });

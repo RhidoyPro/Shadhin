@@ -10,16 +10,40 @@ type ILogoProps = {
 };
 
 const Logo = ({ color = "primary" }: ILogoProps) => {
+  if (color === "white") {
+    return (
+      <Link href={DEFAULT_LOGIN_REDIRECT} className="flex items-center gap-1">
+        <Image
+          src={LogoWhiteImg}
+          alt="Shadhin.io"
+          width={40}
+          height={40}
+          priority
+        />
+        <h1 className="text-2xl font-semibold text-white">Shadhin.io</h1>
+      </Link>
+    );
+  }
+
   return (
     <Link href={DEFAULT_LOGIN_REDIRECT} className="flex items-center gap-1">
       <Image
-        src={color === "white" ? LogoWhiteImg : LogoImg}
+        src={LogoImg}
         alt="Shadhin.io"
         width={40}
         height={40}
         priority
+        className="dark:hidden"
       />
-      <h1 className={`text-2xl font-semibold text-${color}`}>Shadhin.io</h1>
+      <Image
+        src={LogoWhiteImg}
+        alt="Shadhin.io"
+        width={40}
+        height={40}
+        priority
+        className="hidden dark:block"
+      />
+      <h1 className="text-2xl font-semibold text-primary">Shadhin.io</h1>
     </Link>
   );
 };

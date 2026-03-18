@@ -340,7 +340,7 @@ export function UsersDataTable({ users }: { users: User[] }) {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: 20,
       },
     },
   });

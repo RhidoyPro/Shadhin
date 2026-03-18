@@ -5,6 +5,7 @@ import {
   BadgeAlertIcon,
   CalendarCheck2Icon,
   LayoutDashboardIcon,
+  MegaphoneIcon,
   MenuIcon,
   ShieldIcon,
   UserIcon,
@@ -44,6 +45,12 @@ const navItems = [
     label: "Reports",
     href: "/admin/reports",
     icon: BadgeAlertIcon,
+    exact: false,
+  },
+  {
+    label: "Broadcast",
+    href: "/admin/broadcast",
+    icon: MegaphoneIcon,
     exact: false,
   },
 ];
