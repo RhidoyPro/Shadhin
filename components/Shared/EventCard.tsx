@@ -86,6 +86,7 @@ const EventCard = ({
   const [mediaError, setMediaError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(event.content);
+  const [displayContent, setDisplayContent] = useState(event.content);
   const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -100,7 +101,7 @@ const EventCard = ({
     checkContentOverflow();
     window.addEventListener("resize", checkContentOverflow);
     return () => window.removeEventListener("resize", checkContentOverflow);
-  }, [event.content]);
+  }, [displayContent]);
 
   const isEvent = event.eventType === EventType.EVENT;
   const isOwner = user?.id === event.user.id;
@@ -167,7 +168,7 @@ const EventCard = ({
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {
-                          setEditContent(event.content);
+                          setEditContent(displayContent);
                           setIsEditing(true);
                         }}
                       >
@@ -229,6 +230,7 @@ const EventCard = ({
                         toast.error(res.error);
                         return;
                       }
+                      setDisplayContent(editContent.trim());
                       toast.success("Updated");
                       setIsEditing(false);
                     }}
@@ -253,7 +255,7 @@ const EventCard = ({
                     !showFullContent && "line-clamp-4"
                   )}
                 >
-                  <FormattedContent content={event.content} />
+                  <FormattedContent content={displayContent} />
                 </div>
                 {!showFullContent && isContentClamped && (
                   <Link
@@ -272,7 +274,7 @@ const EventCard = ({
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
               <Image
                 src={event.mediaUrl}
-                alt={event.content.trim() !== "" ? event.content : "Post image"}
+                alt={displayContent.trim() !== "" ? displayContent : "Post image"}
                 width={600}
                 height={400}
                 sizes="(max-width: 768px) 100vw, 600px"

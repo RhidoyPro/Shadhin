@@ -19,6 +19,7 @@ import Notifications from "./Notifications";
 import { UserRole, Prisma } from "@prisma/client";
 import Image from "next/image";
 import LogoImg from "@/public/logo.png";
+import LogoWhiteImg from "@/public/logo-white.png";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { useRouter } from "next/navigation";
 import { Session } from "next-auth";
@@ -70,7 +71,15 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
               width={32}
               height={32}
               priority
-              className="rounded-lg"
+              className="rounded-lg dark:hidden"
+            />
+            <Image
+              src={LogoWhiteImg}
+              alt="Shadhin.io"
+              width={32}
+              height={32}
+              priority
+              className="rounded-lg hidden dark:block"
             />
             <h1 className="text-lg font-bold tracking-tight text-foreground">
               Shadhin<span className="text-primary">.io</span>
