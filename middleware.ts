@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { auth } from "./auth";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 import {
   apiAuthPrefix,
   authRoutes,
@@ -8,11 +8,12 @@ import {
   publicRoutes,
   adminRoutes,
 } from "./routes";
-import { UserRole } from "@prisma/client";
 
-export default async function middleware(request: NextRequest) {
-  const session = await auth();
-  const { nextUrl } = request;
+const { auth } = NextAuth(authConfig);
+
+export default auth((req) => {
+  const { nextUrl } = req;
+  const session = req.auth;
   const isLoggedIn = !!session;
   const role = session?.user?.role;
 
@@ -36,13 +37,12 @@ export default async function middleware(request: NextRequest) {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
-    if (role !== UserRole.ADMIN) {
+    if (role !== "ADMIN") {
       return NextResponse.redirect(new URL("/forbidden", nextUrl));
     }
     return NextResponse.next();
   }
 
-  // Check if suspended user is trying to access protected routes
   if (isLoggedIn && session?.user?.isSuspended) {
     const isSuspendedPage = nextUrl.pathname === "/suspended";
     if (!isSuspendedPage && !isPublicRoute && !isAuthRoute) {
@@ -55,13 +55,11 @@ export default async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

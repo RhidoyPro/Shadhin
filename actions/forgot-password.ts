@@ -37,7 +37,13 @@ export const sendForgotPasswordCode = async (email: string) => {
   }
 
   const forgotPasswordCode = await generateForgotPasswordCode(email);
-  await sendForgotPasswordEmail(email, forgotPasswordCode.code);
+
+  try {
+    await sendForgotPasswordEmail(email, forgotPasswordCode.code);
+  } catch (error) {
+    console.error("Failed to send forgot password email:", error);
+    return { error: "Failed to send reset email. Please try again later." };
+  }
 
   return { message: "If that email is registered, a reset code has been sent" };
 };

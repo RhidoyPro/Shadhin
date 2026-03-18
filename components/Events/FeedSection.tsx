@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import UploadCard from "./UploadCard";
 import EventCard, { EventWithUser } from "../Shared/EventCard";
@@ -33,21 +33,21 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     getUserBookmarkIds().then((ids) => setBookmarkIds(new Set(ids)));
   }, []);
 
-  const fetchMoreEvents = async () => {
+  const fetchMoreEvents = useCallback(async () => {
     const newEvents = await fetchEvents(activeState, page + 1);
     if (newEvents?.length) {
-      setPage(page + 1);
-      setEvents([...events, ...newEvents]);
+      setPage((p) => p + 1);
+      setEvents((prev) => [...prev, ...newEvents]);
       return;
     }
     setHasMore(false);
-  };
+  }, [activeState, page]);
 
   useEffect(() => {
     if (inView) {
       fetchMoreEvents();
     }
-  }, [inView]);
+  }, [inView, fetchMoreEvents]);
 
   const likeEventHandler = async (eventId: string, eventUserId: string) => {
     const updatedEvents = events.map((event) => {

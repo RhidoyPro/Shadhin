@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import EventCard, { EventWithUser } from "@/components/Shared/EventCard";
 import { useInView } from "react-intersection-observer";
 import { deleteEventByUser, fetchUserEvents } from "@/actions/event";
@@ -31,21 +31,21 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
     getUserBookmarkIds().then((ids) => setBookmarkIds(new Set(ids)));
   }, []);
 
-  const fetchMoreEvents = async () => {
+  const fetchMoreEvents = useCallback(async () => {
     const newEvents = await fetchUserEvents(userId, page + 1);
     if (newEvents?.length) {
-      setPage(page + 1);
-      setEvents([...events, ...newEvents]);
+      setPage((p) => p + 1);
+      setEvents((prev) => [...prev, ...newEvents]);
       return;
     }
     setHasMore(false);
-  };
+  }, [userId, page]);
 
   useEffect(() => {
     if (inView) {
       fetchMoreEvents();
     }
-  }, [inView]);
+  }, [inView, fetchMoreEvents]);
 
   const likeEventHandler = async (eventId: string, eventUserId: string) => {
     const updatedEvents = events.map((event) => {

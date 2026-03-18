@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -33,12 +33,15 @@ export const metadata: Metadata = {
       "Bangladesh's district-based social platform for events, chat, and community.",
   },
   manifest: "/manifest.json",
-  themeColor: "#16a34a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Shadhin.io",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#16a34a",
 };
 
 export default async function RootLayout({

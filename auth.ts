@@ -6,11 +6,9 @@ import bcrypt from "bcryptjs";
 import { db } from "./lib/db";
 import { getUserByEmail, getUserById } from "./data/user";
 import { UserRole } from "@prisma/client";
+import { authConfig } from "./auth.config";
 
 declare module "next-auth" {
-  /**
-   * Returned by `auth`, `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
   interface Session {
     user: {
       role: UserRole;
@@ -20,10 +18,8 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(db),
-  session: {
-    strategy: "jwt",
-  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,

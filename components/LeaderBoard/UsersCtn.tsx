@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import UserAvatar from "../Shared/UserAvatar";
 import VerifiedBadge from "../Shared/VerifiedBadge";
 import { Award } from "lucide-react";
@@ -26,23 +26,23 @@ const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
   );
   const [loadMore, setLoadMore] = React.useState<boolean>(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     const usersData = await fetchLeaderboard(page + 1);
     if (usersData?.length) {
-      setPage(page + 1);
-      setUsers([...users, ...usersData]);
+      setPage((p) => p + 1);
+      setUsers((prev) => [...prev, ...usersData]);
       setLoadMore(false);
       return;
     }
     setHasMore(false);
     setLoadMore(false);
-  };
+  }, [page]);
 
   useEffect(() => {
     if (loadMore) {
       fetchUsers();
     }
-  }, [loadMore]);
+  }, [loadMore, fetchUsers]);
 
   return (
     <div>
