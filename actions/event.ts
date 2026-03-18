@@ -14,7 +14,7 @@ import { moderateText } from "@/lib/moderation";
 import { sendEventEmails } from "@/lib/mail";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { EventStatus, EventType } from "@prisma/client";
+import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { invalidateFeedCache } from "@/lib/cache";
 import { isAdminLevel } from "@/lib/roles";
