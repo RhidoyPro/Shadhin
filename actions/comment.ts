@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { moderateText } from "@/lib/moderation";
 import { CommentSchema } from "@/utils/zodSchema";
 import { sendPushToUser } from "@/lib/push";
+import { invalidateFeedCache } from "@/lib/cache";
 import { revalidatePath } from "next/cache";
 
 export const addComment = async (eventId: string, content: string) => {
@@ -61,6 +62,7 @@ export const addComment = async (eventId: string, content: string) => {
     ).catch(() => {});
   }
 
+  invalidateFeedCache(event.stateName).catch(() => {});
   revalidatePath("/events/details/[eventId]", "page");
 
   return { success: true, comment };
@@ -82,6 +84,12 @@ export const deleteComment = async (commentId: string) => {
     return { error: "User not authenticated" };
   }
 
+  // Fetch event stateName for cache invalidation before deleting
+  const comment = await db.comment.findUnique({
+    where: { id: commentId },
+    select: { event: { select: { stateName: true } } },
+  });
+
   // Atomic ownership check + delete — avoids TOCTOU race condition
   try {
     await db.comment.delete({
@@ -94,6 +102,9 @@ export const deleteComment = async (commentId: string) => {
     return { error: "Comment not found or unauthorized" };
   }
 
+  if (comment?.event?.stateName) {
+    invalidateFeedCache(comment.event.stateName).catch(() => {});
+  }
   revalidatePath("/events/details/[eventId]", "page");
 
   return { success: true };
