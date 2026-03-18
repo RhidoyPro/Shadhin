@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { isAdminLevel } from "@/lib/roles";
 import { Resend } from "resend";
 import BroadcastAnnouncementEmail from "@/emails/BroadcastAnnouncementEmail";
 
@@ -22,7 +23,7 @@ export const sendBroadcastAnnouncement = async (
 ) => {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (!session?.user || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 
