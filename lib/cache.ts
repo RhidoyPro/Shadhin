@@ -12,13 +12,13 @@ if (
   });
 }
 
-const DEFAULT_TTL = 60; // 60 seconds
+// Feed pages cached for 5 minutes — invalidated on create/edit/delete/comment
+const FEED_TTL = 300;
 
 export async function getCached<T>(key: string): Promise<T | null> {
   if (!redis) return null;
   try {
-    const data = await redis.get<T>(key);
-    return data;
+    return await redis.get<T>(key);
   } catch {
     return null;
   }
@@ -27,39 +27,44 @@ export async function getCached<T>(key: string): Promise<T | null> {
 export async function setCache<T>(
   key: string,
   data: T,
-  ttlSeconds: number = DEFAULT_TTL
+  ttlSeconds: number = FEED_TTL
 ): Promise<void> {
   if (!redis) return;
   try {
-    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
+    // Pass data directly — the Upstash SDK handles JSON serialization internally.
+    // Do NOT JSON.stringify here or the value will be double-encoded.
+    await redis.set(key, data as unknown as string, { ex: ttlSeconds });
   } catch {
     // Non-critical, skip
   }
 }
 
-export async function invalidateCache(pattern: string): Promise<void> {
+export async function invalidateCache(key: string): Promise<void> {
   if (!redis) return;
   try {
-    // For exact key deletion
-    await redis.del(pattern);
+    await redis.del(key);
   } catch {
     // Non-critical
   }
 }
 
+/**
+ * Invalidate all cached feed pages for a given state.
+ * Called on event create, edit, delete, and new comments (which affect rankings).
+ * Covers pages 1–10 with the default limit of 10.
+ */
 export async function invalidateFeedCache(stateName: string): Promise<void> {
   if (!redis) return;
   try {
-    // Delete all page caches for this state
-    // We cache keys like "feed:{stateName}:{page}:{limit}"
-    // Since we can't scan with Upstash free tier efficiently,
-    // delete the first 5 pages which covers most users
-    const keys = Array.from({ length: 5 }, (_, i) =>
+    const keys = Array.from({ length: 10 }, (_, i) =>
       `feed:${stateName}:${i + 1}:10`
     );
+    // Delete in a single pipeline for efficiency
+    const pipeline = redis.pipeline();
     for (const key of keys) {
-      await redis.del(key);
+      pipeline.del(key);
     }
+    await pipeline.exec();
   } catch {
     // Non-critical
   }
