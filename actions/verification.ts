@@ -7,8 +7,8 @@ import {
   updateIsEmailSent,
 } from "@/data/verification-token";
 import { db } from "@/lib/db";
+import { isAdminLevel } from "@/lib/roles";
 import { sendVerificationEmail } from "@/lib/mail";
-import { UserRole } from "@prisma/client";
 
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
@@ -65,7 +65,7 @@ export const sendReVerificationEmailsByAdmin = async () => {
     };
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!isAdminLevel(session.user.role)) {
     return {
       error: "User not authorized",
     };

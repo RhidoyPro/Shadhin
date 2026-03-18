@@ -51,7 +51,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Prisma, User, UserRole } from "@prisma/client";
+import { User, UserRole } from "@prisma/client";
 import { format } from "date-fns";
 import {
   changeUserRole,
@@ -60,7 +60,7 @@ import {
 } from "@/actions/user";
 import { toast } from "sonner";
 
-export const columns: ColumnDef<User>[] = [
+export const makeColumns = (actorRole: string): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -252,11 +252,15 @@ export const columns: ColumnDef<User>[] = [
                         <SelectValue placeholder="Select User Role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
                         <SelectItem value={UserRole.USER}>User</SelectItem>
-                        <SelectItem value={UserRole.SUPER_USER}>
-                          Super User
-                        </SelectItem>
+                        {actorRole === UserRole.SUPER_USER && (
+                          <>
+                            <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
+                            <SelectItem value={UserRole.SUPER_USER}>
+                              Super User
+                            </SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                     <DialogClose asChild type="submit">
@@ -312,7 +316,13 @@ export const columns: ColumnDef<User>[] = [
   },
 ];
 
-export function UsersDataTable({ users }: { users: User[] }) {
+export function UsersDataTable({
+  users,
+  actorRole,
+}: {
+  users: User[];
+  actorRole: string;
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -320,6 +330,8 @@ export function UsersDataTable({ users }: { users: User[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const columns = React.useMemo(() => makeColumns(actorRole), [actorRole]);
 
   const table = useReactTable({
     data: users,

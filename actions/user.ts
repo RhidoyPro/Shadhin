@@ -8,6 +8,7 @@ import {
 import { getIsLikedByUser } from "@/data/like";
 import { getAllUsersWithPointsPaginated } from "@/data/user";
 import { db } from "@/lib/db";
+import { isAdminLevel, canAssignRole } from "@/lib/roles";
 import { UpdateProfileSchema } from "@/utils/zodSchema";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -153,7 +154,7 @@ export const verifyUserEmailByAdmin = async (userId: string) => {
     };
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!isAdminLevel(session.user.role)) {
     return {
       error: "User not authorized",
     };
@@ -188,9 +189,9 @@ export const changeUserRole = async (userId: string, role: UserRole) => {
     };
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!canAssignRole(session.user.role, role)) {
     return {
-      error: "User not authorized",
+      error: "User not authorized to assign this role",
     };
   }
 
@@ -223,7 +224,7 @@ export const deleteUser = async (userId: string) => {
     };
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!isAdminLevel(session.user.role)) {
     return {
       error: "User not authorized",
     };

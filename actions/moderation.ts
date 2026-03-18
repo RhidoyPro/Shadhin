@@ -2,14 +2,14 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { UserRole } from "@prisma/client";
+import { isAdminLevel } from "@/lib/roles";
 
 /**
  * Add a strike to a user. Auto-suspends at 3 strikes for 7 days.
  */
 export const addStrike = async (userId: string) => {
   const session = await auth();
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 
@@ -42,7 +42,7 @@ export const addStrike = async (userId: string) => {
  */
 export const suspendUser = async (userId: string, days: number = 7) => {
   const session = await auth();
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 
@@ -62,7 +62,7 @@ export const suspendUser = async (userId: string, days: number = 7) => {
  */
 export const unsuspendUser = async (userId: string) => {
   const session = await auth();
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 
@@ -83,7 +83,7 @@ export const unsuspendUser = async (userId: string) => {
  */
 export const deleteEventAndStrike = async (eventId: string) => {
   const session = await auth();
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 
@@ -107,7 +107,7 @@ export const deleteEventAndStrike = async (eventId: string) => {
  */
 export const dismissReport = async (reportId: string) => {
   const session = await auth();
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
 

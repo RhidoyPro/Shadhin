@@ -17,6 +17,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { EventStatus, EventType, UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { invalidateFeedCache } from "@/lib/cache";
+import { isAdminLevel } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 import { s3 } from "@/lib/s3";
 
@@ -261,7 +262,7 @@ export const deleteEvent = async (eventId: string) => {
     };
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (!isAdminLevel(session.user.role)) {
     return {
       error: "Unauthorized",
     };
