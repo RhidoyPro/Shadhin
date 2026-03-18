@@ -18,11 +18,11 @@
     },
     {
       "path": "/api/cron/event-reminders",
-      "schedule": "0 * * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/cron/bot-posts",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
