@@ -23,10 +23,6 @@
     {
       "path": "/api/cron/bot-posts",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/seed-bots",
-      "schedule": "0 0 1 1 *"
     }
   ]
 }
