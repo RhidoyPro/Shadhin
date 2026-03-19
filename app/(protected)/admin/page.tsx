@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { getAdminStats } from "@/data/stats";
 import {
   BadgeAlertIcon,
+  BadgeCheck,
   BotIcon,
   CalendarCheck2,
   HeartIcon,
@@ -199,6 +200,18 @@ const DashboardPage = async () => {
       href: "/admin/audit-log",
       description: "Track all admin actions",
       icon: ClipboardListIcon,
+    },
+    {
+      label: "Promotion Requests",
+      href: "/admin/promotions",
+      description: "Review post boost requests",
+      icon: MegaphoneIcon,
+    },
+    {
+      label: "Org Verification",
+      href: "/admin/org-verification",
+      description: "Approve verified badge applications",
+      icon: BadgeCheck,
     },
   ];
 

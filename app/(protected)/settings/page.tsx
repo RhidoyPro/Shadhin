@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import ChangePasswordForm from "@/components/Settings/ChangePasswordForm";
 import DeleteAccountSection from "@/components/Settings/DeleteAccountSection";
+import OrgBadgeSection from "@/components/Settings/OrgBadgeSection";
 
 const SettingsPage = async () => {
   const session = await auth();
@@ -15,6 +16,7 @@ const SettingsPage = async () => {
       name: true,
       email: true,
       hashedPassword: true,
+      isVerifiedOrg: true,
     },
   });
 
@@ -38,6 +40,19 @@ const SettingsPage = async () => {
         </p>
         <ChangePasswordForm hasExistingPassword={hasPassword} />
       </div>
+
+      {/* Verified Organisation Badge */}
+      {!user.isVerifiedOrg && (
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-1">
+            Verified Organisation Badge
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Apply for a verified badge to show your organisation&apos;s authenticity on Shadhin.io. One-time fee of ৳300 via bKash.
+          </p>
+          <OrgBadgeSection />
+        </div>
+      )}
 
       {/* Danger Zone */}
       <div className="rounded-xl border border-destructive/30 bg-card p-6">

@@ -26,13 +26,14 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, ImageOff, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react";
+import { Eye, ImageOff, Megaphone, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
 import { cn } from "@/lib/utils";
 import { editEvent } from "@/actions/event";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import BoostPostDialog from "./BoostPostDialog";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -88,6 +89,7 @@ const EventCard = ({
   const [editContent, setEditContent] = useState(event.content);
   const [displayContent, setDisplayContent] = useState(event.content);
   const [isSaving, setIsSaving] = useState(false);
+  const [isBoostOpen, setIsBoostOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -202,6 +204,15 @@ const EventCard = ({
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit {isEvent ? "Event" : "Post"}
                       </DropdownMenuItem>
+                      {!event.isPromoted && (
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => setIsBoostOpen(true)}
+                        >
+                          <Megaphone className="mr-2 h-4 w-4" />
+                          Boost Post
+                        </DropdownMenuItem>
+                      )}
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -350,6 +361,14 @@ const EventCard = ({
           />
         </div>
       </div>
+
+      {/* Boost Post Dialog — rendered outside the DropdownMenu */}
+      <BoostPostDialog
+        eventId={event.id}
+        eventTitle={event.content.slice(0, 60)}
+        open={isBoostOpen}
+        onClose={() => setIsBoostOpen(false)}
+      />
     </article>
   );
 };
