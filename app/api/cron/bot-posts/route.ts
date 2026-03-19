@@ -35,6 +35,11 @@ const RSS_FEEDS = [
   "https://www.manobzamin.com/feed/",
   // Sports
   "https://www.thedailystar.net/sports/rss.xml",
+  // Entertainment
+  "https://www.prothomalo.com/entertainment/feed/",
+  "https://www.thedailystar.net/entertainment/rss.xml",
+  "https://www.dhakatribune.com/entertainment/feed",
+  "https://www.risingbd.com/entertainment/feed/",
 ];
 
 // Fetch and parse RSS headlines from all feeds in parallel
