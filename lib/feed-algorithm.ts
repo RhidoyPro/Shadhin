@@ -50,10 +50,13 @@ function scoreEvent(event: RankableEvent, ctx: ViewerContext): number {
   const { likeWeight, commentWeight, attendeeWeight, timeDecayExponent, sameDistrictMultiplier, followingMultiplier, promotedBoost } = FEED_CONFIG;
 
   // Engagement: (likes × 1) + (comments × 2) + (attendees × 3)
+  // +1 freshness floor so zero-engagement posts still score positively
+  // (new post with 0 likes scores ~32 at t=0, falls to ~0.001 after 24h)
   const engagement =
     event.likes.length * likeWeight +
     event.comments.length * commentWeight +
-    event.attendees.length * attendeeWeight;
+    event.attendees.length * attendeeWeight +
+    1;
 
   // Time decay: ÷ (hours ^ 1.5)
   const timeDecay = Math.pow(hoursAgo, timeDecayExponent);
