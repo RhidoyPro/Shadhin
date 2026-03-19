@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { invalidateViewerContext } from "@/lib/cache";
 import { revalidatePath } from "next/cache";
 
 export const toggleFollow = async (targetUserId: string) => {
@@ -40,6 +41,7 @@ export const toggleFollow = async (targetUserId: string) => {
 
   if (existing) {
     await db.follow.delete({ where: { id: existing.id } });
+    invalidateViewerContext(session.user.id!).catch(() => {});
     revalidatePath(`/user/${targetUserId}`);
     return { success: true, following: false };
   }
@@ -51,6 +53,7 @@ export const toggleFollow = async (targetUserId: string) => {
     },
   });
 
+  invalidateViewerContext(session.user.id!).catch(() => {});
   revalidatePath(`/user/${targetUserId}`);
   return { success: true, following: true };
 };

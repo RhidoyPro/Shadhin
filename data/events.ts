@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
 import { getCached, setCache } from "@/lib/cache";
 import { EventStatus } from "@prisma/client";
-import {
-  buildViewerContext,
-  rankEvents,
-  FEED_CONFIG,
-} from "@/lib/feed-algorithm";
+import { buildViewerContext, rankEvents } from "@/lib/feed-algorithm";
+
+// Raw event pool fetched per state — large enough to rank across all pages
+const POOL_SIZE = 100;
+// Viewer context (follow list + home state) cached per user
+const VIEWER_CTX_TTL = 30 * 60; // 30 minutes
 
 export const getEventsByStatePaginated = async (
   stateName: string,
@@ -222,6 +223,10 @@ export const countEventsUserIsAttending = async (userId: string) => {
 /**
  * Fetch events for a state, ranked by the feed algorithm.
  * Falls back to chronological order for unauthenticated viewers.
+ *
+ * Caching strategy:
+ *   feed-pool:{stateName}   — raw event pool, 5 min TTL, shared across all pages
+ *   viewer-ctx:{userId}     — follow list + home state, 30 min TTL
  */
 export const getRankedEventsByState = async (
   stateName: string,
@@ -230,14 +235,10 @@ export const getRankedEventsByState = async (
   limit: number = 10
 ) => {
   try {
-    const fetchLimit = limit * FEED_CONFIG.fetchMultiplier;
-    const skip = (page - 1) * limit;
-
-    // Try cache first (cache raw event pool, personalization applied after)
-    const cacheKey = `feed:${stateName}:${page}:${limit}`;
-
-    const fetchFresh = async () => {
-      const fresh = await db.event.findMany({
+    // ── 1. Event pool (shared across all pages for this state) ─────────────
+    const poolKey = `feed-pool:${stateName}`;
+    const dbFetchPool = () =>
+      db.event.findMany({
         where: { stateName },
         orderBy: { createdAt: "desc" },
         include: {
@@ -249,40 +250,46 @@ export const getRankedEventsByState = async (
           },
           comments: { select: { id: true } },
         },
-        skip,
-        take: fetchLimit,
+        take: POOL_SIZE,
       });
-      // Cache for 60 seconds
-      await setCache(cacheKey, fresh, 60);
-      return fresh;
-    };
 
-    type FeedEvent = Awaited<ReturnType<typeof fetchFresh>>[number];
-    const cached = await getCached<FeedEvent[]>(cacheKey);
-    const events = cached || await fetchFresh();
-
-    if (!userId) {
-      return events.slice(0, limit);
+    type FeedEvent = Awaited<ReturnType<typeof dbFetchPool>>[number];
+    let pool = await getCached<FeedEvent[]>(poolKey);
+    if (!pool) {
+      pool = await dbFetchPool();
+      setCache(poolKey, pool).catch(() => {}); // default FEED_TTL = 5 min
     }
 
-    // Build viewer context from follow list and home state
-    const [follows, viewer] = await Promise.all([
-      db.follow.findMany({
-        where: { followerId: userId },
-        select: { followingId: true },
-      }),
-      db.user.findUnique({
-        where: { id: userId },
-        select: { stateName: true },
-      }),
-    ]);
+    const skip = (page - 1) * limit;
 
-    const ctx = buildViewerContext(userId, {
-      followingUserIds: follows.map((f) => f.followingId),
-      stateName: viewer?.stateName ?? null,
-    });
+    if (!userId) {
+      return pool.slice(skip, skip + limit);
+    }
 
-    return rankEvents(events, ctx).slice(0, limit);
+    // ── 2. Viewer context (follow list + home state, cached per user) ──────
+    const ctxKey = `viewer-ctx:${userId}`;
+    type ViewerData = { followingUserIds: string[]; stateName: string | null };
+    let viewerData = await getCached<ViewerData>(ctxKey);
+    if (!viewerData) {
+      const [follows, viewer] = await Promise.all([
+        db.follow.findMany({
+          where: { followerId: userId },
+          select: { followingId: true },
+        }),
+        db.user.findUnique({
+          where: { id: userId },
+          select: { stateName: true },
+        }),
+      ]);
+      viewerData = {
+        followingUserIds: follows.map((f) => f.followingId),
+        stateName: viewer?.stateName ?? null,
+      };
+      setCache(ctxKey, viewerData, VIEWER_CTX_TTL).catch(() => {});
+    }
+
+    const ctx = buildViewerContext(userId, viewerData);
+    return rankEvents(pool, ctx).slice(skip, skip + limit);
   } catch {
     return null;
   }

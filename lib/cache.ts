@@ -49,23 +49,17 @@ export async function invalidateCache(key: string): Promise<void> {
 }
 
 /**
- * Invalidate all cached feed pages for a given state.
- * Called on event create, edit, delete, and new comments (which affect rankings).
- * Covers pages 1–10 with the default limit of 10.
+ * Invalidate the cached event pool for a given state.
+ * Called on event create, edit, delete, like, and new comments.
  */
 export async function invalidateFeedCache(stateName: string): Promise<void> {
-  if (!redis) return;
-  try {
-    const keys = Array.from({ length: 10 }, (_, i) =>
-      `feed:${stateName}:${i + 1}:10`
-    );
-    // Delete in a single pipeline for efficiency
-    const pipeline = redis.pipeline();
-    for (const key of keys) {
-      pipeline.del(key);
-    }
-    await pipeline.exec();
-  } catch {
-    // Non-critical
-  }
+  await invalidateCache(`feed-pool:${stateName}`);
+}
+
+/**
+ * Invalidate the cached viewer context (follow list + home state) for a user.
+ * Called on follow/unfollow so feed personalization stays accurate.
+ */
+export async function invalidateViewerContext(userId: string): Promise<void> {
+  await invalidateCache(`viewer-ctx:${userId}`);
 }
