@@ -167,27 +167,31 @@ export async function GET(req: Request) {
   const alreadyPosted = new Set(todaysPosts.map((p) => p.userId));
 
   const usedHeadlines = new Set<string>();
-  let postsCreated = 0;
 
+  // Build list of bots to post for, picking headlines up front
+  const postQueue: Array<{ bot: (typeof bots)[number]; content: string; stateName: string }> = [];
   for (const bot of bots) {
     if (!force && alreadyPosted.has(bot.id)) continue;
     if (!force && Math.random() > 0.5) continue; // ~50% chance per run
-
     const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
     if (!headline) continue;
-
     usedHeadlines.add(headline);
-
-    await db.event.create({
-      data: {
-        content: toDiscussionPost(headline),
-        eventType: EventType.STATUS,
-        stateName: bot.stateName || "all-districts",
-        userId: bot.id,
-      },
+    postQueue.push({
+      bot,
+      content: toDiscussionPost(headline),
+      stateName: bot.stateName || "all-districts",
     });
-    postsCreated++;
   }
+
+  // Create all posts in parallel
+  await Promise.all(
+    postQueue.map(({ bot, content, stateName }) =>
+      db.event.create({
+        data: { content, eventType: EventType.STATUS, stateName, userId: bot.id },
+      })
+    )
+  );
+  const postsCreated = postQueue.length;
 
   // Bots like recent real user posts (40% chance)
   if (Math.random() > 0.6) {
