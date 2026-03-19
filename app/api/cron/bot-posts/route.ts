@@ -14,9 +14,27 @@ const DISTRICT_TERMS: Record<string, string[]> = {
   mymensingh: ["ময়মনসিংহ", "ব্রহ্মপুত্র", "নেত্রকোনা", "শেরপুর"],
 };
 
+// All feeds are fetched in parallel — failures are silently skipped
 const RSS_FEEDS = [
+  // Bangla — general / political
   "https://www.prothomalo.com/feed/",
   "https://bdnews24.com/feed/",
+  "https://www.kalerkantho.com/feed/",
+  "https://www.jugantor.com/feed/",
+  "https://samakal.com/feed/",
+  "https://banglatribune.com/feed/",
+  "https://www.ittefaq.com.bd/feed/",
+  // English — general / political
+  "https://www.thedailystar.net/rss.xml",
+  "https://www.dhakatribune.com/feed",
+  "https://www.newagebd.net/feed/",
+  // Business / economy
+  "https://thefinancialexpress.com.bd/feed/",
+  "https://businesspostbd.com/feed/",
+  // Crime / law / rights
+  "https://www.manobzamin.com/feed/",
+  // Sports
+  "https://www.thedailystar.net/sports/rss.xml",
 ];
 
 // Fetch and parse RSS headlines from all feeds in parallel
