@@ -14,32 +14,23 @@ const DISTRICT_TERMS: Record<string, string[]> = {
   mymensingh: ["ময়মনসিংহ", "ব্রহ্মপুত্র", "নেত্রকোনা", "শেরপুর"],
 };
 
-// All feeds are fetched in parallel — failures are silently skipped
+// All feeds fetched in parallel — tested and confirmed working
 const RSS_FEEDS = [
-  // Bangla — general / political
-  "https://www.prothomalo.com/feed/",
-  "https://bdnews24.com/feed/",
-  "https://www.kalerkantho.com/feed/",
-  "https://www.jugantor.com/feed/",
-  "https://samakal.com/feed/",
-  "https://banglatribune.com/feed/",
-  "https://www.ittefaq.com.bd/feed/",
+  // Bangla — general / political (high volume)
+  "https://www.prothomalo.com/stories.rss",       // Prothom Alo — 5 items
+  "https://www.banglatribune.com/feed/",           // Bangla Tribune — 100 items
+  "https://www.ittefaq.com.bd/feed/",              // Daily Ittefaq — 100 items
+  "https://www.kalerkantho.com/rss.xml",           // Kaler Kantho — 188 items
+  "https://www.deshrupantor.com/feed/",            // Desh Rupantor — 100 items
   // English — general / political
-  "https://www.thedailystar.net/rss.xml",
-  "https://www.dhakatribune.com/feed",
-  "https://www.newagebd.net/feed/",
+  "https://www.thedailystar.net/rss.xml",          // Daily Star — 3 items
   // Business / economy
-  "https://thefinancialexpress.com.bd/feed/",
-  "https://businesspostbd.com/feed/",
-  // Crime / law / rights
-  "https://www.manobzamin.com/feed/",
+  "https://www.tbsnews.net/rss.xml",               // TBS News — 10 items
   // Sports
-  "https://www.thedailystar.net/sports/rss.xml",
+  "https://www.thedailystar.net/taxonomy/term/3/rss.xml",        // Daily Star Sports — 10 items
   // Entertainment
-  "https://www.prothomalo.com/entertainment/feed/",
-  "https://www.thedailystar.net/entertainment/rss.xml",
-  "https://www.dhakatribune.com/entertainment/feed",
-  "https://www.risingbd.com/entertainment/feed/",
+  "https://www.thedailystar.net/taxonomy/term/283449/rss.xml",   // Daily Star Entertainment — 10 items
+  "https://www.channelionline.com/feed/",          // Channel i Online — 10 items
 ];
 
 // Fetch and parse RSS headlines from all feeds in parallel
