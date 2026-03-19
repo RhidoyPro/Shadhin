@@ -14,6 +14,7 @@ import {
   MegaphoneIcon,
   PersonStandingIcon,
   ShieldBanIcon,
+  Ticket,
   Users,
   UserCheckIcon,
   ArrowRightIcon,
@@ -212,6 +213,12 @@ const DashboardPage = async () => {
       href: "/admin/org-verification",
       description: "Approve verified badge applications",
       icon: BadgeCheck,
+    },
+    {
+      label: "Ticket Requests",
+      href: "/admin/tickets",
+      description: "Approve event ticket purchases",
+      icon: Ticket,
     },
   ];
 

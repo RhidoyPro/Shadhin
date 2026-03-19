@@ -11,7 +11,7 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
-import { Upload, X, CalendarDays } from "lucide-react";
+import { Upload, X, CalendarDays, Ticket, Users } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { createEvent, getSignedURL } from "@/actions/event";
@@ -53,11 +53,15 @@ const UploadEventModal = ({
     params.stateName || BangladeshStates[1].slug
   );
   const [eventDate, setEventDate] = React.useState<string>("");
+  const [ticketPrice, setTicketPrice] = React.useState<string>("");
+  const [maxAttendees, setMaxAttendees] = React.useState<string>("");
 
   const resetData = () => {
     setFile(undefined);
     setContent("");
     setEventDate("");
+    setTicketPrice("");
+    setMaxAttendees("");
     setError(null);
   };
 
@@ -137,6 +141,8 @@ const UploadEventModal = ({
           stateName,
           eventType: isStatus ? EventType.STATUS : EventType.EVENT,
           eventDate: !isStatus && eventDate ? eventDate : undefined,
+          ticketPrice: ticketPrice ? parseFloat(ticketPrice) : undefined,
+          maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
         });
 
         if (createEventResult.error !== undefined) {
@@ -153,6 +159,8 @@ const UploadEventModal = ({
         stateName,
         eventType: isStatus ? EventType.STATUS : EventType.EVENT,
         eventDate: !isStatus && eventDate ? eventDate : undefined,
+        ticketPrice: ticketPrice ? parseFloat(ticketPrice) : undefined,
+        maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
       });
 
       if (createEventResult.error !== undefined) {
@@ -222,22 +230,60 @@ const UploadEventModal = ({
                 />
               </div>
               {!isStatus && (
-                <div className="mt-4 flex items-center gap-3">
-                  <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="flex-1">
-                    <Label htmlFor="eventDate" className="text-sm text-muted-foreground">
-                      Event Date & Time (optional)
-                    </Label>
-                    <Input
-                      id="eventDate"
-                      type="datetime-local"
-                      value={eventDate}
-                      onChange={(e) => setEventDate(e.target.value)}
-                      min={new Date().toISOString().slice(0, 16)}
-                      className="mt-1"
-                    />
+                <>
+                  <div className="mt-4 flex items-center gap-3">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1">
+                      <Label htmlFor="eventDate" className="text-sm text-muted-foreground">
+                        Event Date & Time (optional)
+                      </Label>
+                      <Input
+                        id="eventDate"
+                        type="datetime-local"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
-                </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Ticket className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1">
+                        <Label htmlFor="ticketPrice" className="text-sm text-muted-foreground">
+                          Ticket Price in BDT (optional — leave blank for free)
+                        </Label>
+                        <Input
+                          id="ticketPrice"
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 200"
+                          value={ticketPrice}
+                          onChange={(e) => setTicketPrice(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1">
+                        <Label htmlFor="maxAttendees" className="text-sm text-muted-foreground">
+                          Max Attendees (optional)
+                        </Label>
+                        <Input
+                          id="maxAttendees"
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 100"
+                          value={maxAttendees}
+                          onChange={(e) => setMaxAttendees(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
               <section className="text-center mt-4 border-2 border-dashed border-slate-200 p-4 rounded-sm h-24 flex items-center justify-center flex-col cursor-pointer transition-all duration-200 ease-in hover:bg-slate-100 dark:hover:bg-neutral-700">
                 <div {...getRootProps({ className: "dropzone" })}>

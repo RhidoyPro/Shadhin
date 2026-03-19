@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, ImageOff, Megaphone, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react";
+import { Eye, ImageOff, Megaphone, MoreHorizontal, Pencil, Share2, Ticket, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ import { editEvent } from "@/actions/event";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import BoostPostDialog from "./BoostPostDialog";
+import BuyTicketDialog from "./BuyTicketDialog";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -90,6 +91,7 @@ const EventCard = ({
   const [displayContent, setDisplayContent] = useState(event.content);
   const [isSaving, setIsSaving] = useState(false);
   const [isBoostOpen, setIsBoostOpen] = useState(false);
+  const [isBuyTicketOpen, setIsBuyTicketOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -158,6 +160,11 @@ const EventCard = ({
               {isEvent && (
                 <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   Event
+                </span>
+              )}
+              {isEvent && event.ticketPrice && (
+                <span className="ml-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                  ৳{event.ticketPrice} / ticket
                 </span>
               )}
               {event.isPromoted && (
@@ -359,6 +366,20 @@ const EventCard = ({
             eventAttendHandler={eventAttendHandler}
             eventNotAttendHandler={eventNotAttendHandler}
           />
+
+          {isEvent && event.ticketPrice && !isOwner && (
+            <div className="mt-2 pt-2 border-t border-border">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs h-8 gap-1.5"
+                onClick={() => setIsBuyTicketOpen(true)}
+              >
+                <Ticket className="h-3.5 w-3.5" />
+                Buy Ticket — ৳{event.ticketPrice}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -369,6 +390,16 @@ const EventCard = ({
         open={isBoostOpen}
         onClose={() => setIsBoostOpen(false)}
       />
+
+      {isEvent && event.ticketPrice && (
+        <BuyTicketDialog
+          eventId={event.id}
+          ticketPrice={event.ticketPrice}
+          eventTitle={displayContent.slice(0, 60)}
+          open={isBuyTicketOpen}
+          onClose={() => setIsBuyTicketOpen(false)}
+        />
+      )}
     </article>
   );
 };

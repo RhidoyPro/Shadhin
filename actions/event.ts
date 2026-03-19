@@ -101,6 +101,8 @@ type CreateEventInput = {
   stateName: string;
   eventType: EventType;
   eventDate?: string;
+  ticketPrice?: number;
+  maxAttendees?: number;
 };
 
 export const createEvent = async ({
@@ -110,6 +112,8 @@ export const createEvent = async ({
   stateName,
   eventType,
   eventDate,
+  ticketPrice,
+  maxAttendees,
 }: CreateEventInput) => {
   const session = await auth();
 
@@ -165,6 +169,8 @@ export const createEvent = async ({
       stateName,
       eventType,
       eventDate: eventDate ? new Date(eventDate) : undefined,
+      ticketPrice: ticketPrice ?? null,
+      maxAttendees: maxAttendees ?? null,
     },
   });
 

@@ -53,6 +53,7 @@ model User {
 
   promotionRequests       PromotionRequest[]
   orgVerificationRequests OrgVerificationRequest[]
+  tickets                 Ticket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -126,6 +127,10 @@ model Event {
 
   isPromoted    Boolean  @default(false)
   promotedUntil DateTime?
+
+  ticketPrice   Float?
+  maxAttendees  Int?
+  tickets       Ticket[]
 
   promotionRequests PromotionRequest[]
 
@@ -328,4 +333,23 @@ model OrgVerificationRequest {
 
   @@index([status])
   @@index([userId])
+}
+
+model Ticket {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  eventId     String        @db.ObjectId
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String        @db.ObjectId
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bkashRef    String
+  amountBDT   Float
+  status      RequestStatus @default(PENDING)
+  adminNote   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([status])
 }
