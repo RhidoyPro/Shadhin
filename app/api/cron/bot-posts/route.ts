@@ -70,11 +70,11 @@ async function fetchHeadlines(): Promise<string[]> {
     const xml = result.value;
 
     // Extract CDATA-wrapped titles (e.g. Prothom Alo)
-    const cdata = [...xml.matchAll(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/g)];
+    const cdata = Array.from(xml.matchAll(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/g));
     // Extract plain text titles (e.g. bdnews24)
-    const plain = [...xml.matchAll(/<title>([\s\S]*?)<\/title>/g)];
+    const plain = Array.from(xml.matchAll(/<title>([\s\S]*?)<\/title>/g));
 
-    for (const m of [...cdata, ...plain].slice(1)) {
+    for (const m of cdata.concat(plain).slice(1)) {
       const title = m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
       // Skip empty, very short, or URL-like titles
       if (title.length > 20 && !title.startsWith("http")) {
@@ -83,7 +83,7 @@ async function fetchHeadlines(): Promise<string[]> {
     }
   }
 
-  return [...new Set(headlines)]; // deduplicate
+  return Array.from(new Set(headlines)); // deduplicate
 }
 
 // Pick a headline relevant to the bot's district, fallback to any headline
