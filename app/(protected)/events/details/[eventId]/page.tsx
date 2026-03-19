@@ -59,7 +59,7 @@ const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
         Back to feed
       </Link>
 
-      {event && (
+      {event ? (
         <div className="space-y-6">
           <EventData event={event} />
           <EventComments
@@ -67,6 +67,11 @@ const EventDetailPage = async ({ params }: { params: { eventId: string } }) => {
             comments={comments || []}
             eventId={params.eventId}
           />
+        </div>
+      ) : (
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="text-lg font-medium mb-1">Post not found</p>
+          <p className="text-sm">This post may have been deleted.</p>
         </div>
       )}
     </div>

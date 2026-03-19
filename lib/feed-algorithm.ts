@@ -17,7 +17,7 @@ export const FEED_CONFIG = {
   followingMultiplier: 1.5,
   promotedBoost: 10,
   // How many raw events to fetch before ranking (fetch more, rank, then page)
-  fetchMultiplier: 3,
+  fetchMultiplier: 5,
 } as const;
 
 // ── Types ──────────────────────────────────────────────────────────────────

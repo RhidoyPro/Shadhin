@@ -15,7 +15,7 @@ interface ClassifiedEmail {
   autoReply: string | null;
 }
 
-const ADMIN_EMAIL = "prodhanrhidoy@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "prodhanrhidoy@gmail.com";
 
 /**
  * Inbound email webhook from Resend

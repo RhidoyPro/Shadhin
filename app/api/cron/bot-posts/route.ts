@@ -52,6 +52,25 @@ const RSS_FEEDS = [
   "https://www.thedailystar.net/opinion/rss.xml",
 ];
 
+// Fetch headlines already posted by bots in the last 7 days to avoid cross-day repeats
+async function fetchRecentBotHeadlines(): Promise<Set<string>> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentBotPosts = await db.event.findMany({
+    where: {
+      createdAt: { gte: sevenDaysAgo },
+      user: { isBot: true },
+    },
+    select: { content: true },
+  });
+  // Extract the quoted headline from each bot post
+  const used = new Set<string>();
+  for (const post of recentBotPosts) {
+    const match = post.content.match(/"([^"]+)"/);
+    if (match) used.add(match[1]);
+  }
+  return used;
+}
+
 // Fetch and parse RSS headlines from all feeds in parallel
 async function fetchHeadlines(): Promise<string[]> {
   const results = await Promise.allSettled(
@@ -139,10 +158,11 @@ export async function GET(req: Request) {
     }
   }
 
-  // Fetch news and bots in parallel
-  const [headlines, bots] = await Promise.all([
+  // Fetch news, bots, and recently used headlines in parallel
+  const [headlines, bots, recentBotHeadlines] = await Promise.all([
     fetchHeadlines(),
     db.user.findMany({ where: { isBot: true } }),
+    fetchRecentBotHeadlines(),
   ]);
 
   if (bots.length === 0) {
@@ -166,7 +186,8 @@ export async function GET(req: Request) {
   });
   const alreadyPosted = new Set(todaysPosts.map((p) => p.userId));
 
-  const usedHeadlines = new Set<string>();
+  // Seed usedHeadlines with cross-day dedup so bots don't repeat last 7 days of headlines
+  const usedHeadlines = new Set<string>(recentBotHeadlines);
 
   // Build list of bots to post for, picking headlines up front
   const postQueue: Array<{ bot: (typeof bots)[number]; content: string; stateName: string }> = [];
@@ -183,38 +204,67 @@ export async function GET(req: Request) {
     });
   }
 
-  // Create all posts in parallel
-  await Promise.all(
+  // Create all posts in parallel — allSettled so one failure doesn't abort the rest
+  const createResults = await Promise.allSettled(
     postQueue.map(({ bot, content, stateName }) =>
       db.event.create({
         data: { content, eventType: EventType.STATUS, stateName, userId: bot.id },
       })
     )
   );
-  const postsCreated = postQueue.length;
+  const postsCreated = createResults.filter((r) => r.status === "fulfilled").length;
 
-  // Bots like recent real user posts (40% chance)
-  if (Math.random() > 0.6) {
-    const recentPosts = await db.event.findMany({
-      where: {
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        user: { isBot: false },
-      },
+  // Bots like recent posts (user posts + each other's posts) to build engagement signal
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [recentUserPosts, recentBotPosts] = await Promise.all([
+    // Real user posts — always try to like a few
+    db.event.findMany({
+      where: { createdAt: { gte: since24h }, user: { isBot: false } },
       take: 5,
       orderBy: { createdAt: "desc" },
-    });
+      select: { id: true },
+    }),
+    // Bot posts from last 48h — cross-like to build engagement
+    db.event.findMany({
+      where: {
+        createdAt: { gte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
+        user: { isBot: true },
+      },
+      take: 10,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, userId: true },
+    }),
+  ]);
 
-    for (const post of recentPosts) {
-      const randomBot = bots[Math.floor(Math.random() * bots.length)];
-      const existingLike = await db.like.findFirst({
-        where: { eventId: post.id, userId: randomBot.id },
-      });
-      if (!existingLike) {
-        await db.like.create({
-          data: { eventId: post.id, userId: randomBot.id },
-        });
-      }
-    }
+  // Build like tasks: avoid duplicate likes with a single batch check
+  const postsToMaybeLike = [
+    ...recentUserPosts.map((p) => ({ id: p.id, ownerId: null })),
+    // Each bot post gets liked by a random OTHER bot (~60% chance each)
+    ...recentBotPosts
+      .filter(() => Math.random() > 0.4)
+      .map((p) => ({ id: p.id, ownerId: p.userId })),
+  ];
+
+  if (postsToMaybeLike.length > 0) {
+    const existingLikes = await db.like.findMany({
+      where: {
+        eventId: { in: postsToMaybeLike.map((p) => p.id) },
+        userId: { in: bots.map((b) => b.id) },
+      },
+      select: { eventId: true, userId: true },
+    });
+    const likedSet = new Set(existingLikes.map((l) => `${l.eventId}:${l.userId}`));
+
+    await Promise.allSettled(
+      postsToMaybeLike.map((post) => {
+        // Pick a random bot that isn't the post owner
+        const eligible = bots.filter((b) => b.id !== post.ownerId);
+        if (!eligible.length) return Promise.resolve();
+        const bot = eligible[Math.floor(Math.random() * eligible.length)];
+        if (likedSet.has(`${post.id}:${bot.id}`)) return Promise.resolve();
+        return db.like.create({ data: { eventId: post.id, userId: bot.id } });
+      })
+    );
   }
 
   return NextResponse.json({

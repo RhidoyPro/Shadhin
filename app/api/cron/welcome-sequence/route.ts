@@ -24,9 +24,11 @@ export async function GET(request: Request) {
   const now = new Date();
 
   // Day 3 nudge: users created 3 days ago with 0 events
-  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-  const threeDaysAgoStart = new Date(threeDaysAgo.setHours(0, 0, 0, 0));
-  const threeDaysAgoEnd = new Date(threeDaysAgo.setHours(23, 59, 59, 999));
+  // Note: setHours mutates in place, so use separate Date objects
+  const threeDaysAgoStart = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  threeDaysAgoStart.setHours(0, 0, 0, 0);
+  const threeDaysAgoEnd = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  threeDaysAgoEnd.setHours(23, 59, 59, 999);
 
   const nudgeUsers = await db.user.findMany({
     where: {

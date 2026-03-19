@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendPushToUser } from "@/lib/push";
 import { revalidatePath } from "next/cache";
+import { invalidateFeedCache } from "@/lib/cache";
 
 export const like = async (eventId: string) => {
   const session = await auth();
@@ -35,6 +36,7 @@ export const like = async (eventId: string) => {
   if (existingLike) {
     await db.like.delete({ where: { id: existingLike.id } });
     revalidatePath(`/events/details/${eventId}`);
+    invalidateFeedCache(event.stateName).catch(() => {});
     return { success: true };
   }
 
@@ -53,6 +55,7 @@ export const like = async (eventId: string) => {
   }
 
   revalidatePath(`/events/details/${eventId}`);
+  invalidateFeedCache(event.stateName).catch(() => {});
   return { success: true };
 };
 

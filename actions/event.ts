@@ -249,6 +249,7 @@ export const editEvent = async (eventId: string, content: string) => {
 
   revalidatePath("/events/[stateName]", "page");
   revalidatePath("/events/details/[eventId]", "page");
+  invalidateFeedCache(event.stateName).catch(() => {});
 
   return { success: true };
 };
@@ -417,32 +418,18 @@ export const fetchEventById = async (eventId: string) => {
 export const fetchEventData = async (eventId: string) => {
   const session = await auth();
   const event = await getEventById(eventId);
-  const isLikedByUser = await db.like.findFirst({
-    where: {
-      eventId,
-      userId: session?.user?.id,
-    },
-  });
-  const isUserAttending = await db.eventAttendee.findFirst({
-    where: {
-      eventId,
-      userId: session?.user?.id,
-      status: EventStatus.GOING,
-    },
-  });
-  const isUserNotAttending = await db.eventAttendee.findFirst({
-    where: {
-      eventId,
-      userId: session?.user?.id,
-      status: EventStatus.NOT_GOING,
-    },
-  });
+  if (!event) return null;
 
+  const uid = session?.user?.id;
   return {
     ...event,
-    isLikedByUser: !!isLikedByUser,
-    isUserAttending: !!isUserAttending,
-    isUserNotAttending: !!isUserNotAttending,
+    isLikedByUser: uid ? event.likes.some((l) => l.userId === uid) : false,
+    isUserAttending: uid
+      ? event.attendees.some((a) => a.userId === uid && a.status === EventStatus.GOING)
+      : false,
+    isUserNotAttending: uid
+      ? event.attendees.some((a) => a.userId === uid && a.status === EventStatus.NOT_GOING)
+      : false,
   };
 };
 
