@@ -20,7 +20,6 @@ import {
 import {
   Heart,
   MessageCircle,
-  Share2,
   Flag,
   CheckCircle2,
   XCircle,
@@ -76,13 +75,6 @@ const EventActionsCtn = ({
       return;
     }
     toast.success(res.bookmarked ? "Saved" : "Removed from saved");
-  };
-
-  const shareEventHandler = () => {
-    navigator.clipboard.writeText(
-      `${window.location.origin}/events/details/${eventId}`
-    );
-    toast.success("Link copied to clipboard");
   };
 
   const reportEventHandler = async () => {
@@ -168,23 +160,6 @@ const EventActionsCtn = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom"><p>Comment</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={shareEventHandler}
-                  className="h-9 gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                >
-                  <Share2 className="h-[18px] w-[18px]" />
-                  <span className="hidden text-sm font-medium sm:inline">Share</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>Copy link</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
