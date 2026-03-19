@@ -63,7 +63,7 @@ const LeaderBoard = async () => {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground flex items-center gap-1">
                     {user.name}
-                    <VerifiedBadge userRole={user.role as UserRole} />
+                    <VerifiedBadge userRole={user.role as UserRole} isVerifiedOrg={user.isVerifiedOrg} />
                   </p>
                 </div>
 

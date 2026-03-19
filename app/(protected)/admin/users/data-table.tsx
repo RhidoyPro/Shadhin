@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, BadgeCheck } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -58,6 +58,7 @@ import {
   deleteUser,
   verifyUserEmailByAdmin,
 } from "@/actions/user";
+import { toggleVerifiedOrg } from "@/actions/moderation";
 import { toast } from "sonner";
 
 export const makeColumns = (actorRole: string): ColumnDef<User>[] => [
@@ -212,6 +213,17 @@ export const makeColumns = (actorRole: string): ColumnDef<User>[] => [
                 onClick={() => verifyUserEmailByAdmin(user.id)}
               >
                 Verify Email ✔
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={async () => {
+                  const res = await toggleVerifiedOrg(user.id);
+                  if (res.error) toast.error(res.error);
+                  else toast.success(res.isVerifiedOrg ? "Org badge granted" : "Org badge revoked");
+                }}
+              >
+                <BadgeCheck className="mr-2 h-4 w-4 text-amber-500" />
+                {user.isVerifiedOrg ? "Revoke Org Badge" : "Grant Org Badge"}
               </DropdownMenuItem>
               <DialogTrigger asChild onClick={() => setIsDeleting(false)}>
                 <p className="text-sm p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">

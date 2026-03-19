@@ -15,6 +15,7 @@ type LeaderBoardUser = Prisma.UserGetPayload<{
     image: true;
     points: true;
     role: true;
+    isVerifiedOrg: true;
   };
 }>;
 
@@ -55,7 +56,7 @@ const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
             <div className="flex items-center">
               <UserAvatar image={user?.image || ""} id={user.id} />
               <p className="ml-2 dark:text-white">{user.name}</p>
-              <VerifiedBadge userRole={user.role} />
+              <VerifiedBadge userRole={user.role} isVerifiedOrg={user.isVerifiedOrg} />
             </div>
             <p className="font-bold flex items-center gap-1 text-primary">
               {user.points}
