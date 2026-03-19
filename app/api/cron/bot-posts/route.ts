@@ -14,23 +14,42 @@ const DISTRICT_TERMS: Record<string, string[]> = {
   mymensingh: ["ময়মনসিংহ", "ব্রহ্মপুত্র", "নেত্রকোনা", "শেরপুর"],
 };
 
-// All feeds fetched in parallel — tested and confirmed working
+// All feeds tested and confirmed working — fetched in parallel
 const RSS_FEEDS = [
-  // Bangla — general / political (high volume)
-  "https://www.prothomalo.com/stories.rss",       // Prothom Alo — 5 items
-  "https://www.banglatribune.com/feed/",           // Bangla Tribune — 100 items
-  "https://www.ittefaq.com.bd/feed/",              // Daily Ittefaq — 100 items
-  "https://www.kalerkantho.com/rss.xml",           // Kaler Kantho — 188 items
-  "https://www.deshrupantor.com/feed/",            // Desh Rupantor — 100 items
-  // English — general / political
-  "https://www.thedailystar.net/rss.xml",          // Daily Star — 3 items
+  // Bangla — general / political
+  "https://www.prothomalo.com/stories.rss",
+  "https://www.banglatribune.com/feed/",
+  "https://www.ittefaq.com.bd/feed/",
+  "https://www.kalerkantho.com/rss.xml",
+  "https://www.deshrupantor.com/feed/",
+  // English — general
+  "https://www.thedailystar.net/rss.xml",
   // Business / economy
-  "https://www.tbsnews.net/rss.xml",               // TBS News — 10 items
+  "https://www.tbsnews.net/rss.xml",
   // Sports
-  "https://www.thedailystar.net/taxonomy/term/3/rss.xml",        // Daily Star Sports — 10 items
+  "https://www.thedailystar.net/taxonomy/term/3/rss.xml",
   // Entertainment
-  "https://www.thedailystar.net/taxonomy/term/283449/rss.xml",   // Daily Star Entertainment — 10 items
-  "https://www.channelionline.com/feed/",          // Channel i Online — 10 items
+  "https://www.thedailystar.net/taxonomy/term/283449/rss.xml",
+  "https://www.thedailystar.net/arts-entertainment/rss.xml",
+  "https://www.channelionline.com/feed/",
+  // Technology
+  "https://www.thedailystar.net/tech-startup/rss.xml",
+  // Health
+  "https://www.thedailystar.net/health/rss.xml",
+  // Crime / justice
+  "https://www.thedailystar.net/crime/rss.xml",
+  // Environment / climate
+  "https://www.thedailystar.net/environment/rss.xml",
+  // International / South Asia
+  "https://www.thedailystar.net/world/south-asia/rss.xml",
+  // Education / campus
+  "https://www.thedailystar.net/campus/rss.xml",
+  // Agriculture / rural
+  "https://www.thedailystar.net/country/rss.xml",
+  // Lifestyle
+  "https://www.thedailystar.net/lifestyle/rss.xml",
+  // Opinion / analysis
+  "https://www.thedailystar.net/opinion/rss.xml",
 ];
 
 // Fetch and parse RSS headlines from all feeds in parallel
