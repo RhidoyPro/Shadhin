@@ -18,11 +18,12 @@ export default auth((req) => {
   const role = session?.user?.role;
 
   const isApiRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+  const isCronRoute = nextUrl.pathname.startsWith("/api/cron/");
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
 
-  if (isApiRoute) {
+  if (isApiRoute || isCronRoute) {
     return NextResponse.next();
   }
 
