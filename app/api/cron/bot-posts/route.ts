@@ -2,126 +2,88 @@ import { db } from "@/lib/db";
 import { EventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// District-flavoured templates — political, natural, controversial
-const DISTRICT_TEMPLATES: Record<string, string[]> = {
-  dhaka: [
-    "ঢাকার যানজট কি আসলে কোনোদিন সমাধান হবে? মেট্রোরেল করার পরেও কি পরিস্থিতির উন্নতি হয়েছে বলে মনে হচ্ছে?",
-    "ঢাকার বায়ু দূষণ বিশ্বের সবচেয়ে খারাপের মধ্যে বারবার আসছে — এর দায় কার? শিল্পকারখানা, ইটভাটা, নাকি আমাদের নিজেদের?",
-    "রাজউক কি আদৌ ঢাকার নগর পরিকল্পনায় সফল? নাকি এই সংস্থা দুর্নীতির আখড়া হয়ে গেছে?",
-    "ঢাকার খাল-বিল দখল করে কারা ভবন তুলছে? এই দখলদারিত্বের বিরুদ্ধে কি কোনো কার্যকর ব্যবস্থা নেওয়া সম্ভব?",
-    "পুরান ঢাকার ঐতিহ্যবাহী স্থাপত্য ধ্বংস হয়ে যাচ্ছে — এটা কি উন্নয়নের নামে সাংস্কৃতিক বিপর্যয়?",
-    "ঢাকার বস্তিগুলো উচ্ছেদ করা উচিত নাকি পুনর্বাসন? গরিব মানুষগুলোর কোথায় যাওয়ার জায়গা আছে?",
-    "হাসিনা সরকারের আমলের মেগা প্রজেক্টগুলো — পদ্মা সেতু, মেট্রোরেল, এক্সপ্রেসওয়ে — এগুলো কি জনগণের ট্যাক্সের সঠিক ব্যবহার?",
-    "ঢাকায় ফ্ল্যাটের দাম সাধারণ মানুষের নাগালের বাইরে চলে গেছে। এই সংকটের জন্য কে দায়ী?",
-    "রাজধানী কি ঢাকা থেকে সরিয়ে নেওয়া উচিত? নাকি এটা কোনোদিনই বাস্তবসম্মত না?",
-    "ঢাকায় প্রতিদিন কত টন প্লাস্টিক বর্জ্য তৈরি হচ্ছে? এই সমস্যার সমাধান না করলে ভবিষ্যৎ কী?",
-  ],
-  chattogram: [
-    "চট্টগ্রাম বন্দরে দুর্নীতি ও চাঁদাবাজি কি আসলেই কমেছে? নাকি শুধু মুখ বদলেছে?",
-    "পার্বত্য চট্টগ্রামের পাহাড়িদের ভূমি অধিকার নিয়ে কেউ কি সত্যিকারের কথা বলতে প্রস্তুত?",
-    "কর্ণফুলী নদী দূষণের জন্য কে দায়ী — শিল্পকারখানা নাকি নগর কর্তৃপক্ষের ব্যর্থতা?",
-    "চট্টগ্রামকে আলাদা প্রদেশ বা বিশেষ অর্থনৈতিক অঞ্চল করার দাবি কতটুকু যৌক্তিক?",
-    "বঙ্গোপসাগরে ঘূর্ণিঝড়ের তীব্রতা বছর বছর বাড়ছে। চট্টগ্রামের উপকূলীয় মানুষ কতটুকু প্রস্তুত?",
-    "চট্টগ্রাম বন্দরকে ঘিরে ভারত ও চীনের কৌশলগত আগ্রহ — এটা কি বাংলাদেশের জন্য সুযোগ নাকি বিপদ?",
-    "পাহাড়-বাঙালি সংঘর্ষের পেছনে কি রাজনৈতিক মদদ আছে? এই সমস্যার স্থায়ী সমাধান কী?",
-    "চট্টগ্রামের পাহাড় কেটে রাস্তা-বাড়ি তৈরি করা কি থামানো যাবে, নাকি পুরো পাহাড় একদিন শেষ হয়ে যাবে?",
-    "রোহিঙ্গা সংকট চট্টগ্রাম অঞ্চলে কতটা প্রভাব ফেলছে? স্থানীয়রা কেমন চাপে আছেন?",
-    "চট্টগ্রামের সিটি কর্পোরেশন কি শহরের উন্নয়নে সত্যিকারের কাজ করছে?",
-  ],
-  sylhet: [
-    "সিলেটের বন্যা কি এখন প্রতিবছরের স্থায়ী দুর্ভোগ হয়ে গেছে? সরকারের ব্যর্থতা কতটুকু?",
-    "প্রবাসীদের পাঠানো টাকায় সিলেট চকচক করছে, কিন্তু স্থানীয় অর্থনীতি আসলে কতটুকু টেকসই?",
-    "হাওরের কৃষকরা প্রতিবছর আগাম বন্যায় ফসল হারান। কার দায়িত্ব এই বাঁধগুলো ঠিক রাখা?",
-    "সিলেটে জমি-বাড়ির দাম আকাশছোঁয়া। প্রবাসী বিনিয়োগ কি সাধারণ মানুষের জীবন কঠিন করে তুলছে?",
-    "চা বাগানের শ্রমিকরা কি এখনো দাসত্বের মতো জীবন কাটাচ্ছেন? তাদের মজুরি ও অধিকার নিয়ে কেউ কথা বলছে?",
-    "সিলেট-লন্ডন সংযোগে মানি লন্ডারিং কি একটা বড় সমস্যা? কেন এ নিয়ে জোরালো তদন্ত হয় না?",
-    "ভারতের মেঘালয় সীমান্ত দিয়ে চোরাচালান কি কমেছে নাকি বেড়েছে?",
-    "সিলেটে ইসলামি রাজনীতির প্রভাব কি অন্য জেলার চেয়ে বেশি? এটা কি ভালো না খারাপ?",
-    "হাওরের জীববৈচিত্র্য রক্ষায় কার্যকর পদক্ষেপ কি নেওয়া হচ্ছে? নাকি শুধু কাগজে-কলমে?",
-    "সিলেটের তরুণরা কি দেশে থাকতে চায়? নাকি সবাই বিদেশমুখী?",
-  ],
-  rajshahi: [
-    "পদ্মার ভাঙনে প্রতিবছর হাজার হাজার পরিবার ঘর-জমি হারাচ্ছে। পুনর্বাসনে সরকার কতটুকু আন্তরিক?",
-    "বরেন্দ্র অঞ্চলে ভূগর্ভস্থ পানির স্তর দ্রুত নামছে। আমরা কি একটা মারাত্মক পানি সংকটের দিকে এগিয়ে যাচ্ছি?",
-    "ভারতের বিএসএফের গুলিতে বাংলাদেশি নাগরিক নিহত হওয়া কি মেনে নেওয়া যায়? সরকার কেন কার্যকর প্রতিবাদ করে না?",
-    "আম চাষিরা কি ফরমালিন-মুক্ত আম চাষ করলে ন্যায্য দাম পাচ্ছেন? বাজার ব্যবস্থা কি চাষিদের পক্ষে?",
-    "রাজশাহী বিশ্ববিদ্যালয়ে দলীয় ছাত্র রাজনীতি কি শিক্ষার পরিবেশ ধ্বংস করছে?",
-    "উত্তরবঙ্গ কি সবসময় উন্নয়নে বৈষম্যের শিকার? ঢাকার সাথে বরাদ্দের ফারাক কতটুকু?",
-    "তিস্তার পানি বণ্টন চুক্তি কি বাংলাদেশ কোনোদিন পাবে? ভারত কেন এত গড়িমসি করছে?",
-    "রাজশাহীতে রেশম শিল্প প্রায় মরে গেছে। এই ঐতিহ্যবাহী শিল্প কি আর বাঁচানো সম্ভব?",
-    "সীমান্ত এলাকায় চোরাচালান বন্ধ না হওয়ার পেছনে কি স্থানীয় রাজনীতিবিদদের মদদ আছে?",
-    "রাজশাহীর শিক্ষার হার দেশে সবচেয়ে বেশি — তাহলে কেন এখানে শিল্প ও কর্মসংস্থান কম?",
-  ],
-  khulna: [
-    "রামপাল বিদ্যুৎ কেন্দ্র কি সুন্দরবনের জন্য আসলেই হুমকি? নাকি এটা অতিরঞ্জিত?",
-    "লবণাক্ততা বাড়ছে, কৃষিজমি নষ্ট হচ্ছে — খুলনার মানুষ কি ২০৫০ সালে এখানে থাকতে পারবে?",
-    "ঘূর্ণিঝড়ের পর সরকারি ত্রাণ কি সত্যিকারের ক্ষতিগ্রস্তদের কাছে পৌঁছায়? নাকি মধ্যখানে লুটপাট হয়?",
-    "সুন্দরবনে অবৈধ বনায়ন ও শিকার বন্ধ করা কি কোনোদিন সম্ভব?",
-    "চিংড়ি শিল্পে রাসায়নিক ও অ্যান্টিবায়োটিক ব্যবহার কি এখনো নিয়ন্ত্রণের বাইরে?",
-    "মংলা বন্দরকে কার্যকরভাবে কাজে লাগানো যাচ্ছে না কেন? এই ব্যর্থতার দায় কার?",
-    "জলবায়ু শরণার্থী সমস্যা খুলনায় সবচেয়ে বেশি — এই মানুষগুলোর ভবিষ্যৎ কী?",
-    "সুন্দরবনের বাঘ কমে যাচ্ছে। বনদস্যু, জেলে, নাকি জলবায়ু — কে বেশি দায়ী?",
-    "খুলনার শিল্পকারখানাগুলো নদী দূষণের জন্য কতটুকু দায়ী?",
-    "দক্ষিণাঞ্চলে বেড়িবাঁধ ভাঙার পেছনে কি দুর্নীতির হাত আছে?",
-  ],
-  barishal: [
-    "ভোলার গ্যাস কি বরিশালের মানুষের কোনো উপকারে আসছে? নাকি সব সুবিধা ঢাকায় যাচ্ছে?",
-    "নদীভাঙনে উদ্বাস্তু পরিবারগুলোর পুনর্বাসনে সরকার কি সত্যিকারের কিছু করছে?",
-    "বরিশালের ঐতিহ্যবাহী নৌপথ কমে যাওয়া কি উন্নয়ন নাকি ঐতিহ্য ধ্বংস?",
-    "সমুদ্রপৃষ্ঠ উচ্চতা বৃদ্ধিতে দক্ষিণাঞ্চলের কতটুকু ডুবে যাওয়ার ঝুঁকি আছে?",
-    "বরিশালে রাজনৈতিক সংস্কৃতি কি দেশের বাকি অংশের চেয়ে বেশি হিংসাত্মক?",
-    "পদ্মা সেতু কি বরিশালের অর্থনীতিতে সত্যিকারের পরিবর্তন এনেছে?",
-    "উপকূলীয় অঞ্চলে ঘূর্ণিঝড় আশ্রয়কেন্দ্র কি পর্যাপ্ত আছে?",
-    "বরিশালের কৃষকরা ধানের ন্যায্য মূল্য পাচ্ছেন না — মধ্যস্বত্বভোগীরা কত পার্সেন্ট লাভ নিয়ে যাচ্ছে?",
-    "ইলিশ মাছের উৎপাদন কমছে না বাড়ছে? জেলেরা আসলে কেমন আছেন?",
-    "বরিশালে শিক্ষা-স্বাস্থ্য খাতে কি বিনিয়োগ যথেষ্ট?",
-  ],
-  rangpur: [
-    "তিস্তার পানি বণ্টন চুক্তি কি বাংলাদেশ কোনোদিন পাবে? এই অনিশ্চয়তায় উত্তরবঙ্গের কৃষকদের ভবিষ্যৎ কী?",
-    "মৌসুমি দারিদ্র্য — মঙ্গা — কি সত্যিই কমেছে নাকি পরিসংখ্যান দিয়ে ঢাকা হচ্ছে?",
-    "রংপুর বিভাগ কেন সবসময় জাতীয় উন্নয়নে পিছিয়ে থাকে? এটা কি রাজনৈতিক বৈষম্য?",
-    "তামাক চাষ কি উত্তরবঙ্গের উর্বর কৃষিজমি স্থায়ীভাবে নষ্ট করছে?",
-    "চরাঞ্চলের মানুষদের জীবনমান উন্নয়নে কার্যকর পদক্ষেপ কি নেওয়া হচ্ছে?",
-    "তিস্তা মহাপরিকল্পনায় চীনের বিনিয়োগ কি সমস্যার সমাধান করবে নাকি নতুন সমস্যা তৈরি করবে?",
-    "উত্তরবঙ্গে শিল্পায়ন কেন হচ্ছে না? বিনিয়োগকারীরা কেন আসছেন না?",
-    "ভারত থেকে পানি আসা বন্ধ হলে রংপুরের কৃষি কীভাবে টিকবে?",
-    "দিনাজপুরের কয়লা কি দেশের কাজে লাগানো উচিত? পরিবেশ বনাম অর্থনীতি — কোনটা আগে?",
-    "রংপুরের হিন্দু সম্প্রদায় কতটুকু নিরাপদ? সংখ্যালঘু নির্যাতনের ঘটনা কি কমছে?",
-  ],
-  mymensingh: [
-    "ব্রহ্মপুত্রের ভাঙনে ময়মনসিংহের কত পরিবার ইতোমধ্যে সর্বস্ব হারিয়েছে? কেউ কি এই হিসাব রাখছে?",
-    "হাওর এলাকায় ফসল রক্ষার বাঁধগুলো প্রতিবছর ভাঙে — দুর্নীতি নাকি অদক্ষতা?",
-    "বাংলাদেশ কৃষি বিশ্ববিদ্যালয়ের গবেষণা কি দেশের আসল কৃষকদের কোনো কাজে আসছে?",
-    "গারো-হাজং আদিবাসীদের জমি দখল হয়ে যাচ্ছে। কেউ কি তাদের পক্ষে কথা বলছে?",
-    "ময়মনসিংহে কেন শিল্পায়ন হচ্ছে না? এত শিক্ষিত মানুষ কর্মসংস্থানের জন্য ঢাকায় যাচ্ছে কেন?",
-    "সুসং দুর্গাপুরের আদিবাসী এলাকায় পর্যটন উন্নয়নের নামে কি সংস্কৃতি ধ্বংস হচ্ছে?",
-    "ময়মনসিংহের নদীগুলো দখল ও দূষণে মরতে বসেছে। প্রশাসন কি আদৌ ব্যবস্থা নিচ্ছে?",
-    "হাওরের মাছ কমে যাওয়ার জন্য কে দায়ী — জেলে, কারখানা নাকি জলবায়ু পরিবর্তন?",
-    "ময়মনসিংহের কৃষিজমিতে অপরিকল্পিত নগরায়ণ কি থামানো সম্ভব?",
-    "সীমান্তবর্তী এলাকায় মাদক পাচার কি কমেছে?",
-  ],
-  "all-districts": [
-    "জুলাই বিপ্লবের পর দেশে কী আসলে বদলেছে? নাকি শুধু মুখ বদলেছে, সিস্টেম একই আছে?",
-    "অন্তর্বর্তী সরকার কি সত্যিকারের সংস্কার করতে পারবে? নাকি নির্বাচনের আগেই ভেঙে পড়বে?",
-    "বাংলাদেশে আসন্ন নির্বাচনে কোন বিষয়গুলো আপনার কাছে সবচেয়ে গুরুত্বপূর্ণ?",
-    "মূল্যস্ফীতির এই চাপে আপনি কীভাবে সামলাচ্ছেন? সৎ উত্তর দিন",
-    "দুর্নীতি কমাতে সবচেয়ে আগে কোন সেক্টর ঠিক করা দরকার? পুলিশ, বিচার বিভাগ নাকি রাজনীতি?",
-    "বাংলাদেশে সংখ্যালঘু নিরাপত্তা নিয়ে আপনার সৎ মতামত কী?",
-    "গার্মেন্টস শ্রমিকদের বেতন ও কর্মপরিবেশ নিয়ে কথা বলুন। তারা কি ন্যায্য অধিকার পাচ্ছেন?",
-    "ইন্টারনেট শাটডাউন কি কখনো জায়েজ হতে পারে? গণমাধ্যম স্বাধীনতা কতটুকু আছে?",
-    "বাংলাদেশ-ভারত সম্পর্ক ভবিষ্যতে কোথায় যাবে? পানি, বাণিজ্য, সীমান্ত — সব ইস্যুতে কোথায় দাঁড়াচ্ছি?",
-    "কোটা সংস্কার আন্দোলন কি সফল হয়েছে? নাকি নতুন বৈষম্য তৈরি হয়েছে?",
-    "রেমিট্যান্স যোদ্ধারা দেশের অর্থনীতি টিকিয়ে রাখছেন — তাদের পরিবার কি দেশে সত্যিকারের নিরাপদ?",
-    "ড. ইউনূসের নেতৃত্বে বাংলাদেশ কি সত্যিই নতুন পথে হাঁটছে?",
-    "বাংলাদেশে বিচার বিভাগ কি স্বাধীন? রাজনৈতিক মামলা কি কমেছে?",
-    "জলবায়ু পরিবর্তনে বাংলাদেশ সবচেয়ে ক্ষতিগ্রস্ত দেশগুলোর একটি — কিন্তু আন্তর্জাতিক ক্ষতিপূরণ পাচ্ছি কতটুকু?",
-    "তরুণ প্রজন্ম দেশ ছেড়ে চলে যাচ্ছে — ব্রেইন ড্রেইন কি বাংলাদেশের ভবিষ্যৎকে ধ্বংস করছে?",
-  ],
+// Bangla search terms per district for headline matching
+const DISTRICT_TERMS: Record<string, string[]> = {
+  dhaka: ["ঢাকা", "রাজধানী", "মেট্রোরেল", "ডিএমপি"],
+  chattogram: ["চট্টগ্রাম", "বন্দর", "কর্ণফুলী", "পার্বত্য"],
+  sylhet: ["সিলেট", "হাওর", "সুনামগঞ্জ", "চা বাগান"],
+  rajshahi: ["রাজশাহী", "পদ্মা", "বরেন্দ্র", "নওগাঁ"],
+  khulna: ["খুলনা", "সুন্দরবন", "মংলা", "বাগেরহাট"],
+  barishal: ["বরিশাল", "ভোলা", "পটুয়াখালী", "দক্ষিণাঞ্চল"],
+  rangpur: ["রংপুর", "তিস্তা", "দিনাজপুর", "কুড়িগ্রাম"],
+  mymensingh: ["ময়মনসিংহ", "ব্রহ্মপুত্র", "নেত্রকোনা", "শেরপুর"],
 };
 
-function getTemplates(stateName: string | null): string[] {
-  if (!stateName) return DISTRICT_TEMPLATES["all-districts"];
-  return DISTRICT_TEMPLATES[stateName] ?? DISTRICT_TEMPLATES["all-districts"];
+const RSS_FEEDS = [
+  "https://www.prothomalo.com/feed/",
+  "https://bdnews24.com/feed/",
+];
+
+// Fetch and parse RSS headlines from all feeds in parallel
+async function fetchHeadlines(): Promise<string[]> {
+  const results = await Promise.allSettled(
+    RSS_FEEDS.map((url) =>
+      fetch(url, {
+        signal: AbortSignal.timeout(3000),
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; Shadhin/1.0)" },
+      }).then((r) => (r.ok ? r.text() : ""))
+    )
+  );
+
+  const headlines: string[] = [];
+
+  for (const result of results) {
+    if (result.status !== "fulfilled" || !result.value) continue;
+    const xml = result.value;
+
+    // Extract CDATA-wrapped titles (e.g. Prothom Alo)
+    const cdata = [...xml.matchAll(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/g)];
+    // Extract plain text titles (e.g. bdnews24)
+    const plain = [...xml.matchAll(/<title>([\s\S]*?)<\/title>/g)];
+
+    for (const m of [...cdata, ...plain].slice(1)) {
+      const title = m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+      // Skip empty, very short, or URL-like titles
+      if (title.length > 20 && !title.startsWith("http")) {
+        headlines.push(title);
+      }
+    }
+  }
+
+  return [...new Set(headlines)]; // deduplicate
+}
+
+// Pick a headline relevant to the bot's district, fallback to any headline
+function pickHeadline(
+  headlines: string[],
+  stateName: string | null,
+  used: Set<string>
+): string | null {
+  const available = headlines.filter((h) => !used.has(h));
+  if (!available.length) return null;
+
+  if (stateName && stateName !== "all-districts") {
+    const terms = DISTRICT_TERMS[stateName] || [];
+    const relevant = available.filter((h) => terms.some((t) => h.includes(t)));
+    if (relevant.length > 0) {
+      return relevant[Math.floor(Math.random() * relevant.length)];
+    }
+  }
+
+  // Fallback: any available headline
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+// Wrap a raw headline into a discussion-style post
+function toDiscussionPost(headline: string): string {
+  const starters = [
+    `"${headline}" — এ নিয়ে আপনার মতামত কী?`,
+    `আজকের খবর: "${headline}" — কমেন্টে জানান আপনি কী ভাবছেন`,
+    `"${headline}" — আপনার এলাকায় এর প্রভাব কেমন পড়ছে?`,
+    `এই বিষয়ে আলোচনা হোক: "${headline}"`,
+    `"${headline}" — সত্যিই কি এমন হচ্ছে? আপনারা কী দেখছেন?`,
+  ];
+  return starters[Math.floor(Math.random() * starters.length)];
 }
 
 export async function GET(req: Request) {
@@ -130,62 +92,67 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Kill switch
   if (process.env.BOTS_ENABLED !== "true") {
     return NextResponse.json({ skipped: true, reason: "BOTS_ENABLED is not true" });
   }
 
-  // Get current BD time (UTC+6)
+  // Only post between 8am–9pm BD time (UTC+6)
   const bdHour = new Date(Date.now() + 6 * 60 * 60 * 1000).getUTCHours();
-
-  // Only post between 8am-9pm BD time
   if (bdHour < 8 || bdHour > 21) {
     return NextResponse.json({ skipped: true, reason: "Outside BD posting hours" });
   }
 
-  const bots = await db.user.findMany({
-    where: { isBot: true },
-  });
+  // Fetch news and bots in parallel
+  const [headlines, bots] = await Promise.all([
+    fetchHeadlines(),
+    db.user.findMany({ where: { isBot: true } }),
+  ]);
 
   if (bots.length === 0) {
     return NextResponse.json({ skipped: true, reason: "No bot accounts found" });
   }
 
+  if (headlines.length === 0) {
+    return NextResponse.json({ skipped: true, reason: "No headlines fetched from news feeds" });
+  }
+
+  // Batch check which bots already posted today (1 query instead of N)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const todaysPosts = await db.event.findMany({
+    where: {
+      userId: { in: bots.map((b) => b.id) },
+      createdAt: { gte: today },
+    },
+    select: { userId: true },
+  });
+  const alreadyPosted = new Set(todaysPosts.map((p) => p.userId));
+
+  const usedHeadlines = new Set<string>();
   let postsCreated = 0;
 
   for (const bot of bots) {
-    // Check if bot already posted today
-    const todaysPost = await db.event.findFirst({
-      where: {
-        userId: bot.id,
-        createdAt: { gte: today },
-      },
-    });
+    if (alreadyPosted.has(bot.id)) continue;
+    if (Math.random() > 0.5) continue; // ~50% chance per run
 
-    if (todaysPost) continue;
+    const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
+    if (!headline) continue;
 
-    // ~50% chance of posting each cron run (creates natural variation)
-    if (Math.random() > 0.5) continue;
-
-    const templates = getTemplates(bot.stateName);
-    const template = templates[Math.floor(Math.random() * templates.length)];
+    usedHeadlines.add(headline);
 
     await db.event.create({
       data: {
-        content: template,
+        content: toDiscussionPost(headline),
         eventType: EventType.STATUS,
         stateName: bot.stateName || "all-districts",
         userId: bot.id,
       },
     });
-
     postsCreated++;
   }
 
-  // Occasionally have bots like recent real user posts
+  // Bots like recent real user posts (40% chance)
   if (Math.random() > 0.6) {
     const recentPosts = await db.event.findMany({
       where: {
@@ -213,5 +180,6 @@ export async function GET(req: Request) {
     success: true,
     postsCreated,
     botsTotal: bots.length,
+    headlinesFetched: headlines.length,
   });
 }
