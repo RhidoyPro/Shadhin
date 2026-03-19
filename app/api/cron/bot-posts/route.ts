@@ -125,14 +125,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const force = new URL(req.url).searchParams.get("force") === "true";
+
   if (process.env.BOTS_ENABLED !== "true") {
     return NextResponse.json({ skipped: true, reason: "BOTS_ENABLED is not true" });
   }
 
-  // Only post between 8am–9pm BD time (UTC+6)
-  const bdHour = new Date(Date.now() + 6 * 60 * 60 * 1000).getUTCHours();
-  if (bdHour < 8 || bdHour > 21) {
-    return NextResponse.json({ skipped: true, reason: "Outside BD posting hours" });
+  // Only post between 8am–9pm BD time (UTC+6), unless forced
+  if (!force) {
+    const bdHour = new Date(Date.now() + 6 * 60 * 60 * 1000).getUTCHours();
+    if (bdHour < 8 || bdHour > 21) {
+      return NextResponse.json({ skipped: true, reason: "Outside BD posting hours" });
+    }
   }
 
   // Fetch news and bots in parallel
@@ -166,8 +170,8 @@ export async function GET(req: Request) {
   let postsCreated = 0;
 
   for (const bot of bots) {
-    if (alreadyPosted.has(bot.id)) continue;
-    if (Math.random() > 0.5) continue; // ~50% chance per run
+    if (!force && alreadyPosted.has(bot.id)) continue;
+    if (!force && Math.random() > 0.5) continue; // ~50% chance per run
 
     const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
     if (!headline) continue;
