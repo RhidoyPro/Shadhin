@@ -76,8 +76,8 @@ async function fetchHeadlines(): Promise<string[]> {
 
     for (const m of cdata.concat(plain).slice(1)) {
       const title = m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
-      // Skip empty, very short, or URL-like titles
-      if (title.length > 20 && !title.startsWith("http")) {
+      // Skip empty, very short, URL-like, or raw CDATA titles (already captured by cdata regex)
+      if (title.length > 20 && !title.startsWith("http") && !title.startsWith("<![CDATA[")) {
         headlines.push(title);
       }
     }

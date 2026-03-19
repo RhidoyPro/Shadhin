@@ -21,7 +21,7 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/bot-posts?force=true",
+      "path": "/api/cron/bot-posts",
       "schedule": "0 9 * * *"
     }
   ]
