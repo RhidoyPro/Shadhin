@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, ImageOff, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, ImageOff, MoreHorizontal, Pencil, Share2, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
-    user: { select: { id: true; name: true; image: true; email: true; role: true } };
+    user: { select: { id: true; name: true; image: true; email: true; role: true; isVerifiedOrg: true } };
     likes: {
       select: {
         id: true;
@@ -106,6 +106,24 @@ const EventCard = ({
   const isEvent = event.eventType === EventType.EVENT;
   const isOwner = user?.id === event.user.id;
 
+  const handleShare = async () => {
+    const url = `${window.location.origin}/events/details/${event.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${event.user.name} on Shadhin.io`,
+          text: displayContent.slice(0, 100),
+          url,
+        });
+      } catch {
+        // User cancelled share — no-op
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
   return (
     <article className="group relative bg-card transition-colors hover:bg-muted/30">
       <div className="flex gap-3 p-4 sm:gap-3.5">
@@ -130,7 +148,7 @@ const EventCard = ({
               >
                 {event.user.name}
               </Link>
-              <VerifiedBadge userRole={event.user.role as UserRole} />
+              <VerifiedBadge userRole={event.user.role as UserRole} isVerifiedOrg={event.user.isVerifiedOrg} />
               <span className="text-muted-foreground text-sm">·</span>
               <time className="text-sm text-muted-foreground" suppressHydrationWarning>
                 {formatDistanceToNow(event.createdAt, { addSuffix: true })}
@@ -138,6 +156,11 @@ const EventCard = ({
               {isEvent && (
                 <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   Event
+                </span>
+              )}
+              {event.isPromoted && (
+                <span className="ml-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                  Promoted
                 </span>
               )}
             </div>
@@ -161,6 +184,10 @@ const EventCard = ({
                       <Eye className="h-4 w-4" />
                       View {isEvent ? "Event" : "Post"}
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleShare}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
                   </DropdownMenuItem>
                   {isOwner && (
                     <>

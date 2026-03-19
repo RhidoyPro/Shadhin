@@ -15,6 +15,7 @@ export const FEED_CONFIG = {
   timeDecayExponent: 1.5,
   sameDistrictMultiplier: 2,
   followingMultiplier: 1.5,
+  promotedBoost: 10,
   // How many raw events to fetch before ranking (fetch more, rank, then page)
   fetchMultiplier: 3,
 } as const;
@@ -28,6 +29,8 @@ export interface RankableEvent {
   likes: { id: string }[];
   comments: { id: string }[];
   attendees: { id: string }[];
+  isPromoted?: boolean;
+  promotedUntil?: Date | null;
 }
 
 export interface ViewerContext {
@@ -44,7 +47,7 @@ function scoreEvent(event: RankableEvent, ctx: ViewerContext): number {
     0.1 // Prevent division by zero for very new posts
   );
 
-  const { likeWeight, commentWeight, attendeeWeight, timeDecayExponent, sameDistrictMultiplier, followingMultiplier } = FEED_CONFIG;
+  const { likeWeight, commentWeight, attendeeWeight, timeDecayExponent, sameDistrictMultiplier, followingMultiplier, promotedBoost } = FEED_CONFIG;
 
   // Engagement: (likes × 1) + (comments × 2) + (attendees × 3)
   const engagement =
@@ -64,6 +67,14 @@ function scoreEvent(event: RankableEvent, ctx: ViewerContext): number {
   // Following bonus: × 1.5
   if (ctx.followingUserIds.has(event.userId)) {
     score *= followingMultiplier;
+  }
+
+  // Promoted boost: add large flat bonus so promoted posts appear at/near top
+  const isActivelyPromoted =
+    event.isPromoted &&
+    (!event.promotedUntil || event.promotedUntil > new Date());
+  if (isActivelyPromoted) {
+    score += promotedBoost * 1000;
   }
 
   return score;

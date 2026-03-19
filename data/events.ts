@@ -22,7 +22,7 @@ export const getEventsByStatePaginated = async (
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: {
           select: {
             id: true,
@@ -64,7 +64,7 @@ export const getEventsByState = async (stateName: string) => {
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: {
           select: {
             id: true,
@@ -98,7 +98,7 @@ export const getEventById = async (eventId: string) => {
         id: eventId,
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: {
           select: {
             id: true,
@@ -143,7 +143,7 @@ export const getUserEvents = async (
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: {
           select: {
             id: true,
@@ -193,7 +193,7 @@ export const getEventsUserIsAttending = async (
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: { select: { id: true } },
         attendees: {
           where: { status: EventStatus.GOING },
@@ -241,7 +241,7 @@ export const getRankedEventsByState = async (
         where: { stateName },
         orderBy: { createdAt: "desc" },
         include: {
-          user: { select: { id: true, name: true, image: true, email: true, role: true } },
+          user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
           likes: { select: { id: true, userId: true } },
           attendees: {
             where: { status: EventStatus.GOING },
@@ -295,7 +295,7 @@ export const getAllEvents = async () => {
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, email: true, role: true } },
+        user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
         likes: {
           select: {
             id: true,

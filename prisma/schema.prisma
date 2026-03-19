@@ -37,12 +37,14 @@ model User {
   reports       Report[]
   bookmarks     Bookmark[]
   pushSubscriptions PushSubscription[]
+  auditLogs     AuditLog[]      @relation("AdminAuditLogs")
 
   strikes       Int             @default(0)
   isSuspended   Boolean         @default(false)
   suspendedUntil DateTime?
   bio           String?
   isBot         Boolean         @default(false)
+  isVerifiedOrg Boolean         @default(false)
 
   points        Int             @default(0)
   previousPoints Int            @default(0)
@@ -119,12 +121,16 @@ model Event {
   reports   Report[]
   bookmarks Bookmark[]
 
+  isPromoted    Boolean  @default(false)
+  promotedUntil DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([stateName, createdAt])
   @@index([eventType])
+  @@index([isPromoted])
 }
 
 model Comment {
@@ -259,4 +265,19 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  adminId    String   @db.ObjectId
+  admin      User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+  action     String
+  targetId   String?
+  targetType String?
+  details    String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
 }

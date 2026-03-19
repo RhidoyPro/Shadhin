@@ -81,3 +81,18 @@ export const readNotification = async (notificationId: string) => {
 
   return { success: true };
 };
+
+export const markAllNotificationsRead = async () => {
+  const session = await auth();
+
+  if (!session) {
+    return { error: "User not authenticated" };
+  }
+
+  await db.notification.updateMany({
+    where: { userId: session.user.id!, isRead: false },
+    data: { isRead: true },
+  });
+
+  return { success: true };
+};

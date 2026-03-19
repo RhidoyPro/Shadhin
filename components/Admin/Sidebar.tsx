@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   BadgeAlertIcon,
   CalendarCheck2Icon,
+  ClipboardListIcon,
   LayoutDashboardIcon,
   MegaphoneIcon,
   MenuIcon,
@@ -51,6 +52,12 @@ const navItems = [
     label: "Broadcast",
     href: "/admin/broadcast",
     icon: MegaphoneIcon,
+    exact: false,
+  },
+  {
+    label: "Audit Log",
+    href: "/admin/audit-log",
+    icon: ClipboardListIcon,
     exact: false,
   },
 ];

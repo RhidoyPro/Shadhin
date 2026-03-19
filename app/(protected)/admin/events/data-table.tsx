@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Star } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -59,6 +59,7 @@ import {
 } from "@/actions/user";
 import { toast } from "sonner";
 import { deleteEvent } from "@/actions/event";
+import { togglePromotedPost } from "@/actions/moderation";
 
 export type EventWithData = Prisma.EventGetPayload<{
   include: {
@@ -195,6 +196,19 @@ export const columns: ColumnDef<EventWithData>[] = [
     ),
   },
   {
+    accessorKey: "isPromoted",
+    header: "Promoted",
+    cell: ({ row }) => (
+      row.original.isPromoted ? (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+          <Star className="h-3 w-3" /> Yes
+        </span>
+      ) : (
+        <span className="text-muted-foreground text-xs">—</span>
+      )
+    ),
+  },
+  {
     accessorKey: "stateName",
     header: "State",
     cell: ({ row }) => (
@@ -249,6 +263,17 @@ export const columns: ColumnDef<EventWithData>[] = [
                 onClick={() => window.open(`/user/${event.userId}`)}
               >
                 View Event Creator Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={async () => {
+                  const res = await togglePromotedPost(event.id);
+                  if (res.error) toast.error(res.error);
+                  else toast.success(res.isPromoted ? "Post promoted" : "Promotion removed");
+                }}
+              >
+                <Star className="mr-2 h-4 w-4 text-amber-500" />
+                {event.isPromoted ? "Remove Promotion" : "Promote Post"}
               </DropdownMenuItem>
               <DialogTrigger asChild>
                 <p className="text-sm p-2 text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer">

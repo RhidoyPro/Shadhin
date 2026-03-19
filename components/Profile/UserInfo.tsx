@@ -56,7 +56,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
 
           <div className="flex items-center gap-1.5 mt-3">
             <h1 className="text-xl font-bold text-foreground">{user.name}</h1>
-            <VerifiedBadge userRole={user.role} />
+            <VerifiedBadge userRole={user.role} isVerifiedOrg={user.isVerifiedOrg} />
           </div>
 
           <p className="text-sm text-muted-foreground mt-0.5">{user.email}</p>

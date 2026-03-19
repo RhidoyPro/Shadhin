@@ -18,6 +18,7 @@ import {
   ArrowRightIcon,
   MailXIcon,
   ActivityIcon,
+  ClipboardListIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -192,6 +193,12 @@ const DashboardPage = async () => {
       href: "/admin/broadcast",
       description: "Send announcements to all users",
       icon: MegaphoneIcon,
+    },
+    {
+      label: "Audit Log",
+      href: "/admin/audit-log",
+      description: "Track all admin actions",
+      icon: ClipboardListIcon,
     },
   ];
 

@@ -181,7 +181,8 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  {session.user.role === UserRole.ADMIN && (
+                  {(session.user.role === UserRole.ADMIN ||
+                    session.user.role === UserRole.SUPER_USER) && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
                     </DropdownMenuItem>

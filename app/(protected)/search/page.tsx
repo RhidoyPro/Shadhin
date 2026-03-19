@@ -77,7 +77,7 @@ const SearchPage = async ({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 font-medium text-sm text-foreground">
                         <span className="truncate">{user.name}</span>
-                        <VerifiedBadge userRole={user.role as UserRole} />
+                        <VerifiedBadge userRole={user.role as UserRole} isVerifiedOrg={user.isVerifiedOrg} />
                       </div>
                       {(user.stateName || user.university) && (
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -136,7 +136,7 @@ const SearchPage = async ({
                         <span className="font-medium text-foreground">
                           {event.user.name}
                         </span>
-                        <VerifiedBadge userRole={event.user.role as UserRole} />
+                        <VerifiedBadge userRole={event.user.role as UserRole} isVerifiedOrg={event.user.isVerifiedOrg} />
                       </div>
                     </div>
 

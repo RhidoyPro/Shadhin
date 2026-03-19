@@ -14,10 +14,34 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const event = await fetchEventById(params.eventId);
   if (!event) return { title: "Post Not Found" };
-  const snippet = event.content.slice(0, 120) + (event.content.length > 120 ? "..." : "");
+
+  const snippet =
+    event.content.slice(0, 155) + (event.content.length > 155 ? "..." : "");
+  const title = `${event.user.name} on Shadhin.io`;
+  const baseUrl = process.env.FRONTEND_URL || "https://shadhin.io";
+  const postUrl = `${baseUrl}/events/details/${event.id}`;
+  const ogImage =
+    event.type === "image" && event.mediaUrl
+      ? event.mediaUrl
+      : `${baseUrl}/og-default.png`;
+
   return {
-    title: `${event.user.name}'s Post`,
+    title,
     description: snippet,
+    openGraph: {
+      title,
+      description: snippet,
+      url: postUrl,
+      type: "article",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      siteName: "Shadhin.io",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: snippet,
+      images: [ogImage],
+    },
   };
 }
 

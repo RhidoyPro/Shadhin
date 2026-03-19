@@ -58,6 +58,7 @@ export const getTopUsers = unstable_cache(
         points: true,
         previousPoints: true,
         role: true,
+        isVerifiedOrg: true,
       },
       orderBy: {
         points: "desc",
@@ -85,6 +86,7 @@ export const getAllUsersWithPointsPaginated = unstable_cache(
         image: true,
         points: true,
         role: true,
+        isVerifiedOrg: true,
       },
       orderBy: {
         points: "desc",
@@ -125,6 +127,7 @@ export const searchUsersAndEvents = async (query: string) => {
         stateName: true,
         university: true,
         role: true,
+        isVerifiedOrg: true,
       },
       take: 10,
     }),
@@ -135,7 +138,7 @@ export const searchUsersAndEvents = async (query: string) => {
       orderBy: { createdAt: "desc" },
       include: {
         user: {
-          select: { id: true, name: true, image: true, role: true },
+          select: { id: true, name: true, image: true, role: true, isVerifiedOrg: true },
         },
       },
       take: 10,

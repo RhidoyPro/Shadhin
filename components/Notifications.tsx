@@ -9,11 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { Bell, BellDot } from "lucide-react";
+import { Bell, BellDot, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Prisma } from "@prisma/client";
-import { readNotification } from "@/actions/notification";
+import { readNotification, markAllNotificationsRead } from "@/actions/notification";
 
 interface INotificationItem {
   id: string;
@@ -38,30 +38,37 @@ const NotificationItem = ({
   };
 
   return (
-    <>
-      <DropdownMenuItem asChild>
+    <DropdownMenuItem asChild>
+      <div
+        className={`flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
+          !isRead ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/60"
+        }`}
+        onClick={handleReadNotification}
+      >
         <div
-          className="flex text-left gap-2 cursor-pointer"
-          onClick={handleReadNotification}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+            !isRead
+              ? "bg-primary/10 text-primary"
+              : "bg-muted text-muted-foreground"
+          }`}
         >
-          {!isRead && (
-            <div className="flex items-center justify-center rounded-full bg-blue-100 h-8 w-8">
-              <BellDot className="h-4 w-4 text-blue-500" />
-            </div>
+          {isRead ? (
+            <Bell className="h-3.5 w-3.5" />
+          ) : (
+            <BellDot className="h-3.5 w-3.5" />
           )}
-          {isRead && (
-            <div className="flex items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-700 h-8 w-8">
-              <Bell className="h-4 w-4 text-gray-500 dark:text-gray-300" />
-            </div>
-          )}
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold w-full">{message}</span>
-            <span className="text-xs text-gray-400 w-full">{time}</span>
-          </div>
         </div>
-      </DropdownMenuItem>
-      <DropdownMenuSeparator />
-    </>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm leading-snug ${!isRead ? "font-medium text-foreground" : "text-foreground/80"}`}>
+            {message}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{time}</p>
+        </div>
+        {!isRead && (
+          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+        )}
+      </div>
+    </DropdownMenuItem>
   );
 };
 
@@ -84,13 +91,9 @@ const POLL_INTERVAL = 10000; // 10 seconds
 
 const Notifications = ({ userNotifications }: INotifications) => {
   const [notifications, setNotifications] = useState<NotificationData[]>(userNotifications);
-  const [numberOfUnreadNotifications, setNumberOfUnreadNotifications] = useState(0);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
-  // Count unread whenever notifications change
-  useEffect(() => {
-    const unread = notifications.filter((n) => !n.isRead);
-    setNumberOfUnreadNotifications(unread.length);
-  }, [notifications]);
+  const numberOfUnreadNotifications = notifications.filter((n) => !n.isRead).length;
 
   // Poll for new notifications
   const pollNotifications = useCallback(async () => {
@@ -109,33 +112,58 @@ const Notifications = ({ userNotifications }: INotifications) => {
     return () => clearInterval(interval);
   }, [pollNotifications]);
 
+  const handleMarkAllRead = async () => {
+    if (isMarkingAll || numberOfUnreadNotifications === 0) return;
+    setIsMarkingAll(true);
+    // Optimistic update
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    await markAllNotificationsRead();
+    setIsMarkingAll(false);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <Bell className="h-[1.3rem] w-[1.3rem]" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 rounded-full hover:bg-muted"
+        >
+          <Bell className="h-4 w-4 text-muted-foreground" />
           <span className="sr-only">Notifications</span>
           {numberOfUnreadNotifications > 0 && (
-            <div className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-xs">
-              {numberOfUnreadNotifications}
-            </div>
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+              {numberOfUnreadNotifications > 9 ? "9+" : numberOfUnreadNotifications}
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-72 max-h-96 overflow-y-auto custom-scrollbar"
+        className="w-80 max-h-[420px] overflow-y-auto"
         align="end"
       >
-        <DropdownMenuLabel>
-          Notifications
+        <div className="flex items-center justify-between px-3 py-2">
+          <DropdownMenuLabel className="p-0 text-sm font-semibold">
+            Notifications
+            {numberOfUnreadNotifications > 0 && (
+              <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                {numberOfUnreadNotifications}
+              </span>
+            )}
+          </DropdownMenuLabel>
           {numberOfUnreadNotifications > 0 && (
-            <span className="text-xs text-blue-500 ml-1">
-              ({numberOfUnreadNotifications})
-            </span>
+            <button
+              onClick={handleMarkAllRead}
+              disabled={isMarkingAll}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              Mark all read
+            </button>
           )}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {notifications?.length > 0 &&
+        </div>
+        <DropdownMenuSeparator className="mb-0" />
+        {notifications.length > 0 ? (
           notifications.map((notification) => (
             <NotificationItem
               key={notification.id}
@@ -147,11 +175,12 @@ const Notifications = ({ userNotifications }: INotifications) => {
               isRead={notification.isRead}
               eventId={notification.eventId}
             />
-          ))}
-        {notifications?.length === 0 && (
-          <DropdownMenuItem asChild>
-            <span className="text-sm text-gray-400">No new notifications</span>
-          </DropdownMenuItem>
+          ))
+        ) : (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <Bell className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">No notifications yet</p>
+          </div>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
