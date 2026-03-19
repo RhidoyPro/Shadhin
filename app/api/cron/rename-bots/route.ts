@@ -84,20 +84,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let updated = 0;
-  let notFound = 0;
+  const results = await Promise.all(
+    Object.entries(BOT_RENAMES).map(([email, { name, bio }]) =>
+      db.user.updateMany({ where: { email }, data: { name, bio } })
+    )
+  );
 
-  for (const [email, { name, bio }] of Object.entries(BOT_RENAMES)) {
-    const result = await db.user.updateMany({
-      where: { email },
-      data: { name, bio },
-    });
-    if (result.count > 0) {
-      updated++;
-    } else {
-      notFound++;
-    }
-  }
+  const updated = results.filter((r) => r.count > 0).length;
+  const notFound = results.filter((r) => r.count === 0).length;
 
   return NextResponse.json({
     success: true,
