@@ -238,7 +238,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
       {!hasMore && events.length > 0 && (
         <div className="flex items-center justify-center gap-2 py-8 border-t border-border/50">
           <CheckCircle2 size={16} className="text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">You're all caught up</p>
+          <p className="text-sm text-muted-foreground">You&apos;re all caught up</p>
         </div>
       )}
     </section>
