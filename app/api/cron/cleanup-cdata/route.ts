@@ -11,13 +11,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const bad = await db.event.findMany({
-    where: {
-      content: { contains: "<![CDATA[" },
-      user: { isBot: true },
-    },
+  // MongoDB doesn't support Prisma `contains` with special regex chars like <![
+  // so fetch all bot events and filter in JS
+  const allBotEvents = await db.event.findMany({
+    where: { user: { isBot: true } },
     select: { id: true, content: true },
   });
+  const bad = allBotEvents.filter((e) => e.content.includes("<![CDATA["));
 
   if (bad.length === 0) {
     return NextResponse.json({ deleted: 0, message: "No CDATA posts found" });
