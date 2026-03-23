@@ -32,6 +32,7 @@ import { toggleBookmark } from "@/actions/bookmark";
 import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { analytics } from "@/utils/analytics";
 
 type EventActionsCtnProps = {
   eventId: string;
@@ -73,6 +74,11 @@ const EventActionsCtn = ({
       setIsBookmarked((prev) => !prev);
       toast.error(res.error);
       return;
+    }
+    if (res.bookmarked) {
+      analytics.postBookmarked(eventId);
+    } else {
+      analytics.postUnbookmarked(eventId);
     }
     toast.success(res.bookmarked ? "Saved" : "Removed from saved");
   };
@@ -128,7 +134,10 @@ const EventActionsCtn = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={eventLikeHandler}
+                  onClick={() => {
+                    isLiked ? analytics.postUnliked(eventId) : analytics.postLiked(eventId);
+                    eventLikeHandler();
+                  }}
                   className={cn(
                     "h-9 gap-1.5 rounded-full px-3 transition-colors",
                     isLiked
@@ -212,7 +221,7 @@ const EventActionsCtn = ({
                   <Button
                     variant={isAttending ? "default" : "outline"}
                     size="sm"
-                    onClick={eventAttendHandler}
+                    onClick={() => { analytics.eventAttending(eventId); eventAttendHandler(); }}
                     className={cn(
                       "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
                       isAttending
@@ -234,7 +243,7 @@ const EventActionsCtn = ({
                   <Button
                     variant={isNotAttending ? "default" : "outline"}
                     size="sm"
-                    onClick={eventNotAttendHandler}
+                    onClick={() => { analytics.eventNotAttending(eventId); eventNotAttendHandler(); }}
                     className={cn(
                       "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
                       isNotAttending

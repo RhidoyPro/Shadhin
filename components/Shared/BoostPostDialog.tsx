@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { requestPromotion } from "@/actions/promotion";
 import { cn } from "@/lib/utils";
+import { analytics } from "@/utils/analytics";
 
 const TIERS = [
   { days: 3, label: "3 Days", price: 50 },
@@ -39,6 +40,11 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
 
   const selectedTier = TIERS.find((t) => t.days === selectedDays)!;
 
+  // Track when user opens the boost dialog
+  useEffect(() => {
+    if (open) analytics.boostInitiated(eventId);
+  }, [open, eventId]);
+
   const handleSubmit = () => {
     if (!bkashRef.trim() || bkashRef.trim().length < 6) {
       toast.error("Please enter a valid bKash transaction reference (min 6 chars).");
@@ -49,6 +55,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
       if (res.error) {
         toast.error(res.error);
       } else {
+        analytics.boostSubmitted(eventId, selectedDays, selectedTier.price);
         setSubmitted(true);
       }
     });

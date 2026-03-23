@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell, X } from "lucide-react";
+import { analytics } from "@/utils/analytics";
 
 const PushPermissionPrompt = () => {
   const [show, setShow] = useState(false);
@@ -37,7 +38,10 @@ const PushPermissionPrompt = () => {
     }
 
     // Delay showing by 10 seconds for better UX
-    const timer = setTimeout(() => setShow(true), 10000);
+    const timer = setTimeout(() => {
+      setShow(true);
+      analytics.pushPromptShown();
+    }, 10000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -71,12 +75,14 @@ const PushPermissionPrompt = () => {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       await registerAndSubscribe();
+      analytics.pushOptedIn();
     }
     setShow(false);
     setSubscribing(false);
   };
 
   const handleDismiss = () => {
+    analytics.pushDismissed();
     localStorage.setItem("push-prompt-dismissed", Date.now().toString());
     setShow(false);
   };

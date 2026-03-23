@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { buyTicket } from "@/actions/ticket";
+import { analytics } from "@/utils/analytics";
 
 const BKASH_NUMBER =
   process.env.NEXT_PUBLIC_BKASH_NUMBER || "01700000000";
@@ -33,16 +34,23 @@ const BuyTicketDialog = ({ eventId, ticketPrice, eventTitle, open, onClose }: Pr
   const fee = Math.round(ticketPrice * 0.05 * 100) / 100;
   const total = Math.round((ticketPrice + fee) * 100) / 100;
 
+  // Track when user opens the ticket dialog
+  useEffect(() => {
+    if (open) analytics.ticketViewed(eventId, total);
+  }, [open, eventId, total]);
+
   const handleSubmit = () => {
     if (!bkashRef.trim() || bkashRef.trim().length < 6) {
       toast.error("Please enter a valid bKash transaction reference (min 6 chars).");
       return;
     }
+    analytics.ticketPurchaseInitiated(eventId, total);
     startTransition(async () => {
       const res = await buyTicket(eventId, bkashRef);
       if (res.error) {
         toast.error(res.error);
       } else {
+        analytics.ticketPurchaseSubmitted(eventId, total);
         setSubmitted(true);
       }
     });

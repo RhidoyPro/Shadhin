@@ -5,9 +5,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
-
 import NextTopLoader from "nextjs-toploader";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
+import MetaPixel from "@/components/MetaPixel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -68,8 +71,14 @@ export default async function RootLayout({
             {children}
             <Toaster richColors />
           </ThemeProvider>
+
+          {/* ── Analytics ── */}
+          <GoogleAnalytics />
+          <MicrosoftClarity />
+          <MetaPixel />
+          <Analytics />
+          <SpeedInsights />
         </body>
-        <GoogleAnalytics />
       </html>
     </SessionProvider>
   );

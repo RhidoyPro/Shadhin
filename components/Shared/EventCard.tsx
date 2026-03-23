@@ -26,9 +26,10 @@ import { Button } from "@/components/ui/button";
 import EventActionsCtn from "./EventActionsCtn";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import VerifiedBadge from "./VerifiedBadge";
-import { Eye, ImageOff, Megaphone, MoreHorizontal, Pencil, Share2, Ticket, Trash2 } from "lucide-react";
+import { Eye, ImageOff, Link2, Megaphone, MessageCircle, MoreHorizontal, Pencil, Share2, Ticket, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import FormattedContent from "./FormattedContent";
+import { analytics } from "@/utils/analytics";
 import { cn } from "@/lib/utils";
 import { editEvent } from "@/actions/event";
 import { toast } from "sonner";
@@ -110,20 +111,45 @@ const EventCard = ({
   const isEvent = event.eventType === EventType.EVENT;
   const isOwner = user?.id === event.user.id;
 
-  const handleShare = async () => {
+  const handleShare = async (method?: "whatsapp" | "facebook") => {
     const url = `${window.location.origin}/events/details/${event.id}`;
+    const text = displayContent.slice(0, 100);
+
+    if (method === "whatsapp") {
+      analytics.postShared(event.id, "whatsapp");
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(text + "\n\n" + url)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      return;
+    }
+
+    if (method === "facebook") {
+      analytics.postShared(event.id, "facebook");
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      return;
+    }
+
+    // Default: native share on mobile, copy link on desktop
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${event.user.name} on Shadhin.io`,
-          text: displayContent.slice(0, 100),
+          text,
           url,
         });
+        analytics.postShared(event.id, "native");
       } catch {
-        // User cancelled share — no-op
+        // User cancelled — no-op
       }
     } else {
       await navigator.clipboard.writeText(url);
+      analytics.postShared(event.id, "copy_link");
       toast.success("Link copied to clipboard");
     }
   };
@@ -194,9 +220,17 @@ const EventCard = ({
                       View {isEvent ? "Event" : "Post"}
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={handleShare}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare("whatsapp")}>
+                    <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
+                    Share on WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare("facebook")}>
+                    <Share2 className="mr-2 h-4 w-4 text-blue-500" />
+                    Share on Facebook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare()}>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    Copy Link
                   </DropdownMenuItem>
                   {isOwner && (
                     <>

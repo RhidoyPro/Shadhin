@@ -33,7 +33,7 @@ import { SignupSchema } from "@/utils/zodSchema";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
 import BangladeshStates from "@/data/bangladesh-states";
-import { addAnalyticEvent } from "@/utils/addAnalyticsEvent";
+import { analytics } from "@/utils/analytics";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -63,12 +63,7 @@ export default function SignupPage() {
   }, [state]);
 
   const handleSubmit = (formData: FormData) => {
-    addAnalyticEvent({
-      action: "signup",
-      category: "auth",
-      label: "User signup",
-      value: formData.get("email") as string,
-    });
+    analytics.signup((formData.get("state") as string) || "unknown");
     const data = {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
