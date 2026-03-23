@@ -6,5 +6,6 @@ declare module "next-auth/jwt" {
     role: UserRole;
     userId: string;
     isSuspended: boolean;
+    isVerifiedOrg: boolean;
   }
 }

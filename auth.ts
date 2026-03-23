@@ -13,6 +13,7 @@ declare module "next-auth" {
     user: {
       role: UserRole;
       isSuspended: boolean;
+      isVerifiedOrg: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -91,6 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       session.user.isSuspended = token.isSuspended ?? false;
+      session.user.isVerifiedOrg = token.isVerifiedOrg ?? false;
 
       return session;
     },
@@ -104,6 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.role = existingUser.role;
       token.userId = existingUser.id;
       token.isSuspended = existingUser.isSuspended;
+      token.isVerifiedOrg = existingUser.isVerifiedOrg;
       if (trigger === "update") {
         return {
           ...token,
