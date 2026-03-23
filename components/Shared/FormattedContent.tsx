@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 const FormattedContent = ({ content }: { content: string }) => {
   return (

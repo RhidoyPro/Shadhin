@@ -8,16 +8,38 @@ import { auth } from "@/auth";
 import NextTopLoader from "nextjs-toploader";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
-import MicrosoftClarity from "@/components/MicrosoftClarity";
-import MetaPixel from "@/components/MetaPixel";
-import PWAInstallTracker from "@/components/PWAInstallTracker";
-import UTMCapture from "@/components/UTMCapture";
-import ErrorTracker from "@/components/ErrorTracker";
-import EngagementTracker from "@/components/EngagementTracker";
-import WebVitalsTracker from "@/components/WebVitalsTracker";
+import dynamic from "next/dynamic";
 
-const inter = Inter({ subsets: ["latin"] });
+const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), {
+  ssr: false,
+});
+const MicrosoftClarity = dynamic(
+  () => import("@/components/MicrosoftClarity"),
+  { ssr: false }
+);
+const MetaPixel = dynamic(() => import("@/components/MetaPixel"), {
+  ssr: false,
+});
+const PWAInstallTracker = dynamic(
+  () => import("@/components/PWAInstallTracker"),
+  { ssr: false }
+);
+const UTMCapture = dynamic(() => import("@/components/UTMCapture"), {
+  ssr: false,
+});
+const ErrorTracker = dynamic(() => import("@/components/ErrorTracker"), {
+  ssr: false,
+});
+const EngagementTracker = dynamic(
+  () => import("@/components/EngagementTracker"),
+  { ssr: false }
+);
+const WebVitalsTracker = dynamic(
+  () => import("@/components/WebVitalsTracker"),
+  { ssr: false }
+);
+
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -64,12 +86,15 @@ export default async function RootLayout({
         <head>
           <link rel="apple-touch-icon" href="/logo.png" />
           <meta name="mobile-web-app-capable" content="yes" />
-          <link rel="preconnect" href="https://www.googletagmanager.com" />
-          <link rel="preconnect" href="https://www.google-analytics.com" />
+          {/* R2 CDN — preconnect since images load early */}
           <link
             rel="preconnect"
             href="https://pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev"
+            crossOrigin="anonymous"
           />
+          {/* Analytics origins — dns-prefetch only (scripts load afterInteractive, not during initial render) */}
+          <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+          <link rel="dns-prefetch" href="https://www.google-analytics.com" />
           <link rel="dns-prefetch" href="https://www.clarity.ms" />
           <link rel="dns-prefetch" href="https://connect.facebook.net" />
         </head>

@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import ChatSection from "@/components/Events/ChatSection";
+import DesktopChatSection from "@/components/Events/DesktopChatSection";
 import FeedSection from "@/components/Events/FeedSection";
 import LeaderBoard from "@/components/Events/LeaderBoard";
 import StatesSection from "@/components/Events/StatesSection";
@@ -36,8 +36,10 @@ const StateEventsPage = async ({
 }: {
   params: { stateName: string };
 }) => {
-  const eventMessages = await fetchMessages(params.stateName);
-  const events = await fetchEvents(params.stateName);
+  const [eventMessages, events] = await Promise.all([
+    fetchMessages(params.stateName),
+    fetchEvents(params.stateName),
+  ]);
   return (
     <>
       <StatesSection activeState={params.stateName} />
@@ -53,9 +55,9 @@ const StateEventsPage = async ({
             <FeedSection activeState={params.stateName} initialEvents={events} />
           </main>
 
-          {/* Right — Live Chat */}
+          {/* Right — Live Chat (lazy-loaded, desktop only) */}
           <aside className="lg:col-span-3">
-            <ChatSection
+            <DesktopChatSection
               activeState={params.stateName}
               savedMessages={eventMessages || []}
             />

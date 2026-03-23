@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Popover,
   PopoverContent,
@@ -24,11 +23,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import Logo from "@/components/Shared/Logo";
-import { login, signup } from "@/actions/auth";
+import { signup } from "@/actions/auth";
 import { useFormStatus } from "react-dom";
 import ClipLoader from "react-spinners/ClipLoader";
 import { useFormState } from "react-dom";
-import { isValidPhoneNumber } from "react-phone-number-input";
 import { SignupSchema } from "@/utils/zodSchema";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";

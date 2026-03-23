@@ -1,20 +1,16 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Logo from "@/components/Shared/Logo";
-import { login, loginWithCreds } from "@/actions/auth";
+import { loginWithCreds } from "@/actions/auth";
 import { useFormState, useFormStatus } from "react-dom";
 import ClipLoader from "react-spinners/ClipLoader";
-import { Switch } from "@/components/ui/switch";
-import { PhoneInput } from "@/components/ui/phone-input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { isValidPhoneNumber } from "react-phone-number-input";
-import { LoginSchemaWithEmail, LoginSchemaWithPhone } from "@/utils/zodSchema";
+import { LoginSchemaWithEmail } from "@/utils/zodSchema";
 import { analytics } from "@/utils/analytics";
 
 function SubmitButton() {
@@ -30,7 +26,6 @@ function SubmitButton() {
 
 const LoginForm = () => {
   const [state, formAction] = useFormState(loginWithCreds, null);
-  const [isLoginWithPhone, setIsLoginWithPhone] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -54,27 +49,8 @@ const LoginForm = () => {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       phone: formData.get("phone") as string,
-      loginWithPhone: isLoginWithPhone,
+      loginWithPhone: false,
     };
-
-    if (isLoginWithPhone) {
-      if (!isValidPhoneNumber(data.phone)) {
-        toast.error("Please enter a valid phone number");
-        return;
-      }
-
-      const validatedData = LoginSchemaWithPhone.safeParse(data);
-
-      if (!validatedData.success) {
-        const errors = validatedData.error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0][0] || "Invalid input";
-        toast.error(firstError);
-        return;
-      }
-
-      formAction(data);
-      return;
-    }
 
     const validatedData = LoginSchemaWithEmail.safeParse(data);
 
@@ -100,34 +76,18 @@ const LoginForm = () => {
         </p>
       </div>
       <div className="grid gap-4">
-        {!isLoginWithPhone && (
-          <div className="grid gap-2">
-            <Label htmlFor="email" className="text-white">
-              Email
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-            />
-          </div>
-        )}
-        {/* {isLoginWithPhone && (
-          <div className="grid gap-2">
-            <Label htmlFor="phone" className="text-white">
-              Phone Number
-            </Label>
-            <PhoneInput
-              placeholder="Enter number"
-              defaultCountry="BD"
-              international
-              id="phone"
-              name="phone"
-            />
-          </div>
-        )} */}
+        <div className="grid gap-2">
+          <Label htmlFor="email" className="text-white">
+            Email
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="m@example.com"
+            required
+          />
+        </div>
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password" className="text-white">
@@ -148,20 +108,6 @@ const LoginForm = () => {
             required
           />
         </div>
-        {/* <div className="flex items-center gap-2">
-          <Switch
-            checked={isLoginWithPhone}
-            onCheckedChange={setIsLoginWithPhone}
-            id="loginWithPhone"
-            name="loginWithPhone"
-            value={isLoginWithPhone ? "true" : "false"}
-          />
-          <Label htmlFor="loginWithPhone" className="text-white">
-            {isLoginWithPhone
-              ? "Login with Email instead"
-              : "Login with Phone instead"}
-          </Label>
-        </div> */}
         {message && <p className="text-green-500">{message}</p>}
         {error && <p className="text-red-500">{error}</p>}
         <SubmitButton />

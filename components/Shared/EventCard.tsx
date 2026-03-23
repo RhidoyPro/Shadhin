@@ -376,6 +376,7 @@ const EventCard = ({
               <video
                 src={event.mediaUrl}
                 controls
+                preload="none"
                 className="w-full"
                 onError={() => setMediaError(true)}
               />
