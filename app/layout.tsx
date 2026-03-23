@@ -64,6 +64,14 @@ export default async function RootLayout({
         <head>
           <link rel="apple-touch-icon" href="/logo.png" />
           <meta name="mobile-web-app-capable" content="yes" />
+          <link rel="preconnect" href="https://www.googletagmanager.com" />
+          <link rel="preconnect" href="https://www.google-analytics.com" />
+          <link
+            rel="preconnect"
+            href="https://pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev"
+          />
+          <link rel="dns-prefetch" href="https://www.clarity.ms" />
+          <link rel="dns-prefetch" href="https://connect.facebook.net" />
         </head>
         <body className={inter.className}>
           <NextTopLoader color="#16a34a" />
