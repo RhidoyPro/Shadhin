@@ -11,6 +11,11 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
 import MetaPixel from "@/components/MetaPixel";
+import PWAInstallTracker from "@/components/PWAInstallTracker";
+import UTMCapture from "@/components/UTMCapture";
+import ErrorTracker from "@/components/ErrorTracker";
+import EngagementTracker from "@/components/EngagementTracker";
+import WebVitalsTracker from "@/components/WebVitalsTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -76,6 +81,11 @@ export default async function RootLayout({
           <GoogleAnalytics />
           <MicrosoftClarity />
           <MetaPixel />
+          <UTMCapture />
+          <ErrorTracker />
+          <EngagementTracker />
+          <WebVitalsTracker />
+          <PWAInstallTracker />
           <Analytics />
           <SpeedInsights />
         </body>

@@ -18,9 +18,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const state = BangladeshStates.find((s) => s.slug === params.stateName);
   const name = state?.name || params.stateName;
+  const title = `${name} — Events & Community`;
+  const description = `See what's happening in ${name}. Local events, discussions, and community posts on Shadhin.io.`;
   return {
-    title: `${name} — Events & Community`,
-    description: `See what's happening in ${name}. Local events, discussions, and community posts on Shadhin.io.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      siteName: "Shadhin.io",
+    },
   };
 }
 

@@ -52,6 +52,10 @@ export default function SignupPage() {
   const [date, setDate] = useState<Date>();
 
   useEffect(() => {
+    analytics.funnelStep("signup", "page_view");
+  }, []);
+
+  useEffect(() => {
     if (!state) return;
     if (state.error) {
       toast.error(state.error);
@@ -63,6 +67,7 @@ export default function SignupPage() {
   }, [state]);
 
   const handleSubmit = (formData: FormData) => {
+    analytics.funnelStep("signup", "form_submit");
     analytics.signup((formData.get("state") as string) || "unknown");
     const data = {
       email: formData.get("email") as string,

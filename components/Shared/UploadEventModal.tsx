@@ -29,6 +29,7 @@ import BangladeshStates from "@/data/bangladesh-states";
 import { computeSHA256 } from "@/utils/computeHash";
 import VerifiedBadge from "./VerifiedBadge";
 import { analytics } from "@/utils/analytics";
+import { useFirstAction } from "@/hooks/use-first-action";
 
 type UploadEventModalProps = {
   isOpen: boolean;
@@ -42,6 +43,7 @@ const UploadEventModal = ({
   isStatus,
 }: UploadEventModalProps) => {
   const user = useCurrentUser();
+  const markFirstAction = useFirstAction();
 
   const params = useParams<{ stateName: string }>();
 
@@ -99,6 +101,7 @@ const UploadEventModal = ({
 
     try {
       analytics.postCreated(isStatus ? "POST" : "EVENT", stateName);
+      markFirstAction("post");
       if (file) {
         const checkSum = await computeSHA256(file);
         const signedUrlResult = await getSignedURL(

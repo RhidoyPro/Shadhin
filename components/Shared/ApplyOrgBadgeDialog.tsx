@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { requestOrgVerification } from "@/actions/org-verification";
+import { analytics } from "@/utils/analytics";
 
 const BKASH_NUMBER =
   process.env.NEXT_PUBLIC_BKASH_NUMBER || "01700000000";
@@ -40,6 +41,10 @@ type Props = {
 
 const ApplyOrgBadgeDialog = ({ open, onClose }: Props) => {
   const [orgName, setOrgName] = useState("");
+
+  useEffect(() => {
+    if (open) analytics.orgBadgeInitiated();
+  }, [open]);
   const [orgType, setOrgType] = useState("");
   const [bkashRef, setBkashRef] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -63,6 +68,7 @@ const ApplyOrgBadgeDialog = ({ open, onClose }: Props) => {
       if (res.error) {
         toast.error(res.error);
       } else {
+        analytics.orgBadgeSubmitted();
         setSubmitted(true);
       }
     });

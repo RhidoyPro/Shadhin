@@ -45,6 +45,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { analytics } from "@/utils/analytics";
+import { useFirstAction } from "@/hooks/use-first-action";
 
 type EventCommentWithUser = Prisma.CommentGetPayload<{
   include: {
@@ -70,6 +72,7 @@ const EventComments = ({
   eventUserId,
 }: EventCommentsProps) => {
   const user = useCurrentUser();
+  const markFirstAction = useFirstAction();
   const [isPending, startTransition] = useTransition();
 
   const [newComment, setNewComment] = React.useState("");
@@ -127,6 +130,8 @@ const EventComments = ({
             : comment
         )
       );
+      analytics.postCommented(eventId);
+      markFirstAction("comment");
       addNotification(`${user?.name}: Added a new comment`, eventId, eventUserId);
     } catch (err) {
       toast.error("Failed to add comment");
@@ -134,7 +139,7 @@ const EventComments = ({
         prevComments.filter((comment) => comment.id !== optimisticComment.id)
       );
     }
-  }, [newComment, user, eventId, eventUserId]);
+  }, [newComment, user, eventId, eventUserId, markFirstAction]);
 
   const fetchMoreComments = useCallback(async () => {
     if (isLoadingMore || !hasMore) return;

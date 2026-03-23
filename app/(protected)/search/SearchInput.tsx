@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { analytics } from "@/utils/analytics";
 
 export default function SearchInput({ initialQuery }: { initialQuery: string }) {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function SearchInput({ initialQuery }: { initialQuery: string }) 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       router.push(`/search?q=${encodeURIComponent(value)}`);
+      if (value.trim()) analytics.searchPerformed(value.length);
     }, 300);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);

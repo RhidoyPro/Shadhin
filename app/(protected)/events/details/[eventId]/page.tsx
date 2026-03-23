@@ -23,7 +23,7 @@ export async function generateMetadata({
   const ogImage =
     event.type === "image" && event.mediaUrl
       ? event.mediaUrl
-      : `${baseUrl}/og-default.png`;
+      : `${baseUrl}/bangladesh.jpg`;
 
   return {
     title,

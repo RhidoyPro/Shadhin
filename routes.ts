@@ -26,6 +26,12 @@ export const adminRoutes = [
   "/admin/events",
   "/admin/reports",
   "/admin/broadcast",
+  "/admin/audit-log",
+  "/admin/promotions",
+  "/admin/org-verification",
+  "/admin/tickets",
+  "/admin/analytics",
+  "/admin/experiments",
 ];
 
 /**

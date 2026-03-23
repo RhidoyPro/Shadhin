@@ -1,7 +1,14 @@
 import React from "react";
+import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 import { fetchLeaderboard } from "@/actions/user";
 import UsersCtn from "@/components/LeaderBoard/UsersCtn";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description:
+    "See the most active community members on Shadhin.io — ranked by engagement across all districts.",
+};
 
 const LeaderBoardPage = async () => {
   const topUsers = await fetchLeaderboard();

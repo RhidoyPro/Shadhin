@@ -1,5 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
 import LoginForm from "./form";
+
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Log in to Shadhin.io — Bangladesh's district-based social platform.",
+};
 
 const NewLoginPage = () => {
   return (

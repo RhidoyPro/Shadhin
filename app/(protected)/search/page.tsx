@@ -1,5 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
 import { search } from "@/actions/search";
+
+export const metadata: Metadata = {
+  title: "Search",
+  description: "Search for people and communities on Shadhin.io.",
+};
 import Link from "next/link";
 import Image from "next/image";
 import { UserRound, Search, MapPin, GraduationCap, Clock } from "lucide-react";

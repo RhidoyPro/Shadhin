@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { toggleFollow } from "@/actions/follow";
 import { toast } from "sonner";
+import { analytics } from "@/utils/analytics";
 import { UserPlus, UserCheck, UserMinus } from "lucide-react";
 
 type Props = {
@@ -23,7 +24,10 @@ export default function FollowButton({ targetUserId, initialFollowing }: Props) 
         toast.error(result.error);
         return;
       }
-      setFollowing(result.following ?? false);
+      const nowFollowing = result.following ?? false;
+      setFollowing(nowFollowing);
+      if (nowFollowing) analytics.userFollowed(targetUserId);
+      else analytics.userUnfollowed(targetUserId);
     });
   };
 

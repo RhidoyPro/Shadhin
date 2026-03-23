@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { LoginSchemaWithEmail, LoginSchemaWithPhone } from "@/utils/zodSchema";
+import { analytics } from "@/utils/analytics";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -38,6 +39,7 @@ const LoginForm = () => {
     if (state.message) {
       setMessage(state.message);
       toast.success(state.message);
+      analytics.login("email");
     }
     if (state.error) {
       setError(state.error);

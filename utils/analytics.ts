@@ -64,12 +64,23 @@ export function track(eventName: string, params?: TrackParams) {
   }
 }
 
+// ─── UTM / referrer capture ──────────────────────────────────
+function getUTMParams(): TrackParams {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = sessionStorage.getItem("shadhin_utm");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
 // ─── Typed helpers for key events ────────────────────────────
 // These make call sites cleaner and self-documenting.
 
 export const analytics = {
   signup: (district: string) =>
-    track("signup", { district }),
+    track("signup", { district, ...getUTMParams() }),
 
   login: (method: "email" | "google") =>
     track("login", { method }),
@@ -142,4 +153,35 @@ export const analytics = {
 
   pwaInstalled: () =>
     track("pwa_installed"),
+
+  // ── Error tracking ──
+  clientError: (message: string, fatal = false) =>
+    track("client_error", { message: message.slice(0, 150), fatal }),
+
+  apiError: (action: string, error: string) =>
+    track("api_error", { action, error: error.slice(0, 150) }),
+
+  // ── Scroll depth ──
+  scrollDepth: (page: string, depth: number) =>
+    track("scroll_depth", { page, depth }),
+
+  // ── Engagement time ──
+  engagementTime: (seconds: number, page: string) =>
+    track("engagement_time", { seconds, page }),
+
+  // ── Web Vitals ──
+  webVital: (name: string, value: number, connectionType?: string) =>
+    track("web_vital", { metric: name, value: Math.round(value), connection_type: connectionType }),
+
+  // ── Funnel steps ──
+  funnelStep: (funnel: string, step: string) =>
+    track("funnel_step", { funnel, step }),
+
+  // ── Experiment exposure ──
+  experimentExposure: (flagKey: string, variant: "control" | "treatment") =>
+    track("experiment_exposure", { flag_key: flagKey, variant }),
+
+  // ── Time to first action ──
+  timeToFirstAction: (action: string, secondsSinceSignup: number) =>
+    track("time_to_first_action", { action, seconds_since_signup: secondsSinceSignup }),
 } as const;

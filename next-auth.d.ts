@@ -7,5 +7,7 @@ declare module "next-auth/jwt" {
     userId: string;
     isSuspended: boolean;
     isVerifiedOrg: boolean;
+    createdAt?: string;
+    stateName?: string;
   }
 }

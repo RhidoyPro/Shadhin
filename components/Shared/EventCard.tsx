@@ -112,10 +112,11 @@ const EventCard = ({
   const isOwner = user?.id === event.user.id;
 
   const handleShare = async (method?: "whatsapp" | "facebook") => {
-    const url = `${window.location.origin}/events/details/${event.id}`;
+    const baseUrl = `${window.location.origin}/events/details/${event.id}`;
     const text = displayContent.slice(0, 100);
 
     if (method === "whatsapp") {
+      const url = `${baseUrl}?ref=share&method=whatsapp`;
       analytics.postShared(event.id, "whatsapp");
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text + "\n\n" + url)}`,
@@ -126,6 +127,7 @@ const EventCard = ({
     }
 
     if (method === "facebook") {
+      const url = `${baseUrl}?ref=share&method=facebook`;
       analytics.postShared(event.id, "facebook");
       window.open(
         `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
@@ -136,19 +138,20 @@ const EventCard = ({
     }
 
     // Default: native share on mobile, copy link on desktop
+    const shareUrl = `${baseUrl}?ref=share&method=direct`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${event.user.name} on Shadhin.io`,
           text,
-          url,
+          url: shareUrl,
         });
         analytics.postShared(event.id, "native");
       } catch {
         // User cancelled — no-op
       }
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       analytics.postShared(event.id, "copy_link");
       toast.success("Link copied to clipboard");
     }

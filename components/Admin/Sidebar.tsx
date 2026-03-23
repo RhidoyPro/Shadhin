@@ -3,8 +3,10 @@ import React from "react";
 import Link from "next/link";
 import {
   BadgeAlertIcon,
+  BarChart3Icon,
   CalendarCheck2Icon,
   ClipboardListIcon,
+  FlaskConicalIcon,
   LayoutDashboardIcon,
   MegaphoneIcon,
   MenuIcon,
@@ -29,6 +31,12 @@ const navItems = [
     href: "/admin",
     icon: LayoutDashboardIcon,
     exact: true,
+  },
+  {
+    label: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3Icon,
+    exact: false,
   },
   {
     label: "Users",
@@ -58,6 +66,12 @@ const navItems = [
     label: "Audit Log",
     href: "/admin/audit-log",
     icon: ClipboardListIcon,
+    exact: false,
+  },
+  {
+    label: "Experiments",
+    href: "/admin/experiments",
+    icon: FlaskConicalIcon,
     exact: false,
   },
 ];

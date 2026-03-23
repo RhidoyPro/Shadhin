@@ -14,6 +14,7 @@ import BeatLoader from "react-spinners/BeatLoader";
 import { useSearchParams } from "next/navigation";
 import { newVerification } from "@/actions/verification";
 import { toast } from "sonner";
+import { analytics } from "@/utils/analytics";
 
 function VerifyEmailPage() {
   const searchParams = useSearchParams();
@@ -47,6 +48,7 @@ function VerifyEmailPage() {
   useEffect(() => {
     if (message) {
       toast.success(message);
+      analytics.funnelStep("signup", "email_verified");
     }
   }, [message]);
 

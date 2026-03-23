@@ -33,6 +33,7 @@ import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { analytics } from "@/utils/analytics";
+import { useFirstAction } from "@/hooks/use-first-action";
 
 type EventActionsCtnProps = {
   eventId: string;
@@ -63,6 +64,7 @@ const EventActionsCtn = ({
   eventAttendHandler,
   eventNotAttendHandler,
 }: EventActionsCtnProps) => {
+  const markFirstAction = useFirstAction();
   const [reportReason, setReportReason] = React.useState("");
   const [isReportDialogOpen, setIsReportDialogOpen] = React.useState(false);
   const [isBookmarked, setIsBookmarked] = React.useState(initialBookmarked);
@@ -135,7 +137,8 @@ const EventActionsCtn = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    isLiked ? analytics.postUnliked(eventId) : analytics.postLiked(eventId);
+                    if (!isLiked) { analytics.postLiked(eventId); markFirstAction("like"); }
+                    else { analytics.postUnliked(eventId); }
                     eventLikeHandler();
                   }}
                   className={cn(
@@ -221,7 +224,7 @@ const EventActionsCtn = ({
                   <Button
                     variant={isAttending ? "default" : "outline"}
                     size="sm"
-                    onClick={() => { analytics.eventAttending(eventId); eventAttendHandler(); }}
+                    onClick={() => { analytics.eventAttending(eventId); markFirstAction("attend"); eventAttendHandler(); }}
                     className={cn(
                       "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
                       isAttending

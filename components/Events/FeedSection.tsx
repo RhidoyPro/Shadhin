@@ -15,6 +15,7 @@ import { markAsAttending, markAsNotAttending } from "@/actions/event-attend";
 import { addNotification } from "@/actions/notification";
 import { getUserBookmarkIds } from "@/actions/bookmark";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useScrollDepth } from "@/hooks/use-scroll-depth";
 
 // Number of skeleton cards to show while loading next page
 const SKELETON_COUNT = 3;
@@ -26,6 +27,7 @@ type FeedSectionProps = {
 
 const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
   const user = useCurrentUser();
+  useScrollDepth(activeState);
 
   const [events, setEvents] = React.useState<EventWithUser[]>(
     initialEvents || []
