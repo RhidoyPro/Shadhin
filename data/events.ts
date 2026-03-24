@@ -243,10 +243,10 @@ export const getRankedEventsByState = async (
         orderBy: { createdAt: "desc" },
         include: {
           user: { select: { id: true, name: true, image: true, email: true, role: true, isVerifiedOrg: true } },
-          likes: { select: { userId: true } },
+          likes: { select: { id: true, userId: true } },
           attendees: {
             where: { status: EventStatus.GOING },
-            select: { userId: true, status: true },
+            select: { id: true, userId: true, status: true },
           },
           _count: { select: { comments: true } },
         },

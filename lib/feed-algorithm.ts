@@ -26,9 +26,9 @@ export interface RankableEvent {
   userId: string;
   stateName: string;
   createdAt: Date | string;
-  likes: { id?: string }[];
+  likes: { id: string }[];
   comments?: { id: string }[];
-  attendees: { id?: string }[];
+  attendees: { id: string }[];
   _count?: { comments: number };
   isPromoted?: boolean;
   promotedUntil?: Date | null;
