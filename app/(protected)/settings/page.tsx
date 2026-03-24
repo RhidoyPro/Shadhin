@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import ChangePasswordForm from "@/components/Settings/ChangePasswordForm";
 import DeleteAccountSection from "@/components/Settings/DeleteAccountSection";
 import OrgBadgeSection from "@/components/Settings/OrgBadgeSection";
+import CookiePreferencesButton from "@/components/Settings/CookiePreferencesButton";
 
 const SettingsPage = async () => {
   const session = await auth();
@@ -53,6 +54,17 @@ const SettingsPage = async () => {
           <OrgBadgeSection />
         </div>
       )}
+
+      {/* Cookie Preferences */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Cookie Preferences
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Manage which analytics and marketing cookies you allow.
+        </p>
+        <CookiePreferencesButton />
+      </div>
 
       {/* Danger Zone */}
       <div className="rounded-xl border border-destructive/30 bg-card p-6">

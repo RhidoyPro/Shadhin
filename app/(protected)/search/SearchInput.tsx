@@ -15,7 +15,10 @@ export default function SearchInput({ initialQuery }: { initialQuery: string }) 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       router.push(`/search?q=${encodeURIComponent(value)}`);
-      if (value.trim()) analytics.searchPerformed(value.length);
+      if (value.trim()) {
+        analytics.searchPerformed(value.length);
+        analytics.searchQuery(value.trim(), 0);
+      }
     }, 300);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);

@@ -58,9 +58,17 @@ const PrivacyPage = () => {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold">6. Cookies</h2>
-            <p className="text-muted-foreground">
-              We use essential cookies for authentication and session management. We use Google Analytics for usage statistics. You can disable analytics cookies in your browser settings.
+            <h2 className="text-xl font-semibold">6. Cookies &amp; Tracking</h2>
+            <p className="text-muted-foreground mb-3">
+              We categorize cookies and tracking technologies into three groups:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+              <li><strong>Essential:</strong> Authentication, security, and core platform functionality. Always active.</li>
+              <li><strong>Analytics (Google Analytics, Microsoft Clarity, PostHog):</strong> Usage statistics, session recordings, engagement patterns, and product improvement.</li>
+              <li><strong>Marketing (Meta Pixel):</strong> Personalized advertising on Facebook and Instagram.</li>
+            </ul>
+            <p className="text-muted-foreground mt-3">
+              When you first visit Shadhin.io, a consent banner lets you accept all, reject non-essential, or choose specific categories. You can change your preferences anytime from Settings or the consent banner.
             </p>
           </section>
 

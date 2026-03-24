@@ -51,6 +51,17 @@ export default function UserCohortTagger() {
       if (isVerifiedOrg) window.clarity("set", "verified_org", "true");
     }
 
+    // ── PostHog identify ──
+    if (typeof window.__posthog?.identify === "function" && session.user.id) {
+      window.__posthog.identify(session.user.id, {
+        district: stateName,
+        user_role: role,
+        signup_cohort: cohort,
+        account_age: ageBucket,
+        is_verified_org: isVerifiedOrg,
+      });
+    }
+
     // Fire a one-time identify event for GA4
     track("user_identified", {
       signup_cohort: cohort,

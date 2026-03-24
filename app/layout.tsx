@@ -10,34 +10,26 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
 
-const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), {
-  ssr: false,
-});
-const MicrosoftClarity = dynamic(
-  () => import("@/components/MicrosoftClarity"),
-  { ssr: false }
-);
-const MetaPixel = dynamic(() => import("@/components/MetaPixel"), {
-  ssr: false,
-});
-const PWAInstallTracker = dynamic(
-  () => import("@/components/PWAInstallTracker"),
-  { ssr: false }
-);
-const UTMCapture = dynamic(() => import("@/components/UTMCapture"), {
-  ssr: false,
-});
-const ErrorTracker = dynamic(() => import("@/components/ErrorTracker"), {
-  ssr: false,
-});
-const EngagementTracker = dynamic(
-  () => import("@/components/EngagementTracker"),
-  { ssr: false }
-);
-const WebVitalsTracker = dynamic(
-  () => import("@/components/WebVitalsTracker"),
-  { ssr: false }
-);
+// Essential trackers — always load
+const UTMCapture = dynamic(() => import("@/components/UTMCapture"), { ssr: false });
+const ErrorTracker = dynamic(() => import("@/components/ErrorTracker"), { ssr: false });
+const PWAInstallTracker = dynamic(() => import("@/components/PWAInstallTracker"), { ssr: false });
+
+// Analytics category — consent-gated
+const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
+const MicrosoftClarity = dynamic(() => import("@/components/MicrosoftClarity"), { ssr: false });
+const PostHogProvider = dynamic(() => import("@/components/PostHogProvider"), { ssr: false });
+const EngagementTracker = dynamic(() => import("@/components/EngagementTracker"), { ssr: false });
+const WebVitalsTracker = dynamic(() => import("@/components/WebVitalsTracker"), { ssr: false });
+const SessionDepthTracker = dynamic(() => import("@/components/SessionDepthTracker"), { ssr: false });
+const DistrictSwitchTracker = dynamic(() => import("@/components/DistrictSwitchTracker"), { ssr: false });
+
+// Marketing category — consent-gated
+const MetaPixel = dynamic(() => import("@/components/MetaPixel"), { ssr: false });
+
+// Consent UI
+const ConsentGate = dynamic(() => import("@/components/ConsentGate"), { ssr: false });
+const CookieConsent = dynamic(() => import("@/components/CookieConsent"), { ssr: false });
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -97,6 +89,7 @@ export default async function RootLayout({
           <link rel="dns-prefetch" href="https://www.google-analytics.com" />
           <link rel="dns-prefetch" href="https://www.clarity.ms" />
           <link rel="dns-prefetch" href="https://connect.facebook.net" />
+          <link rel="dns-prefetch" href="https://us.i.posthog.com" />
         </head>
         <body className={inter.className}>
           <NextTopLoader color="#16a34a" />
@@ -110,17 +103,31 @@ export default async function RootLayout({
             <Toaster richColors />
           </ThemeProvider>
 
-          {/* ── Analytics ── */}
-          <GoogleAnalytics />
-          <MicrosoftClarity />
-          <MetaPixel />
+          {/* ── Essential (always load) ── */}
           <UTMCapture />
           <ErrorTracker />
-          <EngagementTracker />
-          <WebVitalsTracker />
           <PWAInstallTracker />
           <Analytics />
           <SpeedInsights />
+
+          {/* ── Analytics (consent-gated) ── */}
+          <ConsentGate category="analytics">
+            <GoogleAnalytics />
+            <MicrosoftClarity />
+            <PostHogProvider />
+            <EngagementTracker />
+            <WebVitalsTracker />
+            <SessionDepthTracker />
+            <DistrictSwitchTracker />
+          </ConsentGate>
+
+          {/* ── Marketing (consent-gated) ── */}
+          <ConsentGate category="marketing">
+            <MetaPixel />
+          </ConsentGate>
+
+          {/* ── Cookie consent banner ── */}
+          <CookieConsent />
         </body>
       </html>
     </SessionProvider>

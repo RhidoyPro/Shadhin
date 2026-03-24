@@ -5,6 +5,7 @@
  *   • Google Analytics 4 (GA4)    — always
  *   • Meta/Facebook Pixel          — key conversion events only
  *   • Microsoft Clarity            — custom tags for important events
+ *   • PostHog                      — product analytics & behavioral data
  *
  * Safe to call from any client component. Silently no-ops on the server.
  */
@@ -14,6 +15,8 @@ declare global {
     gtag: (...args: unknown[]) => void;
     fbq: (...args: unknown[]) => void;
     clarity: (command: string, ...args: unknown[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    __posthog?: any;
   }
 }
 
@@ -46,6 +49,11 @@ export function track(eventName: string, params?: TrackParams) {
         window.fbq("track", "SubmitApplication", { content_category: params?.event_type });
         break;
     }
+  }
+
+  // ── PostHog ─────────────────────────────────────────────────
+  if (typeof window.__posthog?.capture === "function") {
+    window.__posthog.capture(eventName, params ?? {});
   }
 
   // ── Microsoft Clarity — tag key moments for session replay ─
@@ -184,4 +192,40 @@ export const analytics = {
   // ── Time to first action ──
   timeToFirstAction: (action: string, secondsSinceSignup: number) =>
     track("time_to_first_action", { action, seconds_since_signup: secondsSinceSignup }),
+
+  // ── Behavioral tracking (data monetization) ──
+
+  contentViewDuration: (eventId: string, durationSeconds: number, scrollPercent: number) =>
+    track("content_view_duration", {
+      event_id: eventId,
+      duration_seconds: Math.round(durationSeconds),
+      scroll_percent: Math.round(scrollPercent),
+    }),
+
+  searchQuery: (query: string, resultCount: number) =>
+    track("search_query", {
+      query: query.slice(0, 100),
+      result_count: resultCount,
+      query_length: query.length,
+    }),
+
+  districtSwitch: (fromDistrict: string, toDistrict: string) =>
+    track("district_switch", {
+      from_district: fromDistrict,
+      to_district: toDistrict,
+    }),
+
+  interestSignal: (category: string, action: "view" | "engage" | "share", strength: number) =>
+    track("interest_signal", {
+      category,
+      action,
+      strength: Math.min(Math.max(strength, 0), 10),
+    }),
+
+  sessionDepth: (pageCount: number, sessionDurationSeconds: number, isReturningUser: boolean) =>
+    track("session_depth", {
+      page_count: pageCount,
+      session_duration_seconds: Math.round(sessionDurationSeconds),
+      is_returning_user: isReturningUser,
+    }),
 } as const;
