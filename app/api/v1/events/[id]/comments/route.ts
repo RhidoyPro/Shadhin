@@ -1,0 +1,57 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/api-auth";
+import { getCommentsByEventId } from "@/data/comments";
+import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import { moderateText } from "@/lib/moderation";
+import { invalidateFeedCache } from "@/lib/cache";
+import { sendPushToUser } from "@/lib/push";
+import { CommentSchema } from "@/utils/zodSchema";
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
+  const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "10")));
+
+  const comments = await getCommentsByEventId(eventId, page, limit);
+
+  return NextResponse.json({ comments, hasMore: comments.length === limit });
+}
+
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  let user;
+  try { user = await requireAuth(req); } catch (e) { return e as Response; }
+
+  const limited = await rateLimit(`api-comment:${user.userId}`, { limit: 20, windowSeconds: 60 });
+  if (limited.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const parsed = CommentSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid comment" }, { status: 400 });
+  }
+
+  const event = await db.event.findUnique({ where: { id: eventId }, select: { userId: true, stateName: true } });
+  if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+
+  const moderation = await moderateText(parsed.data.content);
+  if (moderation.flagged) {
+    return NextResponse.json({ error: "Comment flagged for moderation" }, { status: 400 });
+  }
+
+  const comment = await db.comment.create({
+    data: { content: parsed.data.content, eventId, userId: user.userId },
+    include: { user: { select: { id: true, name: true, image: true, isVerifiedOrg: true } } },
+  });
+
+  await invalidateFeedCache(event.stateName);
+
+  if (event.userId !== user.userId) {
+    sendPushToUser(event.userId, "New Comment", "Someone commented on your post", `/events/details/${eventId}`).catch(() => {});
+  }
+
+  return NextResponse.json({ comment }, { status: 201 });
+}
