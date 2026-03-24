@@ -27,9 +27,8 @@ export interface RankableEvent {
   stateName: string;
   createdAt: Date | string;
   likes: { id: string }[];
-  comments?: { id: string }[];
+  comments: { id: string }[];
   attendees: { id: string }[];
-  _count?: { comments: number };
   isPromoted?: boolean;
   promotedUntil?: Date | null;
 }
@@ -56,15 +55,12 @@ function scoreEvent(event: RankableEvent, ctx: ViewerContext): number {
 
   const { likeWeight, commentWeight, attendeeWeight, timeDecayExponent, sameDistrictMultiplier, followingMultiplier, promotedBoost } = FEED_CONFIG;
 
-  // Use _count.comments when available (optimized pool query), fall back to array length
-  const commentCount = event._count?.comments ?? event.comments?.length ?? 0;
-
   // Engagement: (likes × 1) + (comments × 2) + (attendees × 3)
   // +1 freshness floor so zero-engagement posts still score positively
   // (new post with 0 likes scores ~32 at t=0, falls to ~0.001 after 24h)
   const engagement =
     event.likes.length * likeWeight +
-    commentCount * commentWeight +
+    event.comments.length * commentWeight +
     event.attendees.length * attendeeWeight +
     1;
 

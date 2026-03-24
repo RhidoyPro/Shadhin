@@ -249,7 +249,6 @@ export const getRankedEventsByState = async (
             select: { id: true, userId: true, status: true },
           },
           comments: { select: { id: true } },
-          _count: { select: { comments: true } },
         },
         take: POOL_SIZE,
       });
