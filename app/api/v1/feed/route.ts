@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "10")));
 
-  const events = await getRankedEventsByState(state, user?.userId, page, limit);
+  const events = await getRankedEventsByState(state, user?.userId, page, limit) ?? [];
 
   // Enrich with user interaction state if authenticated
   let enriched = events;

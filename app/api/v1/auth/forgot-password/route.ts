@@ -34,11 +34,12 @@ export async function POST(req: Request) {
   const code = crypto.randomBytes(4).toString("hex");
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-  // Upsert forgot password code
-  await db.forgotPasswordCode.upsert({
+  // Delete any existing codes for this email, then create a new one
+  await db.forgotPasswordCode.deleteMany({
     where: { email: parsed.data.email },
-    update: { code, expires },
-    create: { email: parsed.data.email, code, expires },
+  });
+  await db.forgotPasswordCode.create({
+    data: { email: parsed.data.email, code, expires },
   });
 
   // Send email with code (reuse existing mail function)

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
   const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "10")));
 
-  const comments = await getCommentsByEventId(eventId, page, limit);
+  const comments = await getCommentsByEventId(eventId, page, limit) ?? [];
 
   return NextResponse.json({ comments, hasMore: comments.length === limit });
 }

@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { moderateText } from "@/lib/moderation";
 import { invalidateFeedCache } from "@/lib/cache";
-import { sendEventEmails } from "@/lib/mail";
 import BangladeshStates from "@/data/bangladesh-states";
 
 const VALID_STATE_SLUGS = BangladeshStates.map((s) => s.slug);
@@ -52,11 +51,6 @@ export async function POST(req: Request) {
   });
 
   await invalidateFeedCache(body.stateName);
-
-  // Non-blocking event emails
-  if (body.eventType === "EVENT") {
-    sendEventEmails(event.id, body.stateName).catch(() => {});
-  }
 
   return NextResponse.json({ event }, { status: 201 });
 }
