@@ -26,7 +26,7 @@ There are no automated tests in this project.
 - **Payments:** Manual bKash — user submits TrxID, admin approves in dashboard
 - **Moderation:** OpenAI free moderation API + keyword fallback (`lib/moderation.ts`)
 - **Push:** web-push (VAPID), service worker in `public/`
-- **Analytics:** Vercel Analytics + Speed Insights
+- **Analytics:** Vercel Analytics + Speed Insights, GA4, Microsoft Clarity, PostHog (`posthog-js`), Meta Pixel — all gated behind cookie consent (`lib/consent.ts`, `components/ConsentGate.tsx`)
 
 > ⚠️ Old AWS S3 (`utopia-web-app.s3.ap-south-1.amazonaws.com`) is gone — that account was deleted. Fallback UI is in place. All new uploads go to Cloudflare R2.
 
@@ -77,6 +77,8 @@ Shadhin.io is a social/community platform for Bangladesh. Repo: `github.com/Rhid
 
 **File Uploads**: Cloudflare R2 with pre-signed URLs. Media URLs stored in MongoDB.
 
+**Analytics & Consent** (`utils/analytics.ts`, `lib/consent.ts`): Central `track()` dispatches to GA4 + Clarity + PostHog + Meta Pixel. All non-essential trackers wrapped in `<ConsentGate category="analytics|marketing">` in layout.tsx. Consent stored in localStorage + cookie. `CookieConsent` banner shown on first visit. Behavioral trackers: SessionDepthTracker, DistrictSwitchTracker, useContentViewTracking hook.
+
 **Email** (`emails/`, `lib/mail.ts`): React Email templates via Resend. Batch limit 50 recipients. Templates: Welcome, Nudge, WeeklyDigest, AdminSummary, EventReminder, NewDistrictMember, LeaderboardAlert.
 
 **Email Support Automation** (`app/api/webhooks/email/route.ts`): Inbound emails to help@shadhin.io → classified by Claude Haiku (simple_question / complaint / legal_urgent) → auto-reply or escalate to admin.
@@ -114,7 +116,7 @@ Enums: `UserRole`, `EventType`, `EventStatus`, `RequestStatus`
 
 ### Environment Variables
 
-See `.env.example`. Required: `DATABASE_URL`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`, `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `OPENAI_API_KEY`, `ADMIN_EMAIL`, `NEXT_PUBLIC_BKASH_NUMBER`, `NEXT_PUBLIC_MEASUREMENT_ID`.
+See `.env.example`. Required: `DATABASE_URL`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`, `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `OPENAI_API_KEY`, `ADMIN_EMAIL`, `NEXT_PUBLIC_BKASH_NUMBER`, `NEXT_PUBLIC_MEASUREMENT_ID`. Optional: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_CLARITY_ID`, `NEXT_PUBLIC_META_PIXEL_ID`.
 
 ### Path Aliases
 
