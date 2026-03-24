@@ -5,6 +5,7 @@ import { getMessagesByStateName } from "@/data/messages";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { moderateText } from "@/lib/moderation";
+import { invalidateMessageCache } from "@/lib/cache";
 import BangladeshStates from "@/data/bangladesh-states";
 
 const VALID_STATE_NAMES = BangladeshStates.filter(
@@ -51,6 +52,8 @@ export const addMessage = async (message: string, stateName: string) => {
       stateName,
     },
   });
+
+  invalidateMessageCache(stateName).catch(() => {});
 
   return { success: true };
 };

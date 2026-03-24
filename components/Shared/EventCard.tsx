@@ -63,6 +63,7 @@ export type EventWithUser = Prisma.EventGetPayload<{
   isLikedByUser: boolean;
   isUserAttending: boolean;
   isUserNotAttending: boolean;
+  _count?: { comments: number };
 };
 
 type EventCardProps = {
@@ -397,7 +398,7 @@ const EventCard = ({
             isNotAttending={event.isUserNotAttending}
             likes={event.likes?.length}
             attendees={event.attendees?.length}
-            comments={event.comments?.length}
+            comments={event._count?.comments ?? event.comments?.length ?? 0}
             eventType={event.eventType}
             initialBookmarked={initialBookmarked}
             eventLikeHandler={eventLikeHandler}

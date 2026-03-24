@@ -324,37 +324,26 @@ export const fetchEvents = async (
   limit?: number
 ) => {
   const session = await auth();
+  const userId = session?.user?.id;
   const events =
-    (await getRankedEventsByState(stateName, session?.user?.id, page, limit)) || [];
-  //we need to add isLiked, isAttending, isNotAttending to the event object
-  if (session?.user) {
-    const eventsWithUserData = await Promise.all(
-      events.map(async (event) => {
-        const isLikedByUser = event.likes.find(
-          (like) => like.userId === session.user.id
-        );
-        const isUserAttending = event.attendees.find(
-          (attendee) =>
-            attendee.userId === session.user.id &&
-            attendee.status === EventStatus.GOING
-        );
-        const isUserNotAttending = event.attendees.find(
-          (attendee) =>
-            attendee.userId === session.user.id &&
-            attendee.status === EventStatus.NOT_GOING
-        );
-        return {
-          ...event,
-          isLikedByUser: !!isLikedByUser,
-          isUserAttending: !!isUserAttending,
-          isUserNotAttending: !!isUserNotAttending,
-        };
-      })
-    );
+    (await getRankedEventsByState(stateName, userId, page, limit)) || [];
 
-    return eventsWithUserData;
-  }
-  return [];
+  return events.map((event) => ({
+    ...event,
+    isLikedByUser: userId
+      ? !!event.likes.find((like) => like.userId === userId)
+      : false,
+    isUserAttending: userId
+      ? !!event.attendees.find(
+          (a) => a.userId === userId && a.status === EventStatus.GOING
+        )
+      : false,
+    isUserNotAttending: userId
+      ? !!event.attendees.find(
+          (a) => a.userId === userId && a.status === EventStatus.NOT_GOING
+        )
+      : false,
+  }));
 };
 
 export const fetchUserEvents = async (
@@ -363,34 +352,25 @@ export const fetchUserEvents = async (
   limit?: number
 ) => {
   const session = await auth();
+  const viewerId = session?.user?.id;
   const events = (await getUserEvents(userId, page, limit)) || [];
-  if (session?.user) {
-    const eventsWithUserData = await Promise.all(
-      events.map(async (event) => {
-        const isLikedByUser = event.likes.find(
-          (like) => like.userId === session.user.id
-        );
-        const isUserAttending = event.attendees.find(
-          (attendee) =>
-            attendee.userId === session.user.id &&
-            attendee.status === EventStatus.GOING
-        );
-        const isUserNotAttending = event.attendees.find(
-          (attendee) =>
-            attendee.userId === session.user.id &&
-            attendee.status === EventStatus.NOT_GOING
-        );
-        return {
-          ...event,
-          isLikedByUser: !!isLikedByUser,
-          isUserAttending: !!isUserAttending,
-          isUserNotAttending: !!isUserNotAttending,
-        };
-      })
-    );
 
-    return eventsWithUserData;
-  }
+  return events.map((event) => ({
+    ...event,
+    isLikedByUser: viewerId
+      ? !!event.likes.find((like) => like.userId === viewerId)
+      : false,
+    isUserAttending: viewerId
+      ? !!event.attendees.find(
+          (a) => a.userId === viewerId && a.status === EventStatus.GOING
+        )
+      : false,
+    isUserNotAttending: viewerId
+      ? !!event.attendees.find(
+          (a) => a.userId === viewerId && a.status === EventStatus.NOT_GOING
+        )
+      : false,
+  }));
 };
 
 export const fetchEventById = async (eventId: string) => {

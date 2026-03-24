@@ -48,11 +48,19 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     rootMargin: "0px 0px 400px 0px",
   });
 
-  // Reset the entire feed when the user switches districts
+  // Reset the entire feed when the user switches districts.
+  // Only reset when we actually have new data (initialEvents changes).
+  // This prevents the flash of "No events found" during server navigation.
+  const prevStateRef = useRef(activeState);
   useEffect(() => {
+    if (prevStateRef.current !== activeState) {
+      prevStateRef.current = activeState;
+      // District changed — show loading state until new initialEvents arrive
+      setIsLoading(true);
+    }
     setEvents(initialEvents || []);
     setPage(1);
-    setHasMore(true);
+    setHasMore(initialEvents?.length >= 10);
     setIsLoading(false);
     isLoadingRef.current = false;
   }, [activeState, initialEvents]);

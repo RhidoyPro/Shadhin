@@ -100,25 +100,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return session;
     },
-    async jwt({ token, trigger, session }) {
-      if (!token.email) return token;
-
-      const existingUser = await getUserByEmail(token.email);
-
-      if (!existingUser) return token;
-
-      token.role = existingUser.role;
-      token.userId = existingUser.id;
-      token.isSuspended = existingUser.isSuspended;
-      token.isVerifiedOrg = existingUser.isVerifiedOrg;
-      token.createdAt = existingUser.createdAt?.toISOString();
-      token.stateName = existingUser.stateName ?? undefined;
+    async jwt({ token, trigger, session, user }) {
+      // Only query DB on initial sign-in (when user object is present) or
+      // explicit session update — NOT on every single auth() call.
       if (trigger === "update") {
-        return {
-          ...token,
-          ...session.user,
-        };
+        // Manual session update (e.g., after profile edit)
+        return { ...token, ...session.user };
       }
+
+      // On sign-in: populate token from DB (runs once)
+      if (user && token.email) {
+        const existingUser = await getUserByEmail(token.email);
+        if (existingUser) {
+          token.role = existingUser.role;
+          token.userId = existingUser.id;
+          token.isSuspended = existingUser.isSuspended;
+          token.isVerifiedOrg = existingUser.isVerifiedOrg;
+          token.createdAt = existingUser.createdAt?.toISOString();
+          token.stateName = existingUser.stateName ?? undefined;
+        }
+      }
+
       return token;
     },
   },

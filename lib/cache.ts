@@ -18,7 +18,12 @@ const FEED_TTL = 300;
 export async function getCached<T>(key: string): Promise<T | null> {
   if (!redis) return null;
   try {
-    return await redis.get<T>(key);
+    // Race against a 3s timeout so a slow Redis doesn't block the request
+    const result = await Promise.race([
+      redis.get<T>(key),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+    ]);
+    return result;
   } catch {
     return null;
   }
@@ -62,4 +67,15 @@ export async function invalidateFeedCache(stateName: string): Promise<void> {
  */
 export async function invalidateViewerContext(userId: string): Promise<void> {
   await invalidateCache(`viewer-ctx:${userId}`);
+}
+
+/**
+ * Invalidate cached messages for a state.
+ * Called on new message so chat stays fresh.
+ */
+export async function invalidateMessageCache(
+  stateName: string
+): Promise<void> {
+  // Invalidate the default page (page 1, limit 20) which is most common
+  await invalidateCache(`messages:${stateName}:1:20`);
 }

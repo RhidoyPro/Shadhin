@@ -1,15 +1,14 @@
-import React from "react";
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import DesktopChatSection from "@/components/Events/DesktopChatSection";
 import FeedSection from "@/components/Events/FeedSection";
 import LeaderBoard from "@/components/Events/LeaderBoard";
-import StatesSection from "@/components/Events/StatesSection";
 import { Button } from "@/components/ui/button";
 import { MessageCircleMoreIcon } from "lucide-react";
 import Link from "next/link";
 import { fetchEvents } from "@/actions/event";
-import { fetchMessages } from "@/actions/message";
 import BangladeshStates from "@/data/bangladesh-states";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export async function generateMetadata({
   params,
@@ -36,18 +35,25 @@ const StateEventsPage = async ({
 }: {
   params: { stateName: string };
 }) => {
-  const [eventMessages, events] = await Promise.all([
-    fetchMessages(params.stateName),
-    fetchEvents(params.stateName),
-  ]);
+  // Only fetch events eagerly — messages are deferred to DesktopChatSection
+  const events = await fetchEvents(params.stateName);
   return (
-    <>
-      <StatesSection activeState={params.stateName} />
-      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-4 lg:px-6">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          {/* Left — Leaderboard */}
+          {/* Left — Leaderboard (streamed independently) */}
           <aside className="lg:col-span-3">
-            <LeaderBoard />
+            <Suspense fallback={
+              <div className="hidden lg:block rounded-xl border border-border bg-card p-4 space-y-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                  </div>
+                ))}
+              </div>
+            }>
+              <LeaderBoard />
+            </Suspense>
           </aside>
 
           {/* Center — Feed */}
@@ -59,12 +65,9 @@ const StateEventsPage = async ({
           <aside className="lg:col-span-3">
             <DesktopChatSection
               activeState={params.stateName}
-              savedMessages={eventMessages || []}
             />
           </aside>
         </div>
-      </div>
-
       {/* Mobile live chat button */}
       <Button
         className="lg:hidden fixed bottom-6 right-6 rounded-full px-4 shadow-lg shadow-primary/25"
@@ -75,7 +78,7 @@ const StateEventsPage = async ({
           Live Chat
         </Link>
       </Button>
-    </>
+    </div>
   );
 };
 
