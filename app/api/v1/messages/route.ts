@@ -50,8 +50,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Message flagged" }, { status: 400 });
   }
 
-  const replyToId = body.replyToId || null;
-  const mentionedUserIds: string[] = Array.isArray(body.mentionedUserIds) ? body.mentionedUserIds : [];
+  const replyToId = typeof body.replyToId === "string" && /^[a-f0-9]{24}$/i.test(body.replyToId) ? body.replyToId : null;
+  const mentionedUserIds: string[] = Array.isArray(body.mentionedUserIds)
+    ? body.mentionedUserIds.filter((id: unknown): id is string => typeof id === "string" && /^[a-f0-9]{24}$/i.test(id)).slice(0, 10)
+    : [];
 
   const message = await db.message.create({
     data: {

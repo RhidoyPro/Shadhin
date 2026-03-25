@@ -17,8 +17,9 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null);
-  if (!body?.eventId || !body?.durationDays || !body?.bkashRef || body.bkashRef.length < 6) {
-    return NextResponse.json({ error: "eventId, durationDays, and bkashRef required" }, { status: 400 });
+  const bkashValid = /^[A-Za-z0-9]{6,20}$/.test(body?.bkashRef || "");
+  if (!body?.eventId || !body?.durationDays || !bkashValid) {
+    return NextResponse.json({ error: "eventId, durationDays, and valid bkashRef (6-20 alphanumeric) required" }, { status: 400 });
   }
 
   const amountBDT = TIERS[body.durationDays];

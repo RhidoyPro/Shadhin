@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/api-auth";
 import { transformEventForMobile } from "@/lib/api-transform";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const limited = await rateLimit(`api-user-events:${ip}`, { limit: 60, windowSeconds: 60 });
+  if (limited.limited) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const user = await authenticateRequest(req);
   const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
   const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "10")));

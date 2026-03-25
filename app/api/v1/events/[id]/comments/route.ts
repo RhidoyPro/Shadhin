@@ -44,7 +44,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Comment flagged for moderation" }, { status: 400 });
   }
 
-  const mentionedUserIds: string[] = Array.isArray(body?.mentionedUserIds) ? body.mentionedUserIds : [];
+  const mentionedUserIds: string[] = Array.isArray(body?.mentionedUserIds)
+    ? body.mentionedUserIds.filter((id: unknown): id is string => typeof id === "string" && /^[a-f0-9]{24}$/i.test(id)).slice(0, 10)
+    : [];
 
   const comment = await db.comment.create({
     data: { content: parsed.data.content, eventId, userId: user.userId },

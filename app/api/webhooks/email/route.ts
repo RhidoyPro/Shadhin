@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { rateLimit } from "@/lib/rate-limit";
 
 let _resend: Resend | null = null;
 const getResend = () => {
@@ -23,6 +24,20 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
  * auto-replies to simple questions, escalates complaints/urgent to admin
  */
 export async function POST(req: NextRequest) {
+  // Rate limit to prevent abuse (10 emails/min from any single IP)
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const limited = await rateLimit(`webhook-email:${ip}`, { limit: 10, windowSeconds: 60 });
+  if (limited.limited) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
+  // Verify webhook secret if configured (set RESEND_WEBHOOK_SECRET in env)
+  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader !== `Bearer ${webhookSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   try {
     const body = await req.json();
 

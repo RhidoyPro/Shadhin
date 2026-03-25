@@ -20,6 +20,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Too fast" }, { status: 429 });
   }
 
+  // Verify target user exists
+  const targetUser = await db.user.findUnique({ where: { id: targetId }, select: { id: true } });
+  if (!targetUser) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   const existing = await db.follow.findFirst({
     where: { followerId: user.userId, followingId: targetId },
   });

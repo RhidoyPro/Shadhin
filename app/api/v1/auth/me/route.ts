@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { authenticateRequest, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const apiUser = await authenticateRequest(req);
   if (!apiUser) return apiError("Unauthorized", 401);
+
+  const limited = await rateLimit(`api-me:${apiUser.userId}`, { limit: 30, windowSeconds: 60 });
+  if (limited.limited) return apiError("Too many requests", 429);
 
   const user = await db.user.findUnique({
     where: { id: apiUser.userId },

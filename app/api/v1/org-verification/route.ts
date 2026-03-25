@@ -15,8 +15,11 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null);
-  if (!body?.orgName || !body?.orgType || !body?.bkashRef || body.bkashRef.length < 6) {
-    return NextResponse.json({ error: "orgName, orgType, and bkashRef required" }, { status: 400 });
+  const bkashValid = /^[A-Za-z0-9]{6,20}$/.test(body?.bkashRef || "");
+  if (!body?.orgName || typeof body.orgName !== "string" || body.orgName.length > 100 ||
+      !body?.orgType || typeof body.orgType !== "string" || body.orgType.length > 50 ||
+      !bkashValid) {
+    return NextResponse.json({ error: "orgName (max 100), orgType (max 50), and valid bkashRef (6-20 alphanumeric) required" }, { status: 400 });
   }
 
   // Check if already verified or has pending request
