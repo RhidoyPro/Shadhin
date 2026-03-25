@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import NudgeEmail from "@/emails/NudgeEmail";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 let _resend: Resend | null = null;
 const getResend = () => {
@@ -16,10 +17,8 @@ const getResend = () => {
  * (Day 0 welcome email is sent inline during signup)
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(request);
+  if (authError) return authError;
 
   const now = new Date();
 

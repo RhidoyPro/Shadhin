@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import AdminSummaryEmail from "@/emails/AdminSummaryEmail";
 import { format } from "date-fns";
 import { UserRole } from "@prisma/client";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 let _resend: Resend | null = null;
 const getResend = () => {
@@ -16,10 +17,8 @@ const getResend = () => {
  * Sends summary of last 24h activity to all admin users
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(request);
+  if (authError) return authError;
 
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 

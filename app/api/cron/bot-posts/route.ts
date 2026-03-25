@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { EventType } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 // Bangla search terms per district for headline matching
 const DISTRICT_TERMS: Record<string, string[]> = {
@@ -139,10 +140,8 @@ function toDiscussionPost(headline: string): string {
 }
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(req);
+  if (authError) return authError;
 
   const force = new URL(req.url).searchParams.get("force") === "true";
 

@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, action: "forwarded" });
     }
   } catch (error) {
-    console.error("Email webhook error:", error);
+    console.error("Email webhook error:", error instanceof Error ? error.message : "unknown error");
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

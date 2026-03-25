@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import WeeklyDigestEmail from "@/emails/WeeklyDigestEmail";
 import BangladeshStates from "@/data/bangladesh-states";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 let _resend: Resend | null = null;
 const getResend = () => {
@@ -16,10 +17,8 @@ const RECIPIENTS_PER_BATCH = 50;
  * Sends personalized digest per user based on their stateName
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(request);
+  if (authError) return authError;
 
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -28,21 +27,22 @@ export async function GET(request: Request) {
   let totalSent = 0;
 
   for (const state of states) {
-    // Top 3 events by like count this week
+    // Top 3 events by like count this week (sorted by DB)
     const topEvents = await db.event.findMany({
       where: {
         stateName: state.slug,
         createdAt: { gte: oneWeekAgo },
       },
       include: { likes: { select: { id: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 20,
+      orderBy: { likes: { _count: "desc" } },
+      take: 3,
     });
 
-    const sorted = topEvents
-      .sort((a, b) => b.likes.length - a.likes.length)
-      .slice(0, 3)
-      .map((e) => ({ id: e.id, content: e.content, likes: e.likes.length }));
+    const sorted = topEvents.map((e) => ({
+      id: e.id,
+      content: e.content,
+      likes: e.likes.length,
+    }));
 
     const newUsersCount = await db.user.count({
       where: { stateName: state.slug, createdAt: { gte: oneWeekAgo } },

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 const districts = [
   { name: "Dhaka", slug: "dhaka" },
@@ -42,10 +43,8 @@ const bots = [
 ];
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(req);
+  if (authError) return authError;
 
   let created = 0;
   let skipped = 0;

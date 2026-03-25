@@ -24,45 +24,47 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const event = await db.event.findUnique({ where: { id: eventId }, select: { userId: true, stateName: true } });
   if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
 
-  const existing = await db.eventAttendee.findFirst({ where: { eventId, userId: user.userId } });
+  if (status === "CANCEL" || status === "GOING" || status === "NOT_GOING") {
+    // Use transaction to prevent race conditions with points
+    const result = await db.$transaction(async (tx) => {
+      const existing = await tx.eventAttendee.findFirst({ where: { eventId, userId: user.userId } });
 
-  if (status === "CANCEL" && existing) {
-    // Remove attendance + deduct point if was GOING
-    if (existing.status === "GOING") {
-      await db.user.update({ where: { id: user.userId }, data: { points: { decrement: 1 } } });
-      revalidateTag("leaderboard");
-    }
-    await db.eventAttendee.delete({ where: { id: existing.id } });
-    await invalidateFeedCache(event.stateName);
-    return NextResponse.json({ attending: null });
-  }
-
-  if (status === "GOING" || status === "NOT_GOING") {
-    if (existing) {
-      const wasGoing = existing.status === "GOING";
-      await db.eventAttendee.update({ where: { id: existing.id }, data: { status } });
-      // Adjust points
-      if (status === "GOING" && !wasGoing) {
-        await db.user.update({ where: { id: user.userId }, data: { points: { increment: 1 } } });
-        revalidateTag("leaderboard");
-      } else if (status !== "GOING" && wasGoing) {
-        await db.user.update({ where: { id: user.userId }, data: { points: { decrement: 1 } } });
-        revalidateTag("leaderboard");
-      }
-    } else {
-      await db.eventAttendee.create({ data: { eventId, userId: user.userId, status } });
-      if (status === "GOING") {
-        await db.user.update({ where: { id: user.userId }, data: { points: { increment: 1 } } });
-        revalidateTag("leaderboard");
-        // Push to event creator
-        if (event.userId !== user.userId) {
-          sendPushToUser(event.userId, "New Attendee", "Someone is attending your event", `/events/details/${eventId}`).catch(() => {});
+      if (status === "CANCEL") {
+        if (!existing) return { attending: null };
+        if (existing.status === "GOING") {
+          await tx.user.update({ where: { id: user.userId }, data: { points: { decrement: 1 } } });
         }
+        await tx.eventAttendee.delete({ where: { id: existing.id } });
+        return { attending: null, pointsChanged: existing.status === "GOING" };
       }
+
+      if (existing) {
+        const wasGoing = existing.status === "GOING";
+        await tx.eventAttendee.update({ where: { id: existing.id }, data: { status } });
+        if (status === "GOING" && !wasGoing) {
+          await tx.user.update({ where: { id: user.userId }, data: { points: { increment: 1 } } });
+        } else if (status !== "GOING" && wasGoing) {
+          await tx.user.update({ where: { id: user.userId }, data: { points: { decrement: 1 } } });
+        }
+        return { attending: status, pointsChanged: (status === "GOING") !== wasGoing };
+      }
+
+      await tx.eventAttendee.create({ data: { eventId, userId: user.userId, status } });
+      if (status === "GOING") {
+        await tx.user.update({ where: { id: user.userId }, data: { points: { increment: 1 } } });
+      }
+      return { attending: status, pointsChanged: status === "GOING", isNew: true };
+    });
+
+    if (result.pointsChanged) revalidateTag("leaderboard");
+    await invalidateFeedCache(event.stateName);
+
+    // Push notification outside transaction (non-blocking)
+    if ((result as any).isNew && status === "GOING" && event.userId !== user.userId) {
+      sendPushToUser(event.userId, "New Attendee", "Someone is attending your event", `/events/details/${eventId}`).catch(() => {});
     }
 
-    await invalidateFeedCache(event.stateName);
-    return NextResponse.json({ attending: status });
+    return NextResponse.json({ attending: result.attending });
   }
 
   return NextResponse.json({ error: "Invalid status. Use GOING, NOT_GOING, or CANCEL." }, { status: 400 });

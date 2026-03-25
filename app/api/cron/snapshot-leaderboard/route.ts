@@ -2,14 +2,13 @@ import { db } from "@/lib/db";
 import { sendLeaderboardAlertEmail } from "@/lib/mail";
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 // Called weekly by Vercel Cron to snapshot current points into previousPoints
 // This powers the trend indicators on the leaderboard
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(request);
+  if (authError) return authError;
 
   // Get top 10 before snapshot (for comparison)
   const beforeTop10 = await db.user.findMany({

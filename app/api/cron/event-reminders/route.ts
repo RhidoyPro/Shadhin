@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendEventReminderEmail } from "@/lib/mail";
 import { EventStatus } from "@prisma/client";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = verifyCronAuth(req);
+  if (authError) return authError;
 
   const now = new Date();
 
@@ -70,7 +69,7 @@ export async function GET(req: Request) {
           });
           totalSent++;
         } catch (error) {
-          console.error(`Failed to send reminder to ${attendee.user.email}:`, error);
+          console.error("Failed to send event reminder:", error instanceof Error ? error.message : "unknown error");
         }
       }
     }
