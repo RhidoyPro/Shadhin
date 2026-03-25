@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth, apiError } from "@/lib/api-auth";
+import { transformEventForMobile } from "@/lib/api-transform";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { moderateText } from "@/lib/moderation";
@@ -49,10 +50,15 @@ export async function POST(req: Request) {
       maxAttendees: body.maxAttendees ? parseInt(body.maxAttendees) : null,
       userId: user.userId,
     },
-    include: { user: { select: { id: true, name: true, image: true, isVerifiedOrg: true } } },
+    include: {
+      user: { select: { id: true, name: true, image: true, isVerifiedOrg: true, isBot: true } },
+      likes: { select: { id: true } },
+      comments: { select: { id: true } },
+      attendees: { select: { id: true } },
+    },
   });
 
   await invalidateFeedCache(body.stateName);
 
-  return NextResponse.json({ event }, { status: 201 });
+  return NextResponse.json({ event: transformEventForMobile(event) }, { status: 201 });
 }

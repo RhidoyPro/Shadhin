@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { searchUsersAndEvents } from "@/data/user";
+import { transformEventForMobile } from "@/lib/api-transform";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,43 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ users: [], events: [] });
   }
 
-  const results = await searchUsersAndEvents(q);
-  return NextResponse.json(results);
+  const [users, events] = await Promise.all([
+    db.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { university: { contains: q, mode: "insensitive" } },
+          { stateName: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        stateName: true,
+        university: true,
+        role: true,
+        isVerifiedOrg: true,
+      },
+      take: 10,
+    }),
+    db.event.findMany({
+      where: {
+        content: { contains: q, mode: "insensitive" },
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, image: true, isVerifiedOrg: true, isBot: true } },
+        likes: { select: { id: true } },
+        comments: { select: { id: true } },
+        attendees: { where: { status: "GOING" }, select: { id: true } },
+      },
+      take: 10,
+    }),
+  ]);
+
+  return NextResponse.json({
+    users,
+    events: events.map((event) => transformEventForMobile(event)),
+  });
 }

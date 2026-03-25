@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
+import { transformEventForMobile } from "@/lib/api-transform";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     include: {
       event: {
         include: {
-          user: { select: { id: true, name: true, image: true, isVerifiedOrg: true } },
+          user: { select: { id: true, name: true, image: true, isVerifiedOrg: true, isBot: true } },
           likes: { select: { id: true } },
           comments: { select: { id: true } },
           attendees: { where: { status: "GOING" }, select: { id: true } },
@@ -29,7 +30,9 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const events = bookmarks.map((b) => b.event);
+  const events = bookmarks.map((b) =>
+    transformEventForMobile(b.event, { isBookmarked: true })
+  );
 
   return NextResponse.json({ events, hasMore: events.length === limit });
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/api-auth";
 import { getRankedEventsByState } from "@/data/events";
 import { getUserDataForEvent } from "@/actions/user";
+import { transformEventForMobile } from "@/lib/api-transform";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -15,19 +17,37 @@ export async function GET(req: NextRequest) {
 
   const events = await getRankedEventsByState(state, user?.userId, page, limit) ?? [];
 
-  // Enrich with user interaction state if authenticated
-  let enriched = events;
+  // Get user's bookmarked event IDs
+  let bookmarkedIds = new Set<string>();
   if (user) {
-    enriched = await Promise.all(
-      events.map(async (event: any) => {
-        const userData = await getUserDataForEvent(event.id, user.userId);
-        return { ...event, ...userData };
-      })
-    );
+    const bookmarks = await db.bookmark.findMany({
+      where: { userId: user.userId },
+      select: { eventId: true },
+    });
+    bookmarkedIds = new Set(bookmarks.map((b) => b.eventId));
   }
 
+  const transformed = await Promise.all(
+    events.map(async (event: any) => {
+      let isLiked = false;
+      let isAttending = false;
+
+      if (user) {
+        const userData = await getUserDataForEvent(event.id, user.userId);
+        isLiked = userData.isLikedByUser;
+        isAttending = userData.isUserAttending;
+      }
+
+      return transformEventForMobile(event, {
+        isLiked,
+        isAttending,
+        isBookmarked: bookmarkedIds.has(event.id),
+      });
+    })
+  );
+
   return NextResponse.json({
-    events: enriched,
+    events: transformed,
     hasMore: events.length === limit,
     page,
   });
