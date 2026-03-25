@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   let user;

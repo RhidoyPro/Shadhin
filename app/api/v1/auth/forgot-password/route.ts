@@ -6,6 +6,8 @@ import { ResetEmailSchema } from "@/utils/zodSchema";
 import { headers } from "next/headers";
 import crypto from "crypto";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   const limited = await rateLimit(`api-forgot:${ip}`, { limit: 5, windowSeconds: 300 });

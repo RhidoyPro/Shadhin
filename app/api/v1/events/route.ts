@@ -6,6 +6,8 @@ import { moderateText } from "@/lib/moderation";
 import { invalidateFeedCache } from "@/lib/cache";
 import BangladeshStates from "@/data/bangladesh-states";
 
+export const dynamic = "force-dynamic";
+
 const VALID_STATE_SLUGS = BangladeshStates.map((s) => s.slug);
 
 export async function POST(req: Request) {

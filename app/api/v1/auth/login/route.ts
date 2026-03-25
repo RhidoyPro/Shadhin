@@ -9,6 +9,8 @@ import { getVerificationTokenByEmail, updateIsEmailSent } from "@/data/verificat
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   const limited = await rateLimit(`api-login:${ip}`, { limit: 10, windowSeconds: 60 });

@@ -6,6 +6,8 @@ import { invalidateFeedCache } from "@/lib/cache";
 import { sendPushToUser } from "@/lib/push";
 import { revalidateTag } from "next/cache";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   let user;

@@ -7,6 +7,8 @@ import { saltAndHash } from "@/utils/helper";
 import { ResetPasswordSchema } from "@/utils/zodSchema";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   const limited = await rateLimit(`api-reset:${ip}`, { limit: 10, windowSeconds: 300 });

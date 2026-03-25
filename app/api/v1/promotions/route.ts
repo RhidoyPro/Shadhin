@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const TIERS: Record<number, number> = { 3: 50, 7: 100, 14: 200 };
 
 export async function POST(req: Request) {

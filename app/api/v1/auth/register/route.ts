@@ -9,6 +9,8 @@ import { sendVerificationEmail, sendWelcomeEmail, sendNewDistrictMemberEmail } f
 import { updateIsEmailSent } from "@/data/verification-token";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   const limited = await rateLimit(`api-signup:${ip}`, { limit: 5, windowSeconds: 300 });

@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { invalidateFeedCache } from "@/lib/cache";
 
+export const dynamic = "force-dynamic";
+
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let user;

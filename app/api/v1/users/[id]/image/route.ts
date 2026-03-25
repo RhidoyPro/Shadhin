@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let user;

@@ -8,6 +8,8 @@ import { invalidateFeedCache } from "@/lib/cache";
 import { sendPushToUser } from "@/lib/push";
 import { CommentSchema } from "@/utils/zodSchema";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));

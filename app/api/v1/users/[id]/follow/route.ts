@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { invalidateViewerContext } from "@/lib/cache";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: targetId } = await params;
   let user;

@@ -3,6 +3,8 @@ import { authenticateRequest } from "@/lib/api-auth";
 import { getRankedEventsByState } from "@/data/events";
 import { getUserDataForEvent } from "@/actions/user";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const user = await authenticateRequest(req);
   const { searchParams } = req.nextUrl;

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { authenticateRequest, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const apiUser = await authenticateRequest(req);
   if (!apiUser) return apiError("Unauthorized", 401);

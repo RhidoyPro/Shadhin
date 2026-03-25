@@ -5,6 +5,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "@/lib/s3";
 import crypto from "crypto";
 
+export const dynamic = "force-dynamic";
+
 const acceptedTypes = [
   "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
   "image/bmp", "image/tiff",

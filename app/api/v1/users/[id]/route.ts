@@ -3,6 +3,8 @@ import { authenticateRequest, requireAuth, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { getFollowCounts, isFollowing } from "@/data/user";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const viewer = await authenticateRequest(req);

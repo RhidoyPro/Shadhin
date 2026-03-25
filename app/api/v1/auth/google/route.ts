@@ -4,6 +4,8 @@ import { signMobileToken } from "@/lib/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Exchange a Google ID token (from mobile Google Sign-In) for a Shadhin JWT.
  * Verifies the ID token with Google, finds or creates the user, returns JWT.

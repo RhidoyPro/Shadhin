@@ -8,6 +8,8 @@ import { invalidateFeedCache } from "@/lib/cache";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "@/lib/s3";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await authenticateRequest(req);
