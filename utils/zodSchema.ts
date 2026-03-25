@@ -77,6 +77,12 @@ export const UpdateProfileSchema = z.object({
   dateOfBirth: z
     .date({ message: "Please enter a valid date of birth" })
     .optional(),
+  state: z
+    .string()
+    .refine((s) => s === "" || VALID_STATES.includes(s), {
+      message: "Please select a valid Bangladesh district",
+    })
+    .optional(),
   bio: z.string().max(300, "Bio cannot exceed 300 characters").optional(),
 });
 
