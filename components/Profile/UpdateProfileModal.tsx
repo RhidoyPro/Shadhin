@@ -181,6 +181,7 @@ const UpdateProfileModal = ({
       return;
     } catch (error) {
       toast.error("Failed to upload profile picture");
+      setIsUploading(false);
     }
   };
 

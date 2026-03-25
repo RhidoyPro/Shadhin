@@ -40,8 +40,8 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://connect.facebook.net",
       // Images from R2, Google (user avatars), DiceBear, Meta Pixel, and data URIs
       "img-src 'self' data: blob: https://*.r2.dev https://api.dicebear.com https://lh3.googleusercontent.com https://www.facebook.com",
-      // API calls, analytics endpoints, R2 uploads, DiceBear avatars
-      "connect-src 'self' https://*.r2.dev https://api.dicebear.com https://us.i.posthog.com https://www.google-analytics.com https://analytics.google.com https://www.clarity.ms https://www.facebook.com",
+      // API calls, analytics endpoints, R2 uploads (both public + signed-URL endpoint), DiceBear avatars
+      "connect-src 'self' https://*.r2.dev https://*.r2.cloudflarestorage.com https://api.dicebear.com https://us.i.posthog.com https://www.google-analytics.com https://analytics.google.com https://www.clarity.ms https://www.facebook.com",
       // Font sources
       "font-src 'self' data:",
       // Media (video/audio) from R2
