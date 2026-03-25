@@ -11,6 +11,18 @@ const VALID_STATES = [
   "Mymensingh",
 ];
 
+// Slugs used by BangladeshStates Select components
+const VALID_STATE_SLUGS = [
+  "dhaka",
+  "chattogram",
+  "khulna",
+  "rajshahi",
+  "sylhet",
+  "barishal",
+  "rangpur",
+  "mymensingh",
+];
+
 export const SignupSchema = z.object({
   email: z
     .string()
@@ -79,7 +91,7 @@ export const UpdateProfileSchema = z.object({
     .optional(),
   state: z
     .string()
-    .refine((s) => s === "" || VALID_STATES.includes(s), {
+    .refine((s) => s === "" || VALID_STATES.includes(s) || VALID_STATE_SLUGS.includes(s), {
       message: "Please select a valid Bangladesh district",
     })
     .optional(),
