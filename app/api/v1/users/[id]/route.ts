@@ -25,7 +25,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const following = viewer ? await isFollowing(viewer.userId, id) : false;
 
   return NextResponse.json({
-    user: { ...user, eventsCount: user._count.events },
+    user: {
+      ...user,
+      eventsCount: user._count.events,
+      _count: {
+        events: user._count.events,
+        followers: followCounts.followers,
+        following: followCounts.following,
+      },
+    },
     followCounts,
     isFollowing: following,
   });
