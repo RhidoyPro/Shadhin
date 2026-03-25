@@ -125,17 +125,18 @@ export const updateUser = async (userId: string, data: any) => {
   }
 
   try {
+    const v = validatedData.data;
     await db.user.update({
       where: { id: userId },
       data: {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        name: `${data.firstName} ${data.lastName}`,
-        university: data.university,
-        dateOfBirth: data.dateOfBirth,
-        stateName: data.state,
-        bio: data.bio,
+        email: v.email,
+        firstName: v.firstName,
+        lastName: v.lastName,
+        name: `${v.firstName} ${v.lastName}`,
+        university: v.university,
+        dateOfBirth: v.dateOfBirth,
+        stateName: v.state,
+        bio: v.bio,
       },
     });
     revalidatePath("/user/[userId]", "page");

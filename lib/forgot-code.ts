@@ -3,8 +3,8 @@ import crypto from "crypto";
 import { db } from "./db";
 
 export const generateForgotPasswordCode = async (email: string) => {
-  // 8-char hex = 4,294,967,296 possible values (vs 900,000 for 6-digit)
-  const code = crypto.randomBytes(4).toString("hex").toUpperCase();
+  // 16-char hex = 18 quintillion possible values (64-bit entropy)
+  const code = crypto.randomBytes(8).toString("hex").toUpperCase();
   const expires = new Date(Date.now() + 1000 * 60 * 10); // 10 minutes
 
   const existingForgotPasswordCode = await getForgotPasswordCodeByEmail(email);

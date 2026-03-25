@@ -53,15 +53,11 @@ export const changePassword = async (
 
   await db.user.update({
     where: { id: session.user.id },
-    data: { hashedPassword },
+    data: { hashedPassword, passwordChangedAt: new Date() },
   });
 
-  // Security note: With JWT-based sessions (NextAuth v5), we cannot server-side
-  // invalidate existing tokens. The client must handle re-authentication by
-  // signing the user out when it receives requireRelogin: true. A more robust
-  // approach would be adding a passwordChangedAt field to the User model and
-  // checking it against the JWT's issued-at time in the auth callbacks, but
-  // that requires a schema migration.
+  // passwordChangedAt invalidates all previously issued JWTs in requireAuth().
+  // Client should still re-authenticate for UX consistency.
   return { success: true, message: "Password updated successfully", requireRelogin: true };
 };
 

@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from "jose";
 import { UserRole } from "@prisma/client";
+import { db } from "@/lib/db";
 
 export interface ApiUser {
   userId: string;
@@ -71,10 +72,49 @@ export function apiError(message: string, status: number) {
 
 /**
  * Helper to require authentication. Returns ApiUser or throws Response.
+ * Verifies the JWT wasn't issued before a password change (token revocation).
  */
 export async function requireAuth(req: Request): Promise<ApiUser> {
-  const user = await authenticateRequest(req);
-  if (!user) throw apiError("Unauthorized", 401);
-  if (user.isSuspended) throw apiError("Account suspended", 403);
-  return user;
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw apiError("Unauthorized", 401);
+
+  const token = authHeader.slice(7);
+  if (!token) throw apiError("Unauthorized", 401);
+
+  let payload;
+  try {
+    const result = await jwtVerify(token, getSecretKey());
+    payload = result.payload;
+  } catch {
+    throw apiError("Unauthorized", 401);
+  }
+
+  if (!payload.userId || !payload.email) throw apiError("Unauthorized", 401);
+
+  // Check if token was issued before password change (stale JWT detection)
+  const dbUser = await db.user.findUnique({
+    where: { id: payload.userId as string },
+    select: { isSuspended: true, passwordChangedAt: true },
+  });
+
+  if (!dbUser) throw apiError("Unauthorized", 401);
+  if (dbUser.isSuspended) throw apiError("Account suspended", 403);
+
+  // Reject tokens issued before the last password change
+  if (dbUser.passwordChangedAt && payload.iat) {
+    const changedAtSeconds = Math.floor(dbUser.passwordChangedAt.getTime() / 1000);
+    if (payload.iat < changedAtSeconds) {
+      throw apiError("Token expired. Please log in again.", 401);
+    }
+  }
+
+  return {
+    userId: payload.userId as string,
+    email: payload.email as string,
+    role: (payload.role as UserRole) || "USER",
+    isSuspended: false,
+    isVerifiedOrg: (payload.isVerifiedOrg as boolean) || false,
+    stateName: payload.stateName as string | undefined,
+    createdAt: payload.createdAt as string | undefined,
+  };
 }

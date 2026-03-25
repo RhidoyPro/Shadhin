@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual, createHmac } from "crypto";
 
 /**
  * Verify cron job authorization using timing-safe comparison.
+ * Uses HMAC-based comparison to avoid leaking length information.
  * Returns null if authorized, or an error Response if not.
  */
 export function verifyCronAuth(request: Request): NextResponse | null {
@@ -15,17 +16,12 @@ export function verifyCronAuth(request: Request): NextResponse | null {
 
   const expected = `Bearer ${secret}`;
 
-  // Timing-safe comparison to prevent brute-force timing attacks
-  if (authHeader.length !== expected.length) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // HMAC both values to fixed-length digests — prevents length leakage
+  const hmacKey = Buffer.from(secret);
+  const a = createHmac("sha256", hmacKey).update(authHeader).digest();
+  const b = createHmac("sha256", hmacKey).update(expected).digest();
 
-  const isValid = timingSafeEqual(
-    Buffer.from(authHeader),
-    Buffer.from(expected)
-  );
-
-  if (!isValid) {
+  if (!timingSafeEqual(a, b)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

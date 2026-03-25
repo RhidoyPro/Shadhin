@@ -107,7 +107,7 @@ export const getAllUsers = async () => {
 };
 
 export const searchUsersAndEvents = async (query: string) => {
-  if (!query || query.trim().length < 2) return { users: [], events: [] };
+  if (!query || query.trim().length < 2 || query.trim().length > 100) return { users: [], events: [] };
 
   const trimmed = query.trim();
 

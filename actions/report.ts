@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { moderateText } from "@/lib/moderation";
 
 export const addNewReport = async (eventId: string, reportReason: string) => {
   const session = await auth();
@@ -25,6 +26,12 @@ export const addNewReport = async (eventId: string, reportReason: string) => {
 
   if (reportReason.length > 500) {
     return { error: "Report reason cannot exceed 500 characters" };
+  }
+
+  // Moderate report content
+  const moderation = await moderateText(reportReason);
+  if (moderation.flagged) {
+    return { error: "Report reason contains inappropriate content. Please revise." };
   }
 
   const event = await db.event.findUnique({ where: { id: eventId } });

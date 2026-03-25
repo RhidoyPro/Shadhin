@@ -68,10 +68,12 @@ const nextConfig = {
     ],
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*.r2.dev",
+        hostname: "pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev",
         port: "",
       },
       {

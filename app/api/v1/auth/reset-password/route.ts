@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   const hashedPassword = saltAndHash(body.password);
   await db.user.update({
     where: { id: user.id },
-    data: { hashedPassword },
+    data: { hashedPassword, passwordChangedAt: new Date() },
   });
 
   await db.forgotPasswordCode.delete({ where: { id: existingCode.id } });

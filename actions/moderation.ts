@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isAdminLevel } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Add a strike to a user. Auto-suspends at 3 strikes for 7 days.
@@ -13,6 +14,9 @@ export const addStrike = async (userId: string) => {
   if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
+
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
 
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return { error: "User not found" };
@@ -55,6 +59,11 @@ export const suspendUser = async (userId: string, days: number = 7) => {
     return { error: "Unauthorized" };
   }
 
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
+
+  if (days < 1 || days > 365) return { error: "Invalid suspension duration" };
+
   await db.user.update({
     where: { id: userId },
     data: {
@@ -83,6 +92,9 @@ export const unsuspendUser = async (userId: string) => {
     return { error: "Unauthorized" };
   }
 
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
+
   await db.user.update({
     where: { id: userId },
     data: {
@@ -110,6 +122,9 @@ export const deleteEventAndStrike = async (eventId: string) => {
   if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
+
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
 
   const event = await db.event.findUnique({ where: { id: eventId } });
   if (!event) return { error: "Event not found" };
@@ -143,6 +158,9 @@ export const dismissReport = async (reportId: string) => {
     return { error: "Unauthorized" };
   }
 
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
+
   await db.report.delete({ where: { id: reportId } });
 
   await logAdminAction({
@@ -163,6 +181,9 @@ export const toggleVerifiedOrg = async (userId: string) => {
   if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
+
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
 
   const user = await db.user.findUnique({ where: { id: userId }, select: { isVerifiedOrg: true } });
   if (!user) return { error: "User not found" };
@@ -192,6 +213,11 @@ export const togglePromotedPost = async (eventId: string, durationDays: number =
   if (!session || !isAdminLevel(session.user.role)) {
     return { error: "Unauthorized" };
   }
+
+  const limited = await rateLimit(`admin:${session.user.id}`, { limit: 50, windowSeconds: 60 });
+  if (limited.limited) return { error: "Too many actions. Please slow down." };
+
+  if (durationDays < 1 || durationDays > 30) return { error: "Invalid duration" };
 
   const event = await db.event.findUnique({ where: { id: eventId }, select: { isPromoted: true } });
   if (!event) return { error: "Event not found" };

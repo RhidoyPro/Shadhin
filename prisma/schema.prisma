@@ -45,6 +45,7 @@ model User {
   bio           String?
   isBot         Boolean         @default(false)
   isVerifiedOrg Boolean         @default(false)
+  passwordChangedAt DateTime?
 
   points        Int             @default(0)
   previousPoints Int            @default(0)
