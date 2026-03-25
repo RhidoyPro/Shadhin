@@ -71,11 +71,20 @@ export async function POST(req: Request) {
     user: {
       id: user.id,
       name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
+      phone: user.phone,
+      university: user.university,
+      dateOfBirth: user.dateOfBirth?.toISOString() ?? null,
       image: user.image,
       role: user.role,
       stateName: user.stateName,
+      bio: user.bio,
       isVerifiedOrg: user.isVerifiedOrg,
+      isSuspended: user.isSuspended,
+      points: user.points,
+      createdAt: user.createdAt.toISOString(),
     },
   });
 }
