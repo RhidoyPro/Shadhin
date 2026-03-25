@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 
 export const getLatestReports = async () => {
   const reports = await db.report.findMany({
+    take: 50,
     orderBy: {
       createdAt: "desc",
     },

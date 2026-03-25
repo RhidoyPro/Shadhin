@@ -442,4 +442,4 @@ const EventCard = ({
   );
 };
 
-export default EventCard;
+export default React.memo(EventCard);

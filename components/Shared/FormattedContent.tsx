@@ -12,4 +12,4 @@ const FormattedContent = ({ content }: { content: string }) => {
   );
 };
 
-export default FormattedContent;
+export default React.memo(FormattedContent);
