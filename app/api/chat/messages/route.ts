@@ -23,12 +23,31 @@ export async function GET(req: NextRequest) {
     },
     include: {
       user: {
-        select: { id: true, name: true, image: true },
+        select: { id: true, name: true, image: true, isVerifiedOrg: true },
       },
     },
     orderBy: { createdAt: "asc" },
     take: 50,
   });
 
-  return NextResponse.json(messages);
+  // Batch-load reply targets
+  const replyIds = messages.map((m) => m.replyToId).filter((id): id is string => !!id);
+  let replyMap: Record<string, { id: string; message: string; user: { id: string; name: string } }> = {};
+  if (replyIds.length > 0) {
+    const uniqueIds = Array.from(new Set(replyIds));
+    const replyMessages = await db.message.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true, message: true, user: { select: { id: true, name: true } } },
+    });
+    for (const rm of replyMessages) {
+      replyMap[rm.id] = rm;
+    }
+  }
+
+  const enriched = messages.map((m) => ({
+    ...m,
+    replyTo: m.replyToId ? replyMap[m.replyToId] || null : null,
+  }));
+
+  return NextResponse.json(enriched);
 }

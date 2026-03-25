@@ -10,7 +10,7 @@ import { sendPushToUser } from "@/lib/push";
 import { invalidateFeedCache } from "@/lib/cache";
 import { revalidatePath } from "next/cache";
 
-export const addComment = async (eventId: string, content: string) => {
+export const addComment = async (eventId: string, content: string, mentionedUserIds?: string[]) => {
   const session = await auth();
 
   if (!session) {
@@ -60,6 +60,15 @@ export const addComment = async (eventId: string, content: string) => {
       `${session.user.name || "Someone"} commented on your post`,
       `/events/details/${eventId}`
     ).catch(() => {});
+  }
+
+  // Push to mentioned users
+  if (mentionedUserIds?.length) {
+    for (const mentionedId of mentionedUserIds) {
+      if (mentionedId !== session.user.id && mentionedId !== event.userId) {
+        sendPushToUser(mentionedId, "Mention", `${session.user.name} mentioned you in a comment`, `/events/details/${eventId}`).catch(() => {});
+      }
+    }
   }
 
   invalidateFeedCache(event.stateName).catch(() => {});

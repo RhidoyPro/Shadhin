@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useTransition } from "react";
+import React, { useEffect, useCallback, useTransition, useRef } from "react";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -12,6 +12,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { Card } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Prisma } from "@prisma/client";
 import { toast } from "sonner";
 import {
@@ -19,6 +20,7 @@ import {
   deleteComment,
   fetchEventComments,
 } from "@/actions/comment";
+import { search } from "@/actions/search";
 import { formatDistance } from "date-fns";
 import { addNotification } from "@/actions/notification";
 import { v4 as uuidv4 } from "uuid";
@@ -60,11 +62,27 @@ type EventCommentWithUser = Prisma.CommentGetPayload<{
   };
 }>;
 
+type MentionUser = { id: string; name: string; image: string | null; isVerifiedOrg?: boolean };
+
 type EventCommentsProps = {
   comments: EventCommentWithUser[];
   eventId: string;
   eventUserId: string;
 };
+
+function renderWithMentions(text: string) {
+  const mentionRegex = /@([\w][\w ]{0,30}?)(?=\s@|\s[^@\w]|[.,!?;:\n]|$)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    parts.push(<span key={match.index} className="font-semibold text-primary">@{match[1]}</span>);
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts.length > 0 ? parts : text;
+}
 
 const EventComments = ({
   comments: initialComments,
@@ -81,6 +99,61 @@ const EventComments = ({
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(initialComments.length >= 10);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+
+  // Mention state
+  const commentInputRef = useRef<HTMLInputElement>(null);
+  const [mentionQuery, setMentionQuery] = React.useState("");
+  const [showMentions, setShowMentions] = React.useState(false);
+  const [mentionResults, setMentionResults] = React.useState<MentionUser[]>([]);
+  const [mentionedUserIds, setMentionedUserIds] = React.useState<string[]>([]);
+  const [cursorPos, setCursorPos] = React.useState(0);
+
+  // Search users for @mention
+  useEffect(() => {
+    if (!mentionQuery || mentionQuery.length < 2) {
+      setMentionResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await search(mentionQuery);
+        if (res && "users" in res && Array.isArray(res.users)) {
+          setMentionResults(res.users.slice(0, 6) as MentionUser[]);
+        }
+      } catch { /* ignore */ }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [mentionQuery]);
+
+  const handleCommentInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewComment(val);
+    const pos = e.target.selectionStart || 0;
+    setCursorPos(pos);
+    const textBeforeCursor = val.slice(0, pos);
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+    if (atMatch) {
+      setMentionQuery(atMatch[1]);
+      setShowMentions(true);
+    } else {
+      setShowMentions(false);
+      setMentionQuery("");
+    }
+  };
+
+  const handleMentionSelect = (u: MentionUser) => {
+    const textBeforeCursor = newComment.slice(0, cursorPos);
+    const atIndex = textBeforeCursor.lastIndexOf("@");
+    const before = newComment.slice(0, atIndex);
+    const after = newComment.slice(cursorPos);
+    setNewComment(`${before}@${u.name} ${after}`);
+    setShowMentions(false);
+    setMentionQuery("");
+    if (!mentionedUserIds.includes(u.id)) {
+      setMentionedUserIds((prev) => [...prev, u.id]);
+    }
+    commentInputRef.current?.focus();
+  };
 
   const addNewCommentHandler = useCallback(async () => {
     if (newComment.trim() === "") {
@@ -108,10 +181,12 @@ const EventComments = ({
     };
 
     setEventComments((prevComments) => [optimisticComment, ...prevComments]);
+    const mentions = [...mentionedUserIds];
     setNewComment("");
+    setMentionedUserIds([]);
 
     try {
-      const addCommentRes = await addComment(eventId, newComment);
+      const addCommentRes = await addComment(eventId, newComment, mentions.length > 0 ? mentions : undefined);
       if (addCommentRes.error) {
         throw new Error(addCommentRes.error);
       }
@@ -201,15 +276,38 @@ const EventComments = ({
             <CurrentUserAvatar size={9} />
           </div>
           <div className="relative flex-1">
+            {/* Mention suggestions dropdown */}
+            {showMentions && mentionResults.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-50">
+                {mentionResults.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => handleMentionSelect(u)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted transition-colors text-sm"
+                  >
+                    <Avatar className="h-6 w-6 shrink-0">
+                      <AvatarImage src={u.image || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-[9px] text-primary">
+                        {u.name?.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="truncate font-medium text-foreground">{u.name}</span>
+                    {u.isVerifiedOrg && <span className="text-primary text-xs">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
             <Input
-              placeholder="Write a comment..."
+              ref={commentInputRef}
+              placeholder="Write a comment... (@ to mention)"
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={handleCommentInputChange}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !showMentions) {
                   e.preventDefault();
                   startTransition(() => addNewCommentHandler());
                 }
+                if (e.key === "Escape") setShowMentions(false);
               }}
               className="rounded-full bg-background border-border/60 pr-11 h-10 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/30"
             />
@@ -269,7 +367,7 @@ const EventComments = ({
                     </span>
                   </div>
                   <p className="text-sm text-foreground/90 break-words mt-1 leading-relaxed">
-                    {comment.content}
+                    {renderWithMentions(comment.content)}
                   </p>
                 </div>
 
