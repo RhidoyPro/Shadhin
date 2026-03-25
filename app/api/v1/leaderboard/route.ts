@@ -13,5 +13,5 @@ export async function GET(req: NextRequest) {
 
   const users = await getAllUsersWithPointsPaginated(page, limit);
 
-  return NextResponse.json({ users, hasMore: users.length === limit });
+  return NextResponse.json({ users, hasMore: users.length === limit }, { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } });
 }

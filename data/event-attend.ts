@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { EventStatus } from "@prisma/client";
 
 export const isUserAttendingEvent = async (eventId: string, userId: string) => {
-  const attendee = await db.eventAttendee.findFirst({
+  const count = await db.eventAttendee.count({
     where: {
       eventId,
       userId,
@@ -10,14 +10,14 @@ export const isUserAttendingEvent = async (eventId: string, userId: string) => {
     },
   });
 
-  return Boolean(attendee);
+  return count > 0;
 };
 
 export const isUserNotAttendingEvent = async (
   eventId: string,
   userId: string
 ) => {
-  const attendee = await db.eventAttendee.findFirst({
+  const count = await db.eventAttendee.count({
     where: {
       eventId,
       userId,
@@ -25,5 +25,5 @@ export const isUserNotAttendingEvent = async (
     },
   });
 
-  return Boolean(attendee);
+  return count > 0;
 };

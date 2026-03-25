@@ -1,12 +1,12 @@
 import { db } from "@/lib/db";
 
 export const getIsLikedByUser = async (eventId: string, userId: string) => {
-  const like = await db.like.findFirst({
+  const count = await db.like.count({
     where: {
       eventId,
       userId,
     },
   });
 
-  return Boolean(like);
+  return count > 0;
 };

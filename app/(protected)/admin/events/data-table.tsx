@@ -63,7 +63,7 @@ import { togglePromotedPost } from "@/actions/moderation";
 
 export type EventWithData = Prisma.EventGetPayload<{
   include: {
-    user: { select: { id: true; name: true; image: true; email: true; role: true } };
+    user: { select: { id: true; name: true; email: true; image: true; role: true; isBot: true; isVerifiedOrg: true } };
     likes: {
       select: {
         id: true;

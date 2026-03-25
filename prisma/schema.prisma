@@ -46,6 +46,8 @@ model User {
   isBot         Boolean         @default(false)
   isVerifiedOrg Boolean         @default(false)
   passwordChangedAt DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil     DateTime?
 
   points        Int             @default(0)
   previousPoints Int            @default(0)
@@ -228,6 +230,7 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([isRead])
+  @@index([userId, isRead, createdAt])
 }
 
 model Follow {

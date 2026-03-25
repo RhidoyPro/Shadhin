@@ -250,9 +250,11 @@ export const deleteUser = async (userId: string) => {
 };
 
 export const getUserDataForEvent = async (eventId: string, userId: string) => {
-  const isLikedByUser = await getIsLikedByUser(eventId, userId);
-  const isUserAttending = await isUserAttendingEvent(eventId, userId);
-  const isUserNotAttending = await isUserNotAttendingEvent(eventId, userId);
+  const [isLikedByUser, isUserAttending, isUserNotAttending] = await Promise.all([
+    getIsLikedByUser(eventId, userId),
+    isUserAttendingEvent(eventId, userId),
+    isUserNotAttendingEvent(eventId, userId),
+  ]);
 
   return {
     isLikedByUser,

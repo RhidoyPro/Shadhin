@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const comments = await getCommentsByEventId(eventId, page, limit) ?? [];
 
-  return NextResponse.json({ comments, hasMore: comments.length === limit });
+  return NextResponse.json({ comments, hasMore: comments.length === limit }, { headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=120' } });
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

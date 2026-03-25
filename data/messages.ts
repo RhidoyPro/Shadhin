@@ -40,7 +40,7 @@ async function fetchFromDb(stateName: string, skip: number, limit: number) {
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
     skip,
     take: limit,
   });
@@ -71,7 +71,5 @@ async function fetchFromDb(stateName: string, skip: number, limit: number) {
     replyTo: m.replyToId ? replyMap[m.replyToId] || null : null,
   }));
 
-  // Sort ascending for display (web chat renders oldest-first)
-  enriched.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   return enriched;
 }

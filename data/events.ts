@@ -306,7 +306,7 @@ export const getAllEvents = async (page: number = 1, limit: number = 50) => {
         createdAt: "desc",
       },
       include: {
-        user: { select: { id: true, name: true, image: true, role: true, isVerifiedOrg: true, isBot: true } },
+        user: { select: { id: true, name: true, email: true, image: true, role: true, isVerifiedOrg: true, isBot: true } },
         likes: {
           select: {
             id: true,

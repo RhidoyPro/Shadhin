@@ -39,7 +39,7 @@ import BuyTicketDialog from "./BuyTicketDialog";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
-    user: { select: { id: true; name: true; image: true; email: true; role: true; isVerifiedOrg: true } };
+    user: { select: { id: true; name: true; image: true; role: true; isBot: true; isVerifiedOrg: true } };
     likes: {
       select: {
         id: true;
