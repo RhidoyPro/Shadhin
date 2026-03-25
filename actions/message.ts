@@ -8,9 +8,12 @@ import { moderateText } from "@/lib/moderation";
 import { invalidateMessageCache } from "@/lib/cache";
 import BangladeshStates from "@/data/bangladesh-states";
 
-const VALID_STATE_NAMES = BangladeshStates.filter(
-  (s) => s.slug !== "all-districts"
-).map((s) => s.name);
+const VALID_SLUGS = new Set(
+  BangladeshStates.filter((s) => s.slug !== "all-districts").map((s) => s.slug)
+);
+const NAME_TO_SLUG = new Map(
+  BangladeshStates.filter((s) => s.slug !== "all-districts").map((s) => [s.name, s.slug])
+);
 
 export const addMessage = async (message: string, stateName: string) => {
   const session = await auth();
@@ -35,8 +38,12 @@ export const addMessage = async (message: string, stateName: string) => {
     return { error: "Message cannot exceed 500 characters" };
   }
 
-  if (!VALID_STATE_NAMES.includes(stateName)) {
-    return { error: "Invalid state" };
+  // Accept both slugs ("dhaka") and display names ("Dhaka") — normalize to slug
+  let slug = stateName;
+  if (!VALID_SLUGS.has(slug)) {
+    const mapped = NAME_TO_SLUG.get(stateName);
+    if (!mapped) return { error: "Invalid state" };
+    slug = mapped;
   }
 
   // Content moderation check
@@ -49,11 +56,11 @@ export const addMessage = async (message: string, stateName: string) => {
     data: {
       message: message.trim(),
       userId: session.user.id!,
-      stateName,
+      stateName: slug,
     },
   });
 
-  invalidateMessageCache(stateName).catch(() => {});
+  invalidateMessageCache(slug).catch(() => {});
 
   return { success: true };
 };
