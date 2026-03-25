@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { saltAndHash } from "@/utils/helper";
 import { ResetPasswordSchema } from "@/utils/zodSchema";
 import { headers } from "next/headers";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   if (!body?.code || !body?.password) {
     return NextResponse.json({ error: "Code and password are required" }, { status: 400 });
   }

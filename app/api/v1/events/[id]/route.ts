@@ -9,6 +9,7 @@ import { invalidateFeedCache } from "@/lib/cache";
 import { rateLimit } from "@/lib/rate-limit";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "@/lib/s3";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!event) return apiError("Event not found", 404);
   if (event.userId !== user.userId) return apiError("Not authorized", 403);
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   if (!body?.content) return apiError("Content is required", 400);
   if (body.content.length > 2000) return apiError("Content too long", 400);
 

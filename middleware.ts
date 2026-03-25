@@ -12,6 +12,10 @@ import {
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
+  // CVE-2025-29927: Strip spoofed internal header to prevent middleware bypass
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete("x-middleware-subrequest");
+
   const { nextUrl } = req;
   const session = req.auth;
   const isLoggedIn = !!session;
@@ -25,14 +29,14 @@ export default auth((req) => {
   const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
 
   if (isApiRoute || isMobileApi || isCronRoute) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   if (isAuthRoute) {
     if (isLoggedIn) {
       return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
     }
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   if (isAdminRoute) {
@@ -42,7 +46,7 @@ export default auth((req) => {
     if (role !== "ADMIN" && role !== "SUPER_USER") {
       return NextResponse.redirect(new URL("/forbidden", nextUrl));
     }
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   if (isLoggedIn && session?.user?.isSuspended) {
@@ -56,7 +60,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 });
 
 export const config = {

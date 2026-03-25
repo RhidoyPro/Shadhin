@@ -8,8 +8,13 @@ import { headers } from "next/headers";
 import { getVerificationTokenByEmail, updateIsEmailSent } from "@/data/verification-token";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
+import { db } from "@/lib/db";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function POST(req: Request) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
@@ -21,8 +26,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const rawBody = await req.json().catch(() => null);
+  if (!rawBody) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const body = sanitizeBody(rawBody);
 
   const parsed = LoginSchemaWithEmail.safeParse(body);
   if (!parsed.success) {
@@ -36,9 +42,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
+  // Account lockout check
+  if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+    const remainingMs = new Date(user.lockedUntil).getTime() - Date.now();
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    return NextResponse.json(
+      { error: `Account temporarily locked. Try again in ${remainingMin} minute(s).` },
+      { status: 423 }
+    );
+  }
+
   const isMatch = bcrypt.compareSync(password, user.hashedPassword);
   if (!isMatch) {
+    const attempts = (user.failedLoginAttempts ?? 0) + 1;
+    const updateData: { failedLoginAttempts: number; lockedUntil?: Date } = {
+      failedLoginAttempts: attempts,
+    };
+    if (attempts >= MAX_FAILED_ATTEMPTS) {
+      updateData.lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
+    }
+    await db.user.update({ where: { id: user.id }, data: updateData }).catch(() => {});
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
+
+  // Reset failed attempts on successful login
+  if ((user.failedLoginAttempts ?? 0) > 0 || user.lockedUntil) {
+    await db.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+    }).catch(() => {});
+  }
+
+  // Check for suspended account after password match
+  if (user.isSuspended) {
+    return NextResponse.json({ error: "Account suspended" }, { status: 403 });
   }
 
   if (!user.emailVerified) {

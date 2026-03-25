@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { ResetEmailSchema } from "@/utils/zodSchema";
 import { headers } from "next/headers";
 import crypto from "crypto";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const rawBody = await req.json().catch(() => null);
+  if (!rawBody) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const body = sanitizeBody(rawBody);
 
   const parsed = ResetEmailSchema.safeParse(body);
   if (!parsed.success) {

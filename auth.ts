@@ -52,13 +52,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        // Account lockout check
+        if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+          return null;
+        }
+
         const isMatch = bcrypt.compareSync(
           credentials.password as string,
           user.hashedPassword
         );
 
         if (!isMatch) {
+          const attempts = (user.failedLoginAttempts ?? 0) + 1;
+          const updateData: { failedLoginAttempts: number; lockedUntil?: Date } = {
+            failedLoginAttempts: attempts,
+          };
+          if (attempts >= 5) {
+            updateData.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+          }
+          await db.user.update({ where: { id: user.id }, data: updateData }).catch(() => {});
           return null;
+        }
+
+        // Reset failed attempts on successful login
+        if (user.failedLoginAttempts && user.failedLoginAttempts > 0) {
+          await db.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedUntil: null },
+          }).catch(() => {});
         }
 
         return {

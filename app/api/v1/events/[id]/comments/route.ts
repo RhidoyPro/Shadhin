@@ -7,6 +7,7 @@ import { moderateText } from "@/lib/moderation";
 import { invalidateFeedCache } from "@/lib/cache";
 import { sendPushToUser } from "@/lib/push";
 import { CommentSchema } from "@/utils/zodSchema";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Too fast" }, { status: 429 });
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   const parsed = CommentSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid comment" }, { status: 400 });

@@ -8,6 +8,7 @@ import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail, sendWelcomeEmail, sendNewDistrictMemberEmail } from "@/lib/mail";
 import { updateIsEmailSent } from "@/data/verification-token";
 import { headers } from "next/headers";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const rawBody = await req.json().catch(() => null);
+  if (!rawBody) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  const body = sanitizeBody(rawBody);
 
   // Map mobile field names to schema
   const data = {

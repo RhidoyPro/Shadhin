@@ -7,6 +7,7 @@ import { moderateText } from "@/lib/moderation";
 import { invalidateMessageCache } from "@/lib/cache";
 import { sendPushToUser } from "@/lib/push";
 import BangladeshStates from "@/data/bangladesh-states";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too fast" }, { status: 429 });
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   if (!body?.message || !body?.stateName) {
     return NextResponse.json({ error: "Message and stateName required" }, { status: 400 });
   }

@@ -19,12 +19,35 @@ const securityHeaders = [
   // Disable access to camera, microphone, geolocation, and payment APIs
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=()",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), serial=()",
   },
   // Force HTTPS for 1 year, including subdomains
   {
     key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains; preload",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  // Prevent DNS prefetching to third-party origins (privacy)
+  {
+    key: "X-DNS-Prefetch-Control",
+    value: "off",
+  },
+  // Cross-Origin isolation headers — prevent data leaks via Spectre-class attacks
+  {
+    key: "Cross-Origin-Opener-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "Cross-Origin-Resource-Policy",
+    value: "same-origin",
+  },
+  // Prevent browsers from caching sensitive pages
+  {
+    key: "Cache-Control",
+    value: "no-store, no-cache, must-revalidate, proxy-revalidate",
+  },
+  {
+    key: "Pragma",
+    value: "no-cache",
   },
   // Content Security Policy — controls which resources the browser can load
   // Prevents XSS by blocking inline scripts from injected content
@@ -35,9 +58,8 @@ const securityHeaders = [
       // Next.js needs unsafe-inline for styles; nonce-based CSP would be stricter
       // but requires additional Next.js middleware configuration
       "style-src 'self' 'unsafe-inline'",
-      // Next.js hydration requires unsafe-eval in dev; removed in production builds
-      // unsafe-inline needed for Next.js inline scripts
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://connect.facebook.net",
+      // unsafe-inline needed for Next.js inline scripts; unsafe-eval only for dev
+      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://connect.facebook.net`.trim(),
       // Images from R2, Google (user avatars), DiceBear, Meta Pixel, and data URIs
       "img-src 'self' data: blob: https://*.r2.dev https://api.dicebear.com https://lh3.googleusercontent.com https://www.facebook.com",
       // API calls, analytics endpoints, R2 uploads (both public + signed-URL endpoint), DiceBear avatars
@@ -46,10 +68,16 @@ const securityHeaders = [
       "font-src 'self' data:",
       // Media (video/audio) from R2
       "media-src 'self' https://*.r2.dev blob:",
+      // Block all plugins (Flash, Java, etc.)
+      "object-src 'none'",
+      // Restrict base URI to prevent base-tag hijacking
+      "base-uri 'self'",
       // Forms only submit to same origin
       "form-action 'self'",
       // Only same-origin pages can embed this site
       "frame-ancestors 'self'",
+      // Block iframes from loading external content
+      "frame-src 'self'",
       // Block mixed HTTP/HTTPS content
       "upgrade-insecure-requests",
     ].join("; "),

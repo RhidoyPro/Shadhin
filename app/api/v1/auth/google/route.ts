@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { signMobileToken } from "@/lib/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   if (!body?.idToken) {
     return NextResponse.json({ error: "Missing idToken" }, { status: 400 });
   }

@@ -46,7 +46,9 @@ export async function authenticateRequest(
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, getSecretKey());
+    const { payload } = await jwtVerify(token, getSecretKey(), {
+      algorithms: ["HS256"],
+    });
     if (!payload.userId || !payload.email) return null;
 
     return {
@@ -83,7 +85,9 @@ export async function requireAuth(req: Request): Promise<ApiUser> {
 
   let payload;
   try {
-    const result = await jwtVerify(token, getSecretKey());
+    const result = await jwtVerify(token, getSecretKey(), {
+      algorithms: ["HS256"],
+    });
     payload = result.payload;
   } catch {
     throw apiError("Unauthorized", 401);

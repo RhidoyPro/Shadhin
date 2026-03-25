@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { sanitizeBody } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too fast" }, { status: 429 });
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.json().catch(() => null);
+  const body = rawBody ? sanitizeBody(rawBody) : null;
   const bkashValid = /^[A-Za-z0-9]{6,20}$/.test(body?.bkashRef || "");
   if (!body?.eventId || !body?.durationDays || !bkashValid) {
     return NextResponse.json({ error: "eventId, durationDays, and valid bkashRef (6-20 alphanumeric) required" }, { status: 400 });
