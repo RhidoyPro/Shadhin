@@ -203,13 +203,13 @@ export const createEvent = async ({
       userEmails = users.map((user) => user?.email as string);
     }
 
-    // Send email to all users in the state
-    await sendEventEmails(userEmails, {
+    // Send email to all users in the state (fire-and-forget)
+    sendEventEmails(userEmails, {
       stateName,
       id: event.id,
       createdAt: event.createdAt,
       createdBy: session.user.name as string,
-    });
+    }).catch(console.error);
   }
 
   revalidatePath("/events/[stateName]", "page");

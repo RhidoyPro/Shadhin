@@ -128,142 +128,132 @@ const EventActionsCtn = ({
       )}
 
       {/* Action buttons */}
+      <TooltipProvider delayDuration={300}>
       <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-3">
         <div className="flex items-center gap-0.5">
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (!isLiked) { analytics.postLiked(eventId); markFirstAction("like"); }
-                    else { analytics.postUnliked(eventId); }
-                    eventLikeHandler();
-                  }}
-                  className={cn(
-                    "h-9 gap-1.5 rounded-full px-3 transition-colors",
-                    isLiked
-                      ? "bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500"
-                      : "text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
-                  )}
-                >
-                  <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
-                  <span className="hidden text-sm font-medium sm:inline">Like</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>{isLiked ? "Unlike" : "Like"}</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (!isLiked) { analytics.postLiked(eventId); markFirstAction("like"); }
+                  else { analytics.postUnliked(eventId); }
+                  eventLikeHandler();
+                }}
+                className={cn(
+                  "h-9 gap-1.5 rounded-full px-3 transition-colors",
+                  isLiked
+                    ? "bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500"
+                    : "text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
+                )}
+              >
+                <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
+                <span className="hidden text-sm font-medium sm:inline">Like</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>{isLiked ? "Unlike" : "Like"}</p></TooltipContent>
+          </Tooltip>
 
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="h-9 gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-blue-500/10 hover:text-blue-500"
-                >
-                  <Link href={`/events/details/${eventId}`}>
-                    <MessageCircle className="h-[18px] w-[18px]" />
-                    <span className="hidden text-sm font-medium sm:inline">Comment</span>
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>Comment</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="h-9 gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+              >
+                <Link href={`/events/details/${eventId}`}>
+                  <MessageCircle className="h-[18px] w-[18px]" />
+                  <span className="hidden text-sm font-medium sm:inline">Comment</span>
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Comment</p></TooltipContent>
+          </Tooltip>
 
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={bookmarkHandler}
-                  className={cn(
-                    "h-9 rounded-full px-3 transition-colors",
-                    isBookmarked
-                      ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-500"
-                      : "text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500"
-                  )}
-                >
-                  <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
-                  <span className="sr-only">{isBookmarked ? "Unsave" : "Save"}</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>{isBookmarked ? "Unsave" : "Save"}</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={bookmarkHandler}
+                className={cn(
+                  "h-9 rounded-full px-3 transition-colors",
+                  isBookmarked
+                    ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-500"
+                    : "text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500"
+                )}
+              >
+                <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
+                <span className="sr-only">{isBookmarked ? "Unsave" : "Save"}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>{isBookmarked ? "Unsave" : "Save"}</p></TooltipContent>
+          </Tooltip>
 
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsReportDialogOpen(true)}
-                  className="h-9 rounded-full px-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Flag className="h-[18px] w-[18px]" />
-                  <span className="sr-only">Report</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom"><p>Report</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsReportDialogOpen(true)}
+                className="h-9 rounded-full px-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Flag className="h-[18px] w-[18px]" />
+                <span className="sr-only">Report</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Report</p></TooltipContent>
+          </Tooltip>
         </div>
 
         {/* RSVP buttons */}
         {isEvent && (
           <div className="flex items-center gap-1.5">
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={isAttending ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => { analytics.eventAttending(eventId); markFirstAction("attend"); eventAttendHandler(); }}
-                    className={cn(
-                      "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
-                      isAttending
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "border-border hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
-                    )}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Going</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Mark as going</p></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isAttending ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => { analytics.eventAttending(eventId); markFirstAction("attend"); eventAttendHandler(); }}
+                  className={cn(
+                    "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
+                    isAttending
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border-border hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
+                  )}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Going</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>Mark as going</p></TooltipContent>
+            </Tooltip>
 
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={isNotAttending ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => { analytics.eventNotAttending(eventId); eventNotAttendHandler(); }}
-                    className={cn(
-                      "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
-                      isNotAttending
-                        ? "bg-muted text-muted-foreground hover:bg-muted/80"
-                        : "border-border hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Not Going</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Mark as not going</p></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isNotAttending ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => { analytics.eventNotAttending(eventId); eventNotAttendHandler(); }}
+                  className={cn(
+                    "h-8 gap-1.5 rounded-full text-xs font-medium transition-all",
+                    isNotAttending
+                      ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                      : "border-border hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Not Going</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p>Mark as not going</p></TooltipContent>
+            </Tooltip>
           </div>
         )}
       </div>
+      </TooltipProvider>
 
       {/* Report dialog */}
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>

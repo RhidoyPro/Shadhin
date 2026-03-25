@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback, useTransition, useRef } from "react";
+import React, { useEffect, useCallback, useTransition, useRef, useMemo } from "react";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -83,6 +83,12 @@ function renderWithMentions(text: string) {
   if (lastIndex < text.length) parts.push(text.slice(lastIndex));
   return parts.length > 0 ? parts : text;
 }
+
+// Memoized comment content to avoid re-running renderWithMentions regex on every render
+const MemoizedCommentContent = React.memo(({ text }: { text: string }) => {
+  const rendered = useMemo(() => renderWithMentions(text), [text]);
+  return <>{rendered}</>;
+});
 
 const EventComments = ({
   comments: initialComments,
@@ -367,7 +373,7 @@ const EventComments = ({
                     </span>
                   </div>
                   <p className="text-sm text-foreground/90 break-words mt-1 leading-relaxed">
-                    {renderWithMentions(comment.content)}
+                    <MemoizedCommentContent text={comment.content} />
                   </p>
                 </div>
 

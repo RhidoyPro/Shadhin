@@ -38,7 +38,7 @@ type ChatSectionProps = {
   hiddenOnMobile?: boolean;
 };
 
-const POLL_INTERVAL = 4000;
+const POLL_INTERVAL = 10000;
 
 // Render text with @mentions highlighted
 function renderWithMentions(text: string) {
@@ -63,6 +63,12 @@ function renderWithMentions(text: string) {
   }
   return parts.length > 0 ? parts : text;
 }
+
+// Memoized message content to avoid re-running renderWithMentions regex on every render
+const MemoizedMessageContent = React.memo(({ text }: { text: string }) => {
+  const rendered = useMemo(() => renderWithMentions(text), [text]);
+  return <>{rendered}</>;
+});
 
 const ChatSection = ({
   activeState,
@@ -96,8 +102,10 @@ const ChatSection = ({
     setMessages(savedMessages);
   }, [savedMessages]);
 
-  // Poll for new messages
+  // Poll for new messages (pauses when tab is hidden)
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+
     const poll = async () => {
       try {
         const lastMessage = messages[messages.length - 1];
@@ -121,8 +129,35 @@ const ChatSection = ({
       }
     };
 
-    const interval = setInterval(poll, POLL_INTERVAL);
-    return () => clearInterval(interval);
+    const startPolling = () => {
+      if (!interval) {
+        interval = setInterval(poll, POLL_INTERVAL);
+      }
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        poll(); // Fetch immediately when tab becomes visible
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [activeState, messages]);
 
   // Auto-scroll to bottom when new messages arrive
@@ -297,7 +332,7 @@ const ChatSection = ({
               )}
 
               <p className="text-[13px] leading-relaxed text-muted-foreground break-words">
-                {renderWithMentions(msg.message)}
+                <MemoizedMessageContent text={msg.message} />
               </p>
             </div>
 

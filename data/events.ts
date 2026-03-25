@@ -55,7 +55,8 @@ export const getEventsByStatePaginated = async (
   }
 };
 
-export const getEventsByState = async (stateName: string) => {
+export const getEventsByState = async (stateName: string, page: number = 1, limit: number = 50) => {
+  const skip = (page - 1) * limit;
   try {
     const events = await db.event.findMany({
       where: {
@@ -85,6 +86,8 @@ export const getEventsByState = async (stateName: string) => {
           },
         },
       },
+      skip,
+      take: limit,
     });
     return events;
   } catch {
@@ -295,7 +298,8 @@ export const getRankedEventsByState = async (
   }
 };
 
-export const getAllEvents = async () => {
+export const getAllEvents = async (page: number = 1, limit: number = 50) => {
+  const skip = (page - 1) * limit;
   try {
     const events = await db.event.findMany({
       orderBy: {
@@ -322,6 +326,8 @@ export const getAllEvents = async () => {
           },
         },
       },
+      skip,
+      take: limit,
     });
     return events;
   } catch {

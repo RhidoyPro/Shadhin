@@ -87,7 +87,7 @@ interface INotifications {
   userNotifications: NotificationData[];
 }
 
-const POLL_INTERVAL = 10000; // 10 seconds
+const POLL_INTERVAL = 20000; // 20 seconds
 
 const Notifications = ({ userNotifications }: INotifications) => {
   const [notifications, setNotifications] = useState<NotificationData[]>(userNotifications);
@@ -108,8 +108,37 @@ const Notifications = ({ userNotifications }: INotifications) => {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(pollNotifications, POLL_INTERVAL);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (!interval) {
+        interval = setInterval(pollNotifications, POLL_INTERVAL);
+      }
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        pollNotifications(); // Fetch immediately when tab becomes visible
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [pollNotifications]);
 
   const handleMarkAllRead = async () => {

@@ -106,7 +106,8 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
 
   // ── Optimistic handlers ───────────────────────────────────────────────────
 
-  const likeEventHandler = async (eventId: string, eventUserId: string) => {
+  const likeEventHandler = useCallback(async (eventId: string, eventUserId: string) => {
+    const snapshot = events;
     const updatedEvents = events.map((event) => {
       if (event.id !== eventId) return event;
       const newLikes = event.isLikedByUser
@@ -119,16 +120,17 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     const res = await like(eventId);
     if (res.error) {
       toast.error(res.error);
-      setEvents(events);
+      setEvents(snapshot);
       return;
     }
     const updated = updatedEvents.find((e) => e.id === eventId);
     if (updated?.isLikedByUser) {
       addNotification(`${user?.name}: Liked your event`, eventId, eventUserId);
     }
-  };
+  }, [events, user]);
 
-  const attendEventHandler = async (eventId: string, eventUserId: string) => {
+  const attendEventHandler = useCallback(async (eventId: string, eventUserId: string) => {
+    const snapshot = events;
     const updatedEvents = events.map((event) => {
       if (event.id !== eventId) return event;
       const newAttendees = event.isUserAttending
@@ -149,7 +151,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     const res = await markAsAttending(eventId);
     if (res.error) {
       toast.error(res.error);
-      setEvents(events);
+      setEvents(snapshot);
       return;
     }
     const updated = updatedEvents.find((e) => e.id === eventId);
@@ -160,12 +162,13 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
         eventUserId
       );
     }
-  };
+  }, [events, user]);
 
-  const notAttendEventHandler = async (
+  const notAttendEventHandler = useCallback(async (
     eventId: string,
     eventUserId: string
   ) => {
+    const snapshot = events;
     const updatedEvents = events.map((event) => {
       if (event.id !== eventId) return event;
       return {
@@ -180,7 +183,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
     const res = await markAsNotAttending(eventId);
     if (res.error) {
       toast.error(res.error);
-      setEvents(events);
+      setEvents(snapshot);
       return;
     }
     const updated = updatedEvents.find((e) => e.id === eventId);
@@ -191,12 +194,12 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
         eventUserId
       );
     }
-  };
+  }, [events, user]);
 
-  const onDeleteEvent = async (eventId: string) => {
+  const onDeleteEvent = useCallback(async (eventId: string) => {
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
     await deleteEventByUser(eventId);
-  };
+  }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
 

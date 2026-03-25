@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getRankedEventsByState } from "@/data/events";
-import { getUserDataForEvent } from "@/actions/user";
 import { transformEventForMobile } from "@/lib/api-transform";
 import { db } from "@/lib/db";
+import { EventStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -22,34 +22,40 @@ export async function GET(req: NextRequest) {
 
   const events = await getRankedEventsByState(state, user?.userId, page, limit) ?? [];
 
-  // Get user's bookmarked event IDs
+  const eventIds = events.map((e: any) => e.id);
+
+  // Batch-fetch user-specific data for all events in one go
+  let likedEventIds = new Set<string>();
+  let attendingEventIds = new Set<string>();
   let bookmarkedIds = new Set<string>();
+
   if (user) {
-    const bookmarks = await db.bookmark.findMany({
-      where: { userId: user.userId },
-      select: { eventId: true },
-    });
+    const [likes, attendees, bookmarks] = await Promise.all([
+      db.like.findMany({
+        where: { userId: user.userId, eventId: { in: eventIds } },
+        select: { eventId: true },
+      }),
+      db.eventAttendee.findMany({
+        where: { userId: user.userId, eventId: { in: eventIds }, status: EventStatus.GOING },
+        select: { eventId: true },
+      }),
+      db.bookmark.findMany({
+        where: { userId: user.userId, eventId: { in: eventIds } },
+        select: { eventId: true },
+      }),
+    ]);
+    likedEventIds = new Set(likes.map((l) => l.eventId));
+    attendingEventIds = new Set(attendees.map((a) => a.eventId));
     bookmarkedIds = new Set(bookmarks.map((b) => b.eventId));
   }
 
-  const transformed = await Promise.all(
-    events.map(async (event: any) => {
-      let isLiked = false;
-      let isAttending = false;
-
-      if (user) {
-        const userData = await getUserDataForEvent(event.id, user.userId);
-        isLiked = userData.isLikedByUser;
-        isAttending = userData.isUserAttending;
-      }
-
-      return transformEventForMobile(event, {
-        isLiked,
-        isAttending,
-        isBookmarked: bookmarkedIds.has(event.id),
-      });
-    })
-  );
+  const transformed = events.map((event: any) => {
+    return transformEventForMobile(event, {
+      isLiked: likedEventIds.has(event.id),
+      isAttending: attendingEventIds.has(event.id),
+      isBookmarked: bookmarkedIds.has(event.id),
+    });
+  });
 
   return NextResponse.json({
     events: transformed,
