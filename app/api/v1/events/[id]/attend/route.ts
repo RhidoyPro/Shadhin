@@ -13,7 +13,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
 
-  const limited = await rateLimit(`api-attend:${user.userId}:${eventId}`, { limit: 5, windowSeconds: 60 });
+  const limited = await rateLimit(`api-attend:${user.userId}`, { limit: 15, windowSeconds: 60 });
   if (limited.limited) {
     return NextResponse.json({ error: "Too fast" }, { status: 429 });
   }

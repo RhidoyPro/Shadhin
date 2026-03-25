@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { authenticateRequest, requireAuth, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { getFollowCounts, isFollowing } from "@/data/user";
 import { z } from "zod";
 import BangladeshStates from "@/data/bangladesh-states";
@@ -21,16 +22,24 @@ const PatchProfileSchema = z.object({
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const limited = await rateLimit(`api-user-read:${ip}`, { limit: 60, windowSeconds: 60 });
+  if (limited.limited) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const { id } = await params;
   const viewer = await authenticateRequest(req);
+
+  const isOwner = viewer?.userId === id;
 
   const user = await db.user.findUnique({
     where: { id },
     select: {
-      id: true, name: true, email: true, image: true, role: true,
-      stateName: true, university: true, bio: true, dateOfBirth: true,
+      id: true, name: true, image: true, role: true,
+      stateName: true, university: true, bio: true,
       isVerifiedOrg: true, points: true, createdAt: true,
       _count: { select: { events: true } },
+      // PII fields — only selected for the profile owner
+      ...(isOwner && { email: true, dateOfBirth: true }),
     },
   });
 

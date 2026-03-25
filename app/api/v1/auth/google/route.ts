@@ -47,18 +47,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid Google token" }, { status: 401 });
   }
 
-  // Find existing user by email or Google account
+  // 1. Try to find user by Google providerAccountId (trusted match)
   let user = await db.user.findFirst({
-    where: {
-      OR: [
-        { email: googleUser.email },
-        { accounts: { some: { provider: "google", providerAccountId: googleUser.sub } } },
-      ],
-    },
+    where: { accounts: { some: { provider: "google", providerAccountId: googleUser.sub } } },
   });
 
   if (!user) {
-    // Create new user + link Google account
+    // 2. No Google-linked user found — check if an email match exists
+    const existingByEmail = await db.user.findFirst({
+      where: { email: googleUser.email },
+      include: { accounts: { where: { provider: "google" } } },
+    });
+
+    if (existingByEmail) {
+      if (existingByEmail.emailVerified && existingByEmail.accounts.length === 0) {
+        // Existing verified account with no Google link — refuse auto-link to
+        // prevent account takeover (attacker registers with password, victim's
+        // Google login would otherwise grant access to attacker's account).
+        return NextResponse.json(
+          { error: "An account with this email already exists. Please login with your password." },
+          { status: 409 }
+        );
+      }
+
+      // Unverified password account — safe to assume the Google owner is the
+      // real email owner. Link the Google account and verify the email.
+      user = existingByEmail;
+      if (!user.emailVerified) {
+        await db.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } });
+      }
+    }
+  }
+
+  if (!user) {
+    // 3. Brand-new user — create with Google account linked
     user = await db.user.create({
       data: {
         email: googleUser.email,
@@ -75,12 +97,9 @@ export async function POST(req: Request) {
         },
       },
     });
-  } else if (!user.emailVerified) {
-    // Verify email on Google OAuth
-    await db.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } });
   }
 
-  // Ensure Google account is linked
+  // Ensure Google account is linked (covers the unverified-email-link path)
   const linkedAccount = await db.account.findFirst({
     where: { userId: user.id, provider: "google" },
   });

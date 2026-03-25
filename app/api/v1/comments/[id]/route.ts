@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { invalidateFeedCache } from "@/lib/cache";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const { id } = await params;
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
+
+  const limited = await rateLimit(`api-comment-del:${user.userId}`, { limit: 20, windowSeconds: 60 });
+  if (limited.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
 
   // Find comment first to get event info for cache invalidation
   const comment = await db.comment.findUnique({

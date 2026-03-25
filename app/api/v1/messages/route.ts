@@ -13,6 +13,10 @@ export const dynamic = "force-dynamic";
 const VALID_SLUGS = BangladeshStates.map((s) => s.slug);
 
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const limited = await rateLimit(`api-msg-read:${ip}`, { limit: 60, windowSeconds: 60 });
+  if (limited.limited) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const state = req.nextUrl.searchParams.get("state") || "all-districts";
   const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1"));
   const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "20")));

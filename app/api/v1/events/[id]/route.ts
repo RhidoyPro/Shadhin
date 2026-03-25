@@ -6,6 +6,7 @@ import { transformEventForMobile } from "@/lib/api-transform";
 import { db } from "@/lib/db";
 import { moderateText } from "@/lib/moderation";
 import { invalidateFeedCache } from "@/lib/cache";
+import { rateLimit } from "@/lib/rate-limit";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "@/lib/s3";
 
@@ -43,6 +44,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
 
+  const patchLimit = await rateLimit(`api-event-edit:${user.userId}`, { limit: 10, windowSeconds: 60 });
+  if (patchLimit.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
+
   const event = await db.event.findUnique({ where: { id }, select: { userId: true, stateName: true } });
   if (!event) return apiError("Event not found", 404);
   if (event.userId !== user.userId) return apiError("Not authorized", 403);
@@ -74,6 +80,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const { id } = await params;
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
+
+  const deleteLimit = await rateLimit(`api-event-del:${user.userId}`, { limit: 10, windowSeconds: 60 });
+  if (deleteLimit.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
 
   const event = await db.event.findUnique({ where: { id }, select: { userId: true, stateName: true, mediaUrl: true } });
   if (!event) return apiError("Event not found", 404);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/api-auth";
+import { rateLimit } from "@/lib/rate-limit";
 import { getRankedEventsByState } from "@/data/events";
 import { getUserDataForEvent } from "@/actions/user";
 import { transformEventForMobile } from "@/lib/api-transform";
@@ -8,6 +9,10 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const limited = await rateLimit(`api-feed-read:${ip}`, { limit: 60, windowSeconds: 60 });
+  if (limited.limited) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const user = await authenticateRequest(req);
   const { searchParams } = req.nextUrl;
 

@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
+
+  const limited = await rateLimit(`api-org-verify:${user.userId}`, { limit: 3, windowSeconds: 60 });
+  if (limited.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
 
   const body = await req.json().catch(() => null);
   if (!body?.orgName || !body?.orgType || !body?.bkashRef || body.bkashRef.length < 6) {

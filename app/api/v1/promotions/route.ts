@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,11 @@ const TIERS: Record<number, number> = { 3: 50, 7: 100, 14: 200 };
 export async function POST(req: Request) {
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
+
+  const limited = await rateLimit(`api-promotion:${user.userId}`, { limit: 5, windowSeconds: 60 });
+  if (limited.limited) {
+    return NextResponse.json({ error: "Too fast" }, { status: 429 });
+  }
 
   const body = await req.json().catch(() => null);
   if (!body?.eventId || !body?.durationDays || !body?.bkashRef || body.bkashRef.length < 6) {

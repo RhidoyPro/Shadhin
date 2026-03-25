@@ -31,9 +31,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   await db.like.create({ data: { eventId, userId: user.userId } });
   await invalidateFeedCache(event.stateName);
 
-  // Push notification to post owner (non-blocking)
+  // Push notification to post owner (non-blocking, rate-limited per target)
   if (event.userId !== user.userId) {
-    sendPushToUser(event.userId, "New Like", "Someone liked your post", `/events/details/${eventId}`).catch(() => {});
+    const notifLimited = await rateLimit(`notif-like:${event.userId}`, { limit: 10, windowSeconds: 60 });
+    if (!notifLimited.limited) {
+      sendPushToUser(event.userId, "New Like", "Someone liked your post", `/events/details/${eventId}`).catch(() => {});
+    }
   }
 
   return NextResponse.json({ liked: true });
