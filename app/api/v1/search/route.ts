@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/api-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { searchUsersAndEvents } from "@/data/user";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   let user;
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
