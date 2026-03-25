@@ -56,7 +56,13 @@ export const changePassword = async (
     data: { hashedPassword },
   });
 
-  return { message: "Password updated successfully" };
+  // Security note: With JWT-based sessions (NextAuth v5), we cannot server-side
+  // invalidate existing tokens. The client must handle re-authentication by
+  // signing the user out when it receives requireRelogin: true. A more robust
+  // approach would be adding a passwordChangedAt field to the User model and
+  // checking it against the JWT's issued-at time in the auth callbacks, but
+  // that requires a schema migration.
+  return { success: true, message: "Password updated successfully", requireRelogin: true };
 };
 
 export const deleteOwnAccount = async () => {

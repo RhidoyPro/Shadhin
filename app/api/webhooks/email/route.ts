@@ -15,7 +15,7 @@ interface ClassifiedEmail {
   autoReply: string | null;
 }
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "prodhanrhidoy@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 /**
  * Inbound email webhook from Resend
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           await getResend().emails.send({
             from: "Shadhin.io Support <help@shadhin.io>",
             to: senderEmail,
-            subject: `Re: ${emailSubject}`,
+            subject: `Re: ${emailSubject.replace(/[\r\n]/g, '').slice(0, 200)}`,
             text: classified.autoReply,
           });
         }
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         await getResend().emails.send({
           from: "Shadhin.io Support <help@shadhin.io>",
           to: senderEmail,
-          subject: `Re: ${emailSubject}`,
+          subject: `Re: ${emailSubject.replace(/[\r\n]/g, '').slice(0, 200)}`,
           text: "Thank you for reaching out. Your message has been flagged as urgent and our team has been notified. We will respond as soon as possible.\n\n- Shadhin.io Team",
         });
         return NextResponse.json({ success: true, action: "escalated_urgent" });
@@ -145,6 +145,11 @@ async function forwardToAdmin(
   content: string,
   type: string
 ) {
+  if (!ADMIN_EMAIL) {
+    console.warn("ADMIN_EMAIL not set — skipping admin notification");
+    return;
+  }
+
   const typeLabels: Record<string, string> = {
     complaint: "Complaint",
     urgent: "URGENT",
@@ -152,10 +157,12 @@ async function forwardToAdmin(
     classification_failed: "Classification Failed",
   };
 
+  const sanitizedSubject = subject.replace(/[\r\n]/g, '').slice(0, 200);
+
   await getResend().emails.send({
     from: "Shadhin.io Support <help@shadhin.io>",
     to: ADMIN_EMAIL,
-    subject: `[${typeLabels[type] || type}] ${subject}`,
-    text: `From: ${senderEmail}\nSubject: ${subject}\nType: ${type}\n\n---\n\n${content}`,
+    subject: `[${typeLabels[type] || type}] ${sanitizedSubject}`,
+    text: `From: ${senderEmail}\nSubject: ${sanitizedSubject}\nType: ${type}\n\n---\n\n${content}`,
   });
 }

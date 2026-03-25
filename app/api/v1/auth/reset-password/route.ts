@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   }
 
   const code = body.code.trim().toUpperCase();
-  if (!/^[0-9A-F]{8}$/.test(code)) {
+  if (!/^[0-9A-F]{16}$/.test(code)) {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });
   }
 
@@ -40,6 +40,15 @@ export async function POST(req: Request) {
   const existingCode = await getForgotPasswordCodeByCode(code);
   if (!existingCode) {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });
+  }
+
+  // Per-code rate limit to prevent brute-force password resets
+  const codeLimited = await rateLimit(`reset-attempt:${code}`, { limit: 5, windowSeconds: 3600 });
+  if (codeLimited.limited) {
+    return NextResponse.json(
+      { error: `Too many attempts for this code. Retry in ${codeLimited.retryAfterSeconds}s.` },
+      { status: 429 }
+    );
   }
 
   if (new Date(existingCode.expires) < new Date()) {

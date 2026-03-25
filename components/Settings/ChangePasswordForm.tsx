@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { signOut } from "next-auth/react";
 import { changePassword } from "@/actions/settings";
 
 interface ChangePasswordFormProps {
@@ -33,8 +34,16 @@ const ChangePasswordForm = ({ hasExistingPassword }: ChangePasswordFormProps) =>
 
     if (res.error) {
       toast.error(res.error);
-    } else {
-      toast.success(res.message);
+      setIsPending(false);
+      return;
+    }
+
+    toast.success(res.message);
+
+    if (res.requireRelogin) {
+      // Force re-login so the new password takes effect for credential sessions
+      await signOut({ callbackUrl: "/login" });
+      return;
     }
     setIsPending(false);
   };

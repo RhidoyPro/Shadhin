@@ -32,8 +32,8 @@ export async function POST(req: Request) {
   const user = await getUserByEmail(parsed.data.email);
   if (!user) return NextResponse.json({ message });
 
-  // Generate 8-char hex code
-  const code = crypto.randomBytes(4).toString("hex");
+  // Generate 16-char hex code
+  const code = crypto.randomBytes(8).toString("hex").toUpperCase();
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   // Delete any existing codes for this email, then create a new one

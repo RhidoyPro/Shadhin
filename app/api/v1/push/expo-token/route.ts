@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   try { user = await requireAuth(req); } catch (e) { return e as Response; }
 
   const body = await req.json().catch(() => null);
-  if (!body?.token || !body.token.startsWith("ExponentPushToken[")) {
+  if (!body?.token || !/^ExponentPushToken\[[a-zA-Z0-9\-_]+\]$/.test(body.token)) {
     return NextResponse.json({ error: "Invalid Expo push token" }, { status: 400 });
   }
 

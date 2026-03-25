@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { authenticateRequest, requireAuth, apiError } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { getFollowCounts, isFollowing } from "@/data/user";
+import { z } from "zod";
+import BangladeshStates from "@/data/bangladesh-states";
+
+const VALID_STATE_SLUGS = BangladeshStates.filter((s) => s.slug !== "all-districts").map((s) => s.slug);
+
+const PatchProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name cannot exceed 50 characters").optional(),
+  bio: z.string().max(500, "Bio cannot exceed 500 characters").optional(),
+  university: z.string().max(100, "University cannot exceed 100 characters").optional(),
+  stateName: z.string().refine((s) => VALID_STATE_SLUGS.includes(s), {
+    message: "Invalid Bangladesh district",
+  }).optional(),
+  phone: z.string().max(20, "Phone cannot exceed 20 characters").optional(),
+  dateOfBirth: z.string().datetime({ message: "Invalid ISO date format" }).optional(),
+}).strict();
 
 export const dynamic = "force-dynamic";
 
@@ -49,15 +64,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json().catch(() => null);
   if (!body) return apiError("Invalid body", 400);
 
-  const data: Record<string, unknown> = {};
-  if (body.name !== undefined) data.name = body.name;
-  if (body.university !== undefined) data.university = body.university;
-  if (body.bio !== undefined) {
-    if (body.bio.length > 300) return apiError("Bio too long (max 300)", 400);
-    data.bio = body.bio;
+  const parsed = PatchProfileSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    );
   }
-  if (body.stateName !== undefined) data.stateName = body.stateName;
-  if (body.dateOfBirth !== undefined) data.dateOfBirth = new Date(body.dateOfBirth);
+
+  const { dateOfBirth, ...rest } = parsed.data;
+  const data: Record<string, unknown> = { ...rest };
+  if (dateOfBirth !== undefined) data.dateOfBirth = new Date(dateOfBirth);
 
   const updated = await db.user.update({
     where: { id },

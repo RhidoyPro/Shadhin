@@ -26,7 +26,7 @@ export async function signMobileToken(payload: ApiUser): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime("14d")
     .setSubject(payload.userId)
     .sign(getSecretKey());
 }
