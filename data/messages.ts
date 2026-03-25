@@ -36,6 +36,7 @@ async function fetchFromDb(stateName: string, skip: number, limit: number) {
           id: true,
           name: true,
           image: true,
+          isVerifiedOrg: true,
         },
       },
     },
@@ -44,7 +45,33 @@ async function fetchFromDb(stateName: string, skip: number, limit: number) {
     take: limit,
   });
 
+  // Batch-load reply targets
+  const replyIds = messages
+    .map((m) => m.replyToId)
+    .filter((id): id is string => !!id);
+
+  let replyMap: Record<string, { id: string; message: string; user: { id: string; name: string } }> = {};
+  if (replyIds.length > 0) {
+    const uniqueIds = [...new Set(replyIds)];
+    const replyMessages = await db.message.findMany({
+      where: { id: { in: uniqueIds } },
+      select: {
+        id: true,
+        message: true,
+        user: { select: { id: true, name: true } },
+      },
+    });
+    for (const rm of replyMessages) {
+      replyMap[rm.id] = rm;
+    }
+  }
+
+  const enriched = messages.map((m) => ({
+    ...m,
+    replyTo: m.replyToId ? replyMap[m.replyToId] || null : null,
+  }));
+
   // Sort ascending for display (fetched desc for pagination)
-  messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-  return messages;
+  enriched.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  return enriched;
 }

@@ -44,6 +44,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Comment flagged for moderation" }, { status: 400 });
   }
 
+  const mentionedUserIds: string[] = Array.isArray(body?.mentionedUserIds) ? body.mentionedUserIds : [];
+
   const comment = await db.comment.create({
     data: { content: parsed.data.content, eventId, userId: user.userId },
     include: { user: { select: { id: true, name: true, image: true, isVerifiedOrg: true } } },
@@ -52,7 +54,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   await invalidateFeedCache(event.stateName);
 
   if (event.userId !== user.userId) {
-    sendPushToUser(event.userId, "New Comment", "Someone commented on your post", `/events/details/${eventId}`).catch(() => {});
+    sendPushToUser(event.userId, "New Comment", `${comment.user.name} commented on your post`, `/events/details/${eventId}`).catch(() => {});
+  }
+
+  // Send push to mentioned users
+  for (const mentionedId of mentionedUserIds) {
+    if (mentionedId !== user.userId && mentionedId !== event.userId) {
+      sendPushToUser(mentionedId, "Mention", `${comment.user.name} mentioned you in a comment`, `/events/details/${eventId}`).catch(() => {});
+    }
   }
 
   return NextResponse.json({ comment }, { status: 201 });

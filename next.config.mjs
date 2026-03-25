@@ -38,10 +38,10 @@ const securityHeaders = [
       // Next.js hydration requires unsafe-eval in dev; removed in production builds
       // unsafe-inline needed for Next.js inline scripts
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://connect.facebook.net",
-      // Images from R2, Google (user avatars), Meta Pixel, and data URIs
-      "img-src 'self' data: blob: https://*.r2.dev https://lh3.googleusercontent.com https://www.facebook.com",
-      // API calls, analytics endpoints
-      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.clarity.ms https://www.facebook.com",
+      // Images from R2, Google (user avatars), DiceBear, Meta Pixel, and data URIs
+      "img-src 'self' data: blob: https://*.r2.dev https://api.dicebear.com https://lh3.googleusercontent.com https://www.facebook.com",
+      // API calls, analytics endpoints, R2 uploads, DiceBear avatars
+      "connect-src 'self' https://*.r2.dev https://api.dicebear.com https://us.i.posthog.com https://www.google-analytics.com https://analytics.google.com https://www.clarity.ms https://www.facebook.com",
       // Font sources
       "font-src 'self' data:",
       // Media (video/audio) from R2
