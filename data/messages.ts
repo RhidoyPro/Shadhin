@@ -52,7 +52,7 @@ async function fetchFromDb(stateName: string, skip: number, limit: number) {
 
   let replyMap: Record<string, { id: string; message: string; user: { id: string; name: string } }> = {};
   if (replyIds.length > 0) {
-    const uniqueIds = [...new Set(replyIds)];
+    const uniqueIds = Array.from(new Set(replyIds));
     const replyMessages = await db.message.findMany({
       where: { id: { in: uniqueIds } },
       select: {
