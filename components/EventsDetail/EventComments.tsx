@@ -85,7 +85,7 @@ function renderWithMentions(text: string) {
 }
 
 // Memoized comment content to avoid re-running renderWithMentions regex on every render
-const MemoizedCommentContent = React.memo(({ text }: { text: string }) => {
+const MemoizedCommentContent = React.memo(function MemoizedCommentContent({ text }: { text: string }) {
   const rendered = useMemo(() => renderWithMentions(text), [text]);
   return <>{rendered}</>;
 });
