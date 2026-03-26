@@ -22,10 +22,7 @@ export async function generateMetadata({
   const title = `${event.user.name} on Shadhin.io`;
   const baseUrl = process.env.FRONTEND_URL || "https://shadhin.io";
   const postUrl = `${baseUrl}/events/details/${event.id}`;
-  const ogImage =
-    event.type === "image" && event.mediaUrl
-      ? event.mediaUrl
-      : `${baseUrl}/bangladesh.jpg`;
+  const ogImage = `${baseUrl}/api/og?id=${event.id}`;
 
   return {
     title,
