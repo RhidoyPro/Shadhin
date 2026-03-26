@@ -11,6 +11,20 @@ import {
 
 const { auth } = NextAuth(authConfig);
 
+// Social media and search engine crawlers that need access to OG meta tags
+const CRAWLER_USER_AGENTS = [
+  "facebookexternalhit",
+  "Facebot",
+  "Twitterbot",
+  "LinkedInBot",
+  "Slackbot",
+  "WhatsApp",
+  "TelegramBot",
+  "Googlebot",
+  "bingbot",
+  "Discordbot",
+];
+
 export default auth((req) => {
   // CVE-2025-29927: Strip spoofed internal header to prevent middleware bypass
   const requestHeaders = new Headers(req.headers);
@@ -27,6 +41,20 @@ export default auth((req) => {
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
+
+  // Allow social media crawlers through to event/user pages so OG tags render
+  const ua = req.headers.get("user-agent") || "";
+  const isCrawler = CRAWLER_USER_AGENTS.some((bot) =>
+    ua.toLowerCase().includes(bot.toLowerCase())
+  );
+  const isCrawlablePath =
+    nextUrl.pathname.startsWith("/events/details/") ||
+    nextUrl.pathname.startsWith("/user/") ||
+    nextUrl.pathname.startsWith("/events/");
+
+  if (isCrawler && isCrawlablePath) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   if (isApiRoute || isMobileApi || isCronRoute) {
     return NextResponse.next({ request: { headers: requestHeaders } });

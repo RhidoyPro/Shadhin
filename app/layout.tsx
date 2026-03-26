@@ -47,6 +47,14 @@ export const metadata: Metadata = {
     title: "Shadhin.io — Bangladesh's District-Based Social Platform",
     description:
       "Connect with your local community. Events, live chat, and discussions organized by Bangladesh's districts.",
+    images: [
+      {
+        url: "/bangladesh.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Shadhin.io — Bangladesh's District-Based Social Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
