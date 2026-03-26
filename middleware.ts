@@ -38,6 +38,7 @@ export default auth((req) => {
   const isApiRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isMobileApi = nextUrl.pathname.startsWith("/api/v1/");
   const isCronRoute = nextUrl.pathname.startsWith("/api/cron/");
+  const isOgRoute = nextUrl.pathname.startsWith("/api/og");
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
@@ -56,7 +57,7 @@ export default auth((req) => {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  if (isApiRoute || isMobileApi || isCronRoute) {
+  if (isApiRoute || isMobileApi || isCronRoute || isOgRoute) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
