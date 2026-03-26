@@ -4,6 +4,7 @@ import EventComments from "@/components/EventsDetail/EventComments";
 import { fetchEventComments } from "@/actions/comment";
 import EventData from "@/components/EventsDetail/EventData";
 import { fetchEventById } from "@/actions/event";
+import { getEventById } from "@/data/events";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -12,7 +13,8 @@ export async function generateMetadata({
 }: {
   params: { eventId: string };
 }): Promise<Metadata> {
-  const event = await fetchEventById(params.eventId);
+  // Use data layer directly — no auth required, works for crawlers
+  const event = await getEventById(params.eventId);
   if (!event) return { title: "Post Not Found" };
 
   const snippet =
