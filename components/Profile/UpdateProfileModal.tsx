@@ -50,7 +50,7 @@ const UpdateProfileModal = ({
   const { update, data: session } = useSession();
   const [file, setFile] = React.useState<File | undefined>();
   const [date, setDate] = React.useState<Date | undefined>(
-    user?.dateOfBirth || undefined
+    user?.dateOfBirth ? new Date(user.dateOfBirth) : undefined
   );
   const [isUploading, setIsUploading] = React.useState<boolean>(false);
   const [profileImgError, setProfileImgError] = useState(false);
@@ -180,6 +180,7 @@ const UpdateProfileModal = ({
       onClose();
       return;
     } catch (error) {
+      console.error("Profile picture upload failed:", error);
       toast.error("Failed to upload profile picture");
       setIsUploading(false);
     }
@@ -235,8 +236,8 @@ const UpdateProfileModal = ({
           </section>
           {file && (
             <div className="mt-4 flex items-center justify-center">
-              <Button onClick={uploadProfilePictureHandler}>
-                Update Image
+              <Button onClick={uploadProfilePictureHandler} disabled={isUploading}>
+                {isUploading ? "Uploading..." : "Update Image"}
               </Button>
             </div>
           )}

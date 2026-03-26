@@ -87,8 +87,12 @@ export const UpdateProfileSchema = z.object({
   lastName: z.string().max(100, "Name too long").optional(),
   university: z.string().max(200, "University name too long").optional(),
   dateOfBirth: z
-    .date({ message: "Please enter a valid date of birth" })
-    .optional(),
+    .union([z.date(), z.string().datetime(), z.string().length(0)])
+    .optional()
+    .transform((val) => {
+      if (!val || val === "") return undefined;
+      return val instanceof Date ? val : new Date(val);
+    }),
   state: z
     .string()
     .refine((s) => s === "" || VALID_STATES.includes(s) || VALID_STATE_SLUGS.includes(s), {
