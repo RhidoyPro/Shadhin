@@ -20,13 +20,8 @@ import { cn } from "@/lib/utils";
 import { UpdateProfileSchema } from "@/utils/zodSchema";
 import { toast } from "sonner";
 import { User } from "@prisma/client";
-import {
-  getSignedURLForImage,
-  updateUser,
-  updateUserImage,
-} from "@/actions/user";
+import { updateUser } from "@/actions/user";
 import { useSession } from "next-auth/react";
-import { computeSHA256 } from "@/utils/computeHash";
 import BangladeshStates from "@/data/bangladesh-states";
 import {
   Select,
@@ -130,55 +125,34 @@ const UpdateProfileModal = ({
     setIsUploading(true);
 
     try {
-      const checkSum = await computeSHA256(file);
-      const signedUrlResult = await getSignedURLForImage(
-        file.type,
-        file.size,
-        checkSum
-      );
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", user.id);
 
-      if (signedUrlResult.error !== undefined) {
-        toast.error(signedUrlResult.error);
-        setIsUploading(false);
-        return;
-      }
-
-      const { url, publicUrl } = signedUrlResult.success;
-
-      const res = await fetch(url, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type || "application/octet-stream",
-        },
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
       });
 
+      const result = await res.json();
+
       if (!res.ok) {
-        toast.error("Failed to upload file, please try again");
+        toast.error(result.error || "Failed to upload image");
         setIsUploading(false);
         return;
       }
 
-      const updateUserImageResult = await updateUserImage(
-        user.id,
-        publicUrl
-      );
-
-      if (updateUserImageResult.error !== undefined) {
-        toast.error(updateUserImageResult.error);
-      }
       update({
         ...session,
         user: {
           ...session?.user,
-          image: publicUrl,
+          image: result.publicUrl,
         },
       });
       setIsUploading(false);
       setFile(undefined);
-      toast.success(updateUserImageResult.message);
+      toast.success("Profile photo updated");
       onClose();
-      return;
     } catch (error) {
       console.error("Profile picture upload failed:", error);
       toast.error("Failed to upload profile picture");
