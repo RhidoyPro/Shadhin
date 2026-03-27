@@ -33,7 +33,10 @@ const MetaPixel = dynamic(() => import("@/components/MetaPixel"), { ssr: false }
 const ConsentGate = dynamic(() => import("@/components/ConsentGate"), { ssr: false });
 const CookieConsent = dynamic(() => import("@/components/CookieConsent"), { ssr: false });
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+import { Noto_Sans_Bengali } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
+const notoBengali = Noto_Sans_Bengali({ subsets: ["bengali"], display: "swap", variable: "--font-bangla", weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: {
@@ -103,7 +106,7 @@ export default async function RootLayout({
           <link rel="dns-prefetch" href="https://connect.facebook.net" />
           <link rel="dns-prefetch" href="https://us.i.posthog.com" />
         </head>
-        <body className={inter.className}>
+        <body className={`${inter.variable} ${notoBengali.variable} font-sans`}>
           <NextTopLoader color="#16a34a" />
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider
