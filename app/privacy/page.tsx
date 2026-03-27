@@ -13,7 +13,7 @@ const PrivacyPage = () => {
           &larr; Back to Shadhin.io
         </Link>
         <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground mb-8">Last updated: March 2025</p>
+        <p className="text-sm text-muted-foreground mb-8">Last updated: March 2026</p>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
           <section>
@@ -25,7 +25,10 @@ const PrivacyPage = () => {
               <strong>Content:</strong> Posts, comments, messages, and media you upload.
             </p>
             <p className="text-muted-foreground">
-              <strong>Usage data:</strong> Pages visited, features used, and interaction patterns via Google Analytics.
+              <strong>Usage data:</strong> Pages visited, features used, and interaction patterns via Google Analytics, PostHog, and Microsoft Clarity (consent-gated).
+            </p>
+            <p className="text-muted-foreground">
+              <strong>Device tokens:</strong> Push notification tokens for delivering notifications on web and mobile.
             </p>
           </section>
 
@@ -39,7 +42,7 @@ const PrivacyPage = () => {
           <section>
             <h2 className="text-xl font-semibold">3. Data Storage</h2>
             <p className="text-muted-foreground">
-              Your data is stored in MongoDB Atlas (cloud database) and Cloudflare R2 (media files). We use industry-standard security practices to protect your data.
+              Your data is stored in MongoDB Atlas (cloud database) and Cloudflare R2 (media files). Passwords are hashed with bcrypt and checked against known breached passwords via the HaveIBeenPwned API. All data is encrypted in transit via HTTPS/TLS.
             </p>
           </section>
 
