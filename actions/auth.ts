@@ -15,6 +15,7 @@ import {
   updateIsEmailSent,
 } from "@/data/verification-token";
 import { rateLimit } from "@/lib/rate-limit";
+import { validatePasswordNotBreached } from "@/lib/password-check";
 import { headers } from "next/headers";
 
 export const login = async (provider: string) => {
@@ -173,6 +174,10 @@ export const signup = async (state: any, formData: ISignupData) => {
   }
 
   try {
+    // Check breached passwords
+    const breachError = await validatePasswordNotBreached(rawFormData.password);
+    if (breachError) return { error: breachError };
+
     //check if user already exists
     const user = await getUserByEmail(rawFormData.email);
 

@@ -9,6 +9,7 @@ import { sendVerificationEmail, sendWelcomeEmail, sendNewDistrictMemberEmail } f
 import { updateIsEmailSent } from "@/data/verification-token";
 import { headers } from "next/headers";
 import { sanitizeBody } from "@/lib/sanitize";
+import { validatePasswordNotBreached } from "@/lib/password-check";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,12 @@ export async function POST(req: Request) {
     const errors = parsed.error.flatten().fieldErrors;
     const firstError = Object.values(errors)[0]?.[0] || "Invalid input";
     return NextResponse.json({ error: firstError }, { status: 400 });
+  }
+
+  // Check breached passwords
+  const breachError = await validatePasswordNotBreached(data.password);
+  if (breachError) {
+    return NextResponse.json({ error: breachError }, { status: 400 });
   }
 
   // Don't reveal if email exists

@@ -7,6 +7,7 @@ import { sendForgotPasswordEmail } from "@/lib/mail";
 import { saltAndHash } from "@/utils/helper";
 import { ResetEmailSchema, ResetPasswordSchema } from "@/utils/zodSchema";
 import { rateLimit } from "@/lib/rate-limit";
+import { validatePasswordNotBreached } from "@/lib/password-check";
 import { headers } from "next/headers";
 
 export const sendForgotPasswordCode = async (email: string) => {
@@ -100,6 +101,9 @@ export const forgotPassword = async (
   if (!validatedData.success) {
     return { error: validatedData.error.issues[0].message };
   }
+
+  const breachError = await validatePasswordNotBreached(password);
+  if (breachError) return { error: breachError };
 
   const newPassword = saltAndHash(password);
 

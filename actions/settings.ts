@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { saltAndHash } from "@/utils/helper";
+import { validatePasswordNotBreached } from "@/lib/password-check";
 import bcrypt from "bcryptjs";
 
 export const changePassword = async (
@@ -48,6 +49,9 @@ export const changePassword = async (
       return { error: "Current password is incorrect" };
     }
   }
+
+  const breachError = await validatePasswordNotBreached(newPassword);
+  if (breachError) return { error: breachError };
 
   const hashedPassword = saltAndHash(newPassword);
 
