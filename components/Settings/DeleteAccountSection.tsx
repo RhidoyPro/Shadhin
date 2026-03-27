@@ -17,14 +17,16 @@ import {
 import { toast } from "sonner";
 import { deleteOwnAccount } from "@/actions/settings";
 import { signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 const DeleteAccountSection = () => {
+  const t = useTranslations("deleteAccount");
   const [confirmation, setConfirmation] = useState("");
   const [isPending, setIsPending] = useState(false);
 
   const handleDelete = async () => {
     if (confirmation !== "DELETE") {
-      toast.error('Please type "DELETE" to confirm');
+      toast.error(t("typeDelete"));
       return;
     }
 
@@ -37,21 +39,20 @@ const DeleteAccountSection = () => {
       return;
     }
 
-    toast.success("Account deleted. Goodbye.");
+    toast.success(t("goodbye"));
     await signOut({ callbackUrl: "/login" });
   };
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">Delete My Account</Button>
+        <Button variant="destructive">{t("title")}</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete your account, all your posts, comments,
-            likes, and messages. This action cannot be undone.
+            {t("confirmDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="my-2">
@@ -73,7 +74,7 @@ const DeleteAccountSection = () => {
             disabled={confirmation !== "DELETE" || isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isPending ? "Deleting..." : "Delete Forever"}
+            {isPending ? t("deleting") : t("deleteForever")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

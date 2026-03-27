@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import LogoutBtn from "@/components/Shared/LogoutBtn";
+import { getTranslations } from "next-intl/server";
 
 const SuspendedPage = async () => {
   const session = await auth();
@@ -21,6 +22,8 @@ const SuspendedPage = async () => {
     redirect("/events/all-districts");
   }
 
+  const t = await getTranslations("suspended");
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-lg">
@@ -28,22 +31,21 @@ const SuspendedPage = async () => {
           <span className="text-3xl">&#9888;</span>
         </div>
         <h1 className="mb-2 text-2xl font-bold text-foreground">
-          Account Suspended
+          {t("title")}
         </h1>
         <p className="mb-4 text-muted-foreground">
-          Your account has been suspended due to community guideline violations.
+          {t("description")}
         </p>
         {user.suspendedUntil && (
           <p className="mb-4 text-sm text-muted-foreground">
-            Suspension expires:{" "}
+            {t("expiresAt")}{" "}
             <span className="font-medium text-foreground">
               {format(user.suspendedUntil, "MMMM d, yyyy 'at' h:mm a")}
             </span>
           </p>
         )}
         <p className="mb-6 text-sm text-muted-foreground">
-          Strikes: {user.strikes}/3. If you believe this is a mistake, contact{" "}
-          <span className="font-medium text-primary">support@shadhin.io</span>
+          {t("strikes", { strikes: user.strikes })}
         </p>
         <LogoutBtn />
       </div>

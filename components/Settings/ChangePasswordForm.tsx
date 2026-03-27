@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
 import { changePassword } from "@/actions/settings";
+import { useTranslations } from "next-intl";
 
 interface ChangePasswordFormProps {
   hasExistingPassword: boolean;
 }
 
 const ChangePasswordForm = ({ hasExistingPassword }: ChangePasswordFormProps) => {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
@@ -22,7 +25,7 @@ const ChangePasswordForm = ({ hasExistingPassword }: ChangePasswordFormProps) =>
     const confirmPassword = formData.get("confirmPassword") as string;
 
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordsMismatch"));
       setIsPending(false);
       return;
     }
@@ -52,40 +55,40 @@ const ChangePasswordForm = ({ hasExistingPassword }: ChangePasswordFormProps) =>
     <form action={handleSubmit} className="space-y-4">
       {hasExistingPassword && (
         <div className="grid gap-2">
-          <Label htmlFor="currentPassword">Current Password</Label>
+          <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
           <Input
             id="currentPassword"
             name="currentPassword"
             type="password"
             required
-            placeholder="Enter current password"
+            placeholder={t("currentPasswordPlaceholder")}
           />
         </div>
       )}
       <div className="grid gap-2">
-        <Label htmlFor="newPassword">New Password</Label>
+        <Label htmlFor="newPassword">{t("newPassword")}</Label>
         <Input
           id="newPassword"
           name="newPassword"
           type="password"
           required
           minLength={8}
-          placeholder="At least 8 characters"
+          placeholder={t("newPasswordHint")}
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+        <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
         <Input
           id="confirmPassword"
           name="confirmPassword"
           type="password"
           required
           minLength={8}
-          placeholder="Confirm new password"
+          placeholder={t("confirmPasswordPlaceholder")}
         />
       </div>
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Saving..." : hasExistingPassword ? "Change Password" : "Set Password"}
+        {isPending ? tc("saving") : hasExistingPassword ? t("changePassword") : t("setPassword")}
       </Button>
     </form>
   );

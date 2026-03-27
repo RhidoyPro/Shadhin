@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -75,6 +76,7 @@ const ChatSection = ({
   savedMessages,
   hiddenOnMobile = true,
 }: ChatSectionProps) => {
+  const t = useTranslations("chat");
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>(savedMessages);
@@ -285,7 +287,7 @@ const ChatSection = ({
             </span>
           </div>
           <div>
-            <h2 className="font-semibold text-foreground text-sm">Live Chat</h2>
+            <h2 className="font-semibold text-foreground text-sm">{t("title")}</h2>
             <p className="text-[11px] text-muted-foreground capitalize">{activeState.replace("-", " ")}</p>
           </div>
         </div>
@@ -303,7 +305,7 @@ const ChatSection = ({
         {hasMore && (
           <div className="flex justify-center">
             <Button variant="link" size="sm" className="text-xs" onClick={() => setLoadPrevious(true)}>
-              Load previous messages
+              {t("loadPrevious")}
             </Button>
           </div>
         )}
@@ -351,7 +353,7 @@ const ChatSection = ({
         ))}
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-sm text-muted-foreground">No messages yet. Say hi!</p>
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
           </div>
         )}
       </div>
@@ -402,7 +404,7 @@ const ChatSection = ({
         <div className="flex items-center gap-2">
           <Input
             ref={inputRef}
-            placeholder="Type a message... (@ to mention)"
+            placeholder={t("placeholder")}
             value={message}
             onChange={handleInputChange}
             onKeyDown={(e) => {

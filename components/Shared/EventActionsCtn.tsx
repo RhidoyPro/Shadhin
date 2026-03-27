@@ -34,6 +34,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { analytics } from "@/utils/analytics";
 import { useFirstAction } from "@/hooks/use-first-action";
+import { useTranslations } from "next-intl";
 
 type EventActionsCtnProps = {
   eventId: string;
@@ -65,6 +66,8 @@ const EventActionsCtn = ({
   eventNotAttendHandler,
 }: EventActionsCtnProps) => {
   const markFirstAction = useFirstAction();
+  const t = useTranslations("eventActions");
+  const tc = useTranslations("common");
   const [reportReason, setReportReason] = React.useState("");
   const [isReportDialogOpen, setIsReportDialogOpen] = React.useState(false);
   const [isBookmarked, setIsBookmarked] = React.useState(initialBookmarked);
@@ -82,12 +85,12 @@ const EventActionsCtn = ({
     } else {
       analytics.postUnbookmarked(eventId);
     }
-    toast.success(res.bookmarked ? "Saved" : "Removed from saved");
+    toast.success(res.bookmarked ? tc("saved") : tc("removedFromSaved"));
   };
 
   const reportEventHandler = async () => {
     if (reportReason.trim() === "") {
-      return toast.error("Please provide a reason for reporting");
+      return toast.error(t("reportReason"));
     }
     try {
       const reportResponse = await addNewReport(eventId, reportReason);
@@ -97,9 +100,9 @@ const EventActionsCtn = ({
       }
       setIsReportDialogOpen(false);
       setReportReason("");
-      toast.success("Reported successfully");
+      toast.success(t("reportSuccess"));
     } catch {
-      toast.error("An error occurred while reporting");
+      toast.error(t("reportError"));
     }
   };
 
@@ -118,11 +121,11 @@ const EventActionsCtn = ({
           )}
           {comments > 0 && (
             <Link href={`/events/details/${eventId}`} className="hover:underline">
-              {comments} {comments === 1 ? "comment" : "comments"}
+              {comments} {comments === 1 ? tc("comment") : tc("comments")}
             </Link>
           )}
           {isEvent && attendees > 0 && (
-            <span>{attendees} going</span>
+            <span>{attendees} {tc("going")}</span>
           )}
         </div>
       )}
@@ -149,10 +152,10 @@ const EventActionsCtn = ({
                 )}
               >
                 <Heart className={cn("h-[18px] w-[18px]", isLiked && "fill-current")} />
-                <span className="hidden text-sm font-medium sm:inline">Like</span>
+                <span className="hidden text-sm font-medium sm:inline">{tc("like")}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom"><p>{isLiked ? "Unlike" : "Like"}</p></TooltipContent>
+            <TooltipContent side="bottom"><p>{isLiked ? tc("unlike") : tc("like")}</p></TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -165,11 +168,11 @@ const EventActionsCtn = ({
               >
                 <Link href={`/events/details/${eventId}`}>
                   <MessageCircle className="h-[18px] w-[18px]" />
-                  <span className="hidden text-sm font-medium sm:inline">Comment</span>
+                  <span className="hidden text-sm font-medium sm:inline">{tc("comment")}</span>
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom"><p>Comment</p></TooltipContent>
+            <TooltipContent side="bottom"><p>{tc("comment")}</p></TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -186,10 +189,10 @@ const EventActionsCtn = ({
                 )}
               >
                 <Bookmark className={cn("h-[18px] w-[18px]", isBookmarked && "fill-current")} />
-                <span className="sr-only">{isBookmarked ? "Unsave" : "Save"}</span>
+                <span className="sr-only">{isBookmarked ? tc("unsave") : tc("save")}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom"><p>{isBookmarked ? "Unsave" : "Save"}</p></TooltipContent>
+            <TooltipContent side="bottom"><p>{isBookmarked ? tc("unsave") : tc("save")}</p></TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -201,10 +204,10 @@ const EventActionsCtn = ({
                 className="h-9 rounded-full px-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
               >
                 <Flag className="h-[18px] w-[18px]" />
-                <span className="sr-only">Report</span>
+                <span className="sr-only">{tc("report")}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom"><p>Report</p></TooltipContent>
+            <TooltipContent side="bottom"><p>{tc("report")}</p></TooltipContent>
           </Tooltip>
         </div>
 
@@ -225,10 +228,10 @@ const EventActionsCtn = ({
                   )}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Going</span>
+                  <span className="hidden sm:inline">{tc("going")}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom"><p>Mark as going</p></TooltipContent>
+              <TooltipContent side="bottom"><p>{tc("markAsGoing")}</p></TooltipContent>
             </Tooltip>
 
             <Tooltip>
@@ -245,10 +248,10 @@ const EventActionsCtn = ({
                   )}
                 >
                   <XCircle className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Not Going</span>
+                  <span className="hidden sm:inline">{tc("notGoing")}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom"><p>Mark as not going</p></TooltipContent>
+              <TooltipContent side="bottom"><p>{tc("markAsNotGoing")}</p></TooltipContent>
             </Tooltip>
           </div>
         )}
@@ -259,24 +262,24 @@ const EventActionsCtn = ({
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Report this {isEvent ? "event" : "post"}</AlertDialogTitle>
+            <AlertDialogTitle>{isEvent ? t("reportEvent") : t("reportPost")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Please provide a reason. Our team will review this report.
+              {t("reportReason")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
-            placeholder="Describe why you're reporting this..."
+            placeholder={t("reportPlaceholder")}
             className="min-h-[100px] resize-none"
             value={reportReason}
             onChange={(e) => setReportReason(e.target.value)}
           />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setReportReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setReportReason("")}>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={reportEventHandler}
               disabled={!reportReason.trim()}
             >
-              Submit Report
+              {t("submitReport")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "./ui/button";
 import {
@@ -41,6 +42,8 @@ type NavbarProps = {
 
 const Navbar = ({ session, userNotifications }: NavbarProps) => {
   const router = useRouter();
+  const t = useTranslations("nav");
+  const ta = useTranslations("auth");
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -94,7 +97,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                 <Input
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Search events, people, posts..."
+                  placeholder={t("search")}
                   className="h-9 w-full rounded-full border-0 bg-muted/60 pl-9 pr-4 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
@@ -123,7 +126,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                   onClick={() => setIsCreateModalOpen(true)}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Create
+                  {t("create")}
                 </Button>
                 {/* Create button — mobile */}
                 <Button
@@ -132,7 +135,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                   onClick={() => setIsCreateModalOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
-                  <span className="sr-only">Create</span>
+                  <span className="sr-only">{t("create")}</span>
                 </Button>
 
                 <Notifications userNotifications={userNotifications} />
@@ -144,10 +147,10 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
             {!session?.user && (
               <>
                 <Button variant="outline" className="sm:w-24 rounded-full" asChild>
-                  <Link href="/login">Log in</Link>
+                  <Link href="/login">{ta("logIn")}</Link>
                 </Button>
                 <Button className="sm:w-24 rounded-full" asChild>
-                  <Link href="/signup">Sign up</Link>
+                  <Link href="/signup">{ta("signUp")}</Link>
                 </Button>
               </>
             )}
@@ -184,23 +187,23 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                   {(session.user.role === UserRole.ADMIN ||
                     session.user.role === UserRole.SUPER_USER) && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
+                      <Link href="/admin" className="cursor-pointer">{t("adminPanel")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link href="/leaderboard" className="cursor-pointer">Leaderboard 🏆</Link>
+                    <Link href="/leaderboard" className="cursor-pointer">{t("leaderboard")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/bookmarks" className="cursor-pointer">Saved Posts</Link>
+                    <Link href="/bookmarks" className="cursor-pointer">{t("savedPosts")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href={`/user/${session.user.id}`} className="cursor-pointer">
-                      View/Update Profile
+                      {t("viewProfile")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="cursor-pointer">
-                      Settings
+                      {t("settings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -221,7 +224,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search events, people, posts..."
+                placeholder={t("search")}
                 className="h-9 w-full rounded-full border-0 bg-muted/60 pl-9 text-sm"
                 autoFocus
               />
