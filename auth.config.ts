@@ -17,6 +17,7 @@ export const authConfig = {
         session.user.role = token.role;
       }
       session.user.isSuspended = (token.isSuspended as boolean) ?? false;
+      session.user.stateName = (token.stateName as string) ?? undefined;
       return session;
     },
   },

@@ -63,7 +63,11 @@ export default auth((req) => {
 
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+      const userDistrict = session?.user?.stateName;
+      const redirectPath = userDistrict
+        ? `/events/${userDistrict}`
+        : DEFAULT_LOGIN_REDIRECT;
+      return NextResponse.redirect(new URL(redirectPath, nextUrl));
     }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
