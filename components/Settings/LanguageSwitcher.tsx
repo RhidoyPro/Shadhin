@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/components/I18nProvider";
 import { useTransition } from "react";
 import { setLocale } from "@/actions/locale";
 import { useRouter } from "next/navigation";

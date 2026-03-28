@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useTranslations } from "@/components/I18nProvider";
 
 type UpdateProfileModalProps = {
   isOpen: boolean;
@@ -42,6 +43,9 @@ const UpdateProfileModal = ({
   onClose,
   user,
 }: UpdateProfileModalProps) => {
+  const t = useTranslations("profile");
+  const ta = useTranslations("auth");
+  const tc = useTranslations("common");
   const { update, data: session } = useSession();
   const [file, setFile] = React.useState<File | undefined>();
   const [date, setDate] = React.useState<Date | undefined>(
@@ -91,7 +95,7 @@ const UpdateProfileModal = ({
 
     if (!validatedData.success) {
       const errors = validatedData.error.flatten().fieldErrors;
-      const firstError = Object.values(errors)[0][0] || "Invalid input";
+      const firstError = Object.values(errors)[0][0] || tc("invalidInput");
       return toast.error(firstError);
     }
 
@@ -113,13 +117,13 @@ const UpdateProfileModal = ({
         onClose();
       }
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error(tc("somethingWentWrong"));
     }
   };
 
   const uploadProfilePictureHandler = async () => {
     if (!file) {
-      return toast.error("Please select a file to upload");
+      return toast.error(tc("invalidInput"));
     }
 
     setIsUploading(true);
@@ -137,7 +141,7 @@ const UpdateProfileModal = ({
       const result = await res.json();
 
       if (!res.ok) {
-        toast.error(result.error || "Failed to upload image");
+        toast.error(result.error || tc("somethingWentWrong"));
         setIsUploading(false);
         return;
       }
@@ -151,11 +155,11 @@ const UpdateProfileModal = ({
       });
       setIsUploading(false);
       setFile(undefined);
-      toast.success("Profile photo updated");
+      toast.success(tc("updated"));
       onClose();
     } catch (error) {
       console.error("Profile picture upload failed:", error);
-      toast.error("Failed to upload profile picture");
+      toast.error(tc("somethingWentWrong"));
       setIsUploading(false);
     }
   };
@@ -164,8 +168,8 @@ const UpdateProfileModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Profile</DialogTitle>
-          <DialogDescription>Update your profile information</DialogDescription>
+          <DialogTitle>{t("updateProfile")}</DialogTitle>
+          <DialogDescription>{t("updateDescription")}</DialogDescription>
         </DialogHeader>
         <div>
           <section className="bg-slate-200 w-28 h-28 rounded-full flex justify-center items-center mx-auto relative">
@@ -211,41 +215,41 @@ const UpdateProfileModal = ({
           {file && (
             <div className="mt-4 flex items-center justify-center">
               <Button onClick={uploadProfilePictureHandler} disabled={isUploading}>
-                {isUploading ? "Uploading..." : "Update Image"}
+                {isUploading ? tc("uploading") : t("updateImage")}
               </Button>
             </div>
           )}
           <form action={handleSubmit} className="flex flex-col gap-3 mt-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">{ta("firstName")}</Label>
                 <Input
                   id="firstName"
                   name="firstName"
                   type="text"
-                  placeholder="John"
+                  placeholder={ta("firstNamePlaceholder")}
                   required
                   defaultValue={user?.firstName || user?.name || ""}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">{ta("lastName")}</Label>
                 <Input
                   id="lastName"
                   name="lastName"
                   type="text"
-                  placeholder="Doe"
+                  placeholder={ta("lastNamePlaceholder")}
                   defaultValue={user?.lastName || ""}
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{ta("email")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder={ta("emailPlaceholder")}
                 required
                 readOnly
                 defaultValue={user?.email || ""}
@@ -264,17 +268,17 @@ const UpdateProfileModal = ({
             </div> */}
             <div className="grid sm:grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="email">University Name</Label>
+                <Label htmlFor="email">{ta("university")}</Label>
                 <Input
                   id="university"
                   name="university"
                   type="text"
-                  placeholder="Bangladesh University of Engineering and Technology"
+                  placeholder={ta("universityPlaceholder")}
                   defaultValue={user?.university || ""}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Date of Birth</Label>
+                <Label htmlFor="email">{ta("dateOfBirth")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -285,7 +289,7 @@ const UpdateProfileModal = ({
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      {date ? format(date, "PPP") : <span>{ta("pickDate")}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -301,11 +305,11 @@ const UpdateProfileModal = ({
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">{t("bio")}</Label>
               <Textarea
                 id="bio"
                 name="bio"
-                placeholder="Tell us about yourself..."
+                placeholder={t("bioPlaceholder")}
                 maxLength={300}
                 defaultValue={user?.bio || ""}
                 className="resize-none"
@@ -313,10 +317,10 @@ const UpdateProfileModal = ({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="state">{ta("state")}</Label>
               <Select name="state" defaultValue={user?.stateName || ""}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select State" />
+                  <SelectValue placeholder={ta("selectState")} />
                 </SelectTrigger>
                 <SelectContent id="state">
                   {BangladeshStates.slice(1).map((state) => (
@@ -327,7 +331,7 @@ const UpdateProfileModal = ({
                 </SelectContent>
               </Select>
             </div>
-            <Button className="mt-4 w-full">Update Profile</Button>
+            <Button className="mt-4 w-full">{t("updateProfile")}</Button>
           </form>
         </div>
       </DialogContent>

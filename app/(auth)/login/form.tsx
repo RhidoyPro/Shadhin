@@ -12,19 +12,23 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoginSchemaWithEmail } from "@/utils/zodSchema";
 import { analytics } from "@/utils/analytics";
+import { useTranslations } from "@/components/I18nProvider";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useTranslations("auth");
 
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending && <ClipLoader size={14} color="#fff" className="mr-1" />}
-      {pending ? "Logging in" : "Login"}
+      {pending ? t("loggingIn") : t("login")}
     </Button>
   );
 }
 
 const LoginForm = () => {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
   const [state, formAction] = useFormState(loginWithCreds, null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -56,7 +60,7 @@ const LoginForm = () => {
 
     if (!validatedData.success) {
       const errors = validatedData.error.flatten().fieldErrors;
-      const firstError = Object.values(errors)[0][0] || "Invalid input";
+      const firstError = Object.values(errors)[0][0] || tc("invalidInput");
       toast.error(firstError);
       return;
     }
@@ -70,41 +74,41 @@ const LoginForm = () => {
         <Logo color="white" />
       </div>
       <div className="grid gap-2 text-center">
-        <h1 className="text-3xl font-bold text-white">Login</h1>
+        <h1 className="text-3xl font-bold text-white">{t("login")}</h1>
         <p className="text-balance text-slate-200">
-          Enter your email below to login to your account
+          {t("loginDescription")}
         </p>
       </div>
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email" className="text-white">
-            Email
+            {t("email")}
           </Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="m@example.com"
+            placeholder={t("emailPlaceholder")}
             required
           />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password" className="text-white">
-              Password
+              {t("password")}
             </Label>
             <Link
               href="/forgot-password"
               className="ml-auto inline-block text-sm underline text-white"
             >
-              Forgot your password?
+              {t("forgotPassword")}
             </Link>
           </div>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder="Enter password"
+            placeholder={t("passwordPlaceholder")}
             required
           />
         </div>
@@ -131,9 +135,9 @@ const LoginForm = () => {
         </Button> */}
       </div>
       <div className="text-center text-sm text-white">
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <Link href="/signup" className="underline">
-          Sign up
+          {t("signUp")}
         </Link>
       </div>
     </form>

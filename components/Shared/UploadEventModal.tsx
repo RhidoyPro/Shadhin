@@ -30,6 +30,7 @@ import { computeSHA256 } from "@/utils/computeHash";
 import VerifiedBadge from "./VerifiedBadge";
 import { analytics } from "@/utils/analytics";
 import { useFirstAction } from "@/hooks/use-first-action";
+import { useTranslations } from "@/components/I18nProvider";
 
 type UploadEventModalProps = {
   isOpen: boolean;
@@ -42,6 +43,8 @@ const UploadEventModal = ({
   onClose,
   isStatus,
 }: UploadEventModalProps) => {
+  const t = useTranslations("upload");
+  const tc = useTranslations("common");
   const user = useCurrentUser();
   const markFirstAction = useFirstAction();
 
@@ -94,7 +97,7 @@ const UploadEventModal = ({
     setIsUploading(true);
 
     if (content.trim() === "") {
-      setError("Please write some content before posting");
+      setError(t("emptyContent"));
       setIsUploading(false);
       return;
     }
@@ -127,7 +130,7 @@ const UploadEventModal = ({
         });
 
         if (!res.ok) {
-          setError("Failed to upload file, please try again");
+          setError(t("uploadFailed"));
           setIsUploading(false);
           return;
         }
@@ -169,7 +172,7 @@ const UploadEventModal = ({
       resetData();
       onClose();
     } catch (err) {
-      setError("Something went wrong, please try again");
+      setError(tc("somethingWentWrong"));
     } finally {
       setIsUploading(false);
     }
@@ -180,13 +183,13 @@ const UploadEventModal = ({
       <DialogContent className="max-w-[95vw] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {isStatus ? "Post Status" : "Post Event"} in{" "}
+            {isStatus ? t("postStatus") : t("postEvent")} in{" "}
             <Select
               value={stateName}
               onValueChange={(value) => setStateName(value as string)}
             >
               <SelectTrigger className="w-[180px] h-8">
-                <SelectValue placeholder="Theme" />
+                <SelectValue placeholder={t("theme")} />
               </SelectTrigger>
               <SelectContent>
                 {BangladeshStates.map((state) => (
@@ -202,12 +205,11 @@ const UploadEventModal = ({
           <>
             <div className="mt-4">
               <p>
-                You are not allowed to post events in all districts. Only
-                selected users can post events in all districts.
+                {t("allDistrictsWarning")}
               </p>
             </div>
             <Button className="mt-4" onClick={onClose} variant="destructive">
-              Close
+              {tc("close")}
             </Button>
           </>
         ) : (
@@ -220,7 +222,7 @@ const UploadEventModal = ({
                   <VerifiedBadge userRole={user?.role || UserRole.USER} />
                 </div>
                 <Textarea
-                  placeholder="What's on your mind?"
+                  placeholder={t("whatsOnMind")}
                   className="mt-4 resize-none min-h-40"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -233,7 +235,7 @@ const UploadEventModal = ({
                     <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="flex-1">
                       <Label htmlFor="eventDate" className="text-sm text-muted-foreground">
-                        Event Date & Time (optional)
+                        {t("eventDateTime")}
                       </Label>
                       <Input
                         id="eventDate"
@@ -250,13 +252,13 @@ const UploadEventModal = ({
                       <Ticket className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div className="flex-1">
                         <Label htmlFor="ticketPrice" className="text-sm text-muted-foreground">
-                          Ticket Price in BDT (optional — leave blank for free)
+                          {t("ticketPrice")}
                         </Label>
                         <Input
                           id="ticketPrice"
                           type="number"
                           min="1"
-                          placeholder="e.g. 200"
+                          placeholder={t("ticketPricePlaceholder")}
                           value={ticketPrice}
                           onChange={(e) => setTicketPrice(e.target.value)}
                           className="mt-1"
@@ -267,13 +269,13 @@ const UploadEventModal = ({
                       <Users className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div className="flex-1">
                         <Label htmlFor="maxAttendees" className="text-sm text-muted-foreground">
-                          Max Attendees (optional)
+                          {t("maxAttendees")}
                         </Label>
                         <Input
                           id="maxAttendees"
                           type="number"
                           min="1"
-                          placeholder="e.g. 100"
+                          placeholder={t("maxAttendeesPlaceholder")}
                           value={maxAttendees}
                           onChange={(e) => setMaxAttendees(e.target.value)}
                           className="mt-1"
@@ -288,7 +290,7 @@ const UploadEventModal = ({
                   <input {...getInputProps()} />
                   <Upload className="text-4xl mx-auto mb-2" />
                   <p>
-                    Drag &apos;n&apos; drop image or video you want to upload
+                    {t("dragDrop")}
                   </p>
                 </div>
               </section>
@@ -328,7 +330,7 @@ const UploadEventModal = ({
               onClick={uploadEventHandler}
               disabled={isUploading}
             >
-              {isUploading ? "Uploading..." : "Post"}
+              {isUploading ? tc("uploading") : tc("post")}
             </Button>
           </>
         )}

@@ -6,6 +6,7 @@ import VerifiedBadge from "../Shared/VerifiedBadge";
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { getTranslations } from "@/lib/i18n";
 
 function getRankStyle(rank: number) {
   if (rank === 1) return "bg-amber-500/15 text-amber-500 font-bold";
@@ -21,6 +22,7 @@ function TrendIndicator({ points, previousPoints }: { points: number; previousPo
 }
 
 const LeaderBoard = async () => {
+  const t = getTranslations("leaderboard");
   const topUsers = await getTopUsers();
   return (
     <section className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden sticky top-[120px]">
@@ -30,8 +32,8 @@ const LeaderBoard = async () => {
           <Trophy className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h2 className="font-semibold text-foreground text-sm">Leaderboard</h2>
-          <p className="text-[11px] text-muted-foreground">Top contributors this week</p>
+          <h2 className="font-semibold text-foreground text-sm">{t("title")}</h2>
+          <p className="text-[11px] text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -78,7 +80,7 @@ const LeaderBoard = async () => {
             );
           })
         ) : (
-          <p className="text-center text-sm text-muted-foreground py-6">No users yet</p>
+          <p className="text-center text-sm text-muted-foreground py-6">{t("noUsers")}</p>
         )}
       </div>
 
@@ -88,7 +90,7 @@ const LeaderBoard = async () => {
           href="/leaderboard"
           className="block w-full text-center text-xs font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          View Full Leaderboard
+          {t("viewFull")}
         </Link>
       </div>
     </section>

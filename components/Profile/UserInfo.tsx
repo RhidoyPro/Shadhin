@@ -21,6 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { getTranslations } from "@/lib/i18n";
 
 type UserInfoProps = {
   user: User;
@@ -28,6 +29,8 @@ type UserInfoProps = {
 };
 
 const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
+  const t = getTranslations("profile");
+  const tc = getTranslations("common");
   const session = await auth();
   const isOwnProfile = session?.user?.id === user.id;
 
@@ -81,17 +84,17 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
             <p className="text-lg font-bold text-foreground">
               {followCounts.followers}
             </p>
-            <p className="text-xs text-muted-foreground">Followers</p>
+            <p className="text-xs text-muted-foreground">{t("followers")}</p>
           </div>
           <div className="text-center border-x border-border">
             <p className="text-lg font-bold text-foreground">
               {followCounts.following}
             </p>
-            <p className="text-xs text-muted-foreground">Following</p>
+            <p className="text-xs text-muted-foreground">{t("following")}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-foreground">{eventsCreated}</p>
-            <p className="text-xs text-muted-foreground">Posts</p>
+            <p className="text-xs text-muted-foreground">{t("posts")}</p>
           </div>
         </div>
       </div>
@@ -99,7 +102,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
       {/* About Card */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
-          About
+          {t("about")}
         </h2>
 
         {user.bio && (
@@ -117,9 +120,9 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
               <GraduationCap className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">University</p>
+              <p className="text-xs text-muted-foreground">{t("university")}</p>
               <p className="text-sm font-medium text-foreground">
-                {user?.university || "Not specified"}
+                {user?.university || t("notSpecified")}
               </p>
             </div>
           </div>
@@ -129,7 +132,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
               <CalendarDays className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Joined</p>
+              <p className="text-xs text-muted-foreground">{t("joined")}</p>
               <p className="text-sm font-medium text-foreground">
                 {format(new Date(user.createdAt), "MMMM dd, yyyy")}
               </p>
@@ -142,7 +145,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
                 <MapPin className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">District</p>
+                <p className="text-xs text-muted-foreground">{t("district")}</p>
                 <p className="text-sm font-medium text-foreground">
                   {user.stateName}
                 </p>
@@ -159,7 +162,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
             <div className="flex items-center gap-2">
               <CalendarCheck className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-                Attending
+                {t("attending")}
               </h2>
               <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                 {attendingCount}
@@ -170,7 +173,7 @@ const UserInfo = async ({ user, eventsCreated }: UserInfoProps) => {
                 href={`/user/${user.id}/attending`}
                 className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5"
               >
-                View all
+                {tc("viewAll")}
                 <ChevronRight className="h-3 w-3" />
               </Link>
             )}

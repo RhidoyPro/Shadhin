@@ -7,6 +7,7 @@ import { Prisma } from "@prisma/client";
 import { fetchLeaderboard } from "@/actions/user";
 import ClipLoader from "react-spinners/ClipLoader";
 import { Button } from "../ui/button";
+import { useTranslations } from "@/components/I18nProvider";
 
 type LeaderBoardUser = Prisma.UserGetPayload<{
   select: {
@@ -20,6 +21,8 @@ type LeaderBoardUser = Prisma.UserGetPayload<{
 }>;
 
 const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
+  const t = useTranslations("leaderboard");
+  const tc = useTranslations("common");
   const [users, setUsers] = useState<LeaderBoardUser[]>(topUsers);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = React.useState<boolean>(
@@ -65,7 +68,7 @@ const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
           </div>
         ))
       ) : (
-        <p className="text-center">There are no users available</p>
+        <p className="text-center">{t("noUsers")}</p>
       )}
       {hasMore && (
         <Button
@@ -74,7 +77,7 @@ const UsersCtn = ({ topUsers }: { topUsers: LeaderBoardUser[] }) => {
           className="w-full"
         >
           {loadMore && <ClipLoader color="#fff" loading={loadMore} size={20} />}
-          {loadMore ? "Loading ..." : "Load More"}
+          {loadMore ? tc("loadingMore") : tc("loadMore")}
         </Button>
       )}
     </div>
