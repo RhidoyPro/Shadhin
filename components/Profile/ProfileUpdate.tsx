@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { useTranslations } from "next-intl";
 import { Button } from "../ui/button";
 import UpdateProfileModal from "./UpdateProfileModal";
 import { User } from "@prisma/client";
@@ -11,7 +10,6 @@ type ProfileUpdateProps = {
 };
 
 const ProfileUpdate = ({ user }: ProfileUpdateProps) => {
-  const t = useTranslations("profile");
   const [isUpdateProfileModalOpen, setIsUpdateProfileModalOpen] =
     React.useState(false);
   return (
@@ -23,7 +21,7 @@ const ProfileUpdate = ({ user }: ProfileUpdateProps) => {
         onClick={() => setIsUpdateProfileModalOpen(true)}
       >
         <Pencil className="h-4 w-4" />
-        {t("editProfile")}
+        Edit Profile
       </Button>
       <UpdateProfileModal
         isOpen={isUpdateProfileModalOpen}

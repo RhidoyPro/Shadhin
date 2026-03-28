@@ -1,6 +1,5 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import EventCard, { EventWithUser } from "@/components/Shared/EventCard";
 import { useInView } from "react-intersection-observer";
 import { deleteEventByUser, fetchUserEvents } from "@/actions/event";
@@ -20,7 +19,6 @@ interface EventsCtnProps {
 }
 
 const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
-  const t = useTranslations("profile");
   const user = useCurrentUser();
 
   const [events, setEvents] = useState<EventWithUser[]>(initialEvents || []);
@@ -165,7 +163,10 @@ const EventsCtn = ({ initialEvents, username, userId }: EventsCtnProps) => {
         ))
       ) : (
         <p className="text-center text-lg text-gray-600 dark:text-gray-300 mt-4">
-          {t("noEvents", { username })}
+          There are no events for{" "}
+          <span className="text-gray-800 dark:text-white font-semibold capitalize">
+            {username}
+          </span>
         </p>
       )}
       {hasMore && (

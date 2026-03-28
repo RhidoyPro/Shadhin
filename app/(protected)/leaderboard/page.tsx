@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 import { fetchLeaderboard } from "@/actions/user";
 import UsersCtn from "@/components/LeaderBoard/UsersCtn";
-import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -12,14 +11,13 @@ export const metadata: Metadata = {
 };
 
 const LeaderBoardPage = async () => {
-  const t = await getTranslations("leaderboard");
   const topUsers = await fetchLeaderboard();
   return (
     <>
       <div className="container px-4 py-6 max-w-3xl">
         <div className="bg-white dark:bg-neutral-900 rounded-lg p-4">
           <h1 className="text-center text-xl font-bold text-primary">
-            {t("pageTitle")} 🏆
+            LeaderBoard 🏆
           </h1>
           <Separator className="my-3" />
           <UsersCtn topUsers={topUsers || []} />

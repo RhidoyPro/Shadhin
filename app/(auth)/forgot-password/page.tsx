@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -30,8 +29,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 function ForgotPasswordPage() {
-  const t = useTranslations("forgotPassword");
-  const ta = useTranslations("auth");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -47,7 +44,7 @@ function ForgotPasswordPage() {
     const validatedEmail = ResetEmailSchema.safeParse({ email });
 
     if (!validatedEmail.success) {
-      toast.error(validatedEmail.error.issues[0].message || t("invalidEmail"));
+      toast.error(validatedEmail.error.issues[0].message || "Invalid email");
       return;
     }
 
@@ -108,14 +105,14 @@ function ForgotPasswordPage() {
       <div>
         <Card className="sm:w-[450px] text-center">
           <CardHeader>
-            <CardTitle>{t("title")}</CardTitle>
+            <CardTitle>Reset your Password</CardTitle>
           </CardHeader>
           <CardDescription>
             {!isCodeShown && !isPasswordShown
-              ? t("emailStep")
+              ? "Enter your email address to receive a reset code."
               : isCodeShown
-              ? t("codeStep")
-              : t("passwordStep")}
+              ? "Enter the code sent to your email to verify your account."
+              : "Enter your new password to reset your account."}
           </CardDescription>
           <CardContent>
             {!isCodeShown && !isPasswordShown && (
@@ -127,13 +124,13 @@ function ForgotPasswordPage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder={ta("emailPlaceholder")}
+                  placeholder="m@example.com"
                   required
                   disabled={isPending}
                 />
 
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? <BeatLoader color="#fff" /> : t("sendCode")}
+                  {isPending ? <BeatLoader color="#fff" /> : "Send Reset Code"}
                 </Button>
               </form>
             )}
@@ -168,7 +165,7 @@ function ForgotPasswordPage() {
                 )}
                 {isPasswordShown && (
                   <>
-                    <Label htmlFor="password">{t("newPassword")}</Label>
+                    <Label htmlFor="password">New Password</Label>
                     <Input
                       id="password"
                       name="password"
@@ -184,9 +181,9 @@ function ForgotPasswordPage() {
                   {isPending ? (
                     <BeatLoader color="#fff" />
                   ) : isCodeShown ? (
-                    t("verifyCode")
+                    "Verify Code"
                   ) : (
-                    t("resetPassword")
+                    "Reset Password"
                   )}
                 </Button>
               </form>
@@ -194,7 +191,7 @@ function ForgotPasswordPage() {
           </CardContent>
           <CardFooter className="flex items-center justify-center">
             <Button asChild variant={"link"}>
-              <Link href="/login">{t("backToLogin")}</Link>
+              <Link href="/login">Go back to login</Link>
             </Button>
           </CardFooter>
         </Card>

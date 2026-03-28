@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
 import { useInView } from "react-intersection-observer";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +27,6 @@ type FeedSectionProps = {
 
 const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
   const user = useCurrentUser();
-  const t = useTranslations("feed");
   useScrollDepth(activeState);
 
   const [events, setEvents] = React.useState<EventWithUser[]>(
@@ -93,7 +91,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
         setHasMore(false);
       }
     } catch {
-      toast.error(t("loadError"));
+      toast.error("Couldn't load more posts. Please try again.");
     } finally {
       isLoadingRef.current = false;
       setIsLoading(false);
@@ -228,7 +226,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
           ))
         ) : !isLoading ? (
           <p className="text-center text-sm text-muted-foreground py-10">
-            {t("noEvents")}{" "}
+            No events found for{" "}
             <span className="font-semibold text-foreground capitalize">
               {activeState}
             </span>
@@ -253,7 +251,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
       {!hasMore && events.length > 0 && (
         <div className="flex items-center justify-center gap-2 py-8 border-t border-border/50">
           <CheckCircle2 size={16} className="text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{t("allCaughtUp")}</p>
+          <p className="text-sm text-muted-foreground">You&apos;re all caught up</p>
         </div>
       )}
     </section>
