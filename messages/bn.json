@@ -41,15 +41,15 @@
   },
   "auth": {
     "login": "লগইন",
-    "loginDescription": "আপনার অ্যাকাউন্টে লগইন করতে ইমেইল দিন",
+    "loginDescription": "আপনার একাউন্টে লগইন করতে ইমেইল দিন",
     "loggingIn": "লগইন হচ্ছে",
     "email": "ইমেইল",
     "emailPlaceholder": "m@example.com",
     "password": "পাসওয়ার্ড",
     "passwordPlaceholder": "পাসওয়ার্ড দিন",
     "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
-    "noAccount": "অ্যাকাউন্ট নেই?",
-    "hasAccount": "আগে থেকে অ্যাকাউন্ট আছে?",
+    "noAccount": "একাউন্ট নেই?",
+    "hasAccount": "আগে থেকে একাউন্ট আছে?",
     "signup": "সাইন আপ",
     "signingUp": "সাইন আপ হচ্ছে",
     "firstName": "নামের প্রথম অংশ",
@@ -91,15 +91,15 @@
     "goBack": "ফিরে যান"
   },
   "suspended": {
-    "title": "অ্যাকাউন্ট সাসপেন্ড করা হয়েছে",
-    "description": "কমিউনিটি গাইডলাইন ভঙ্গের কারণে আপনার অ্যাকাউন্ট সাসপেন্ড করা হয়েছে।",
+    "title": "একাউন্ট সাসপেন্ড করা হয়েছে",
+    "description": "কমিউনিটি গাইডলাইন ভঙ্গের কারণে আপনার একাউন্ট সাসপেন্ড করা হয়েছে।",
     "expiresAt": "সাসপেনশন শেষ হবে:",
     "strikes": "স্ট্রাইক: {strikes}/৩। ভুল মনে হলে support@shadhin.io তে যোগাযোগ করুন"
   },
   "nav": {
     "search": "ইভেন্ট, মানুষ, পোস্ট খুঁজুন...",
     "create": "তৈরি করুন",
-    "adminPanel": "অ্যাডমিন প্যানেল",
+    "adminPanel": "এডমিন প্যানেল",
     "leaderboard": "লিডারবোর্ড",
     "savedPosts": "সেভ করা পোস্ট",
     "viewProfile": "প্রোফাইল দেখুন/আপডেট করুন",
@@ -183,7 +183,7 @@
     "title": "সেটিংস",
     "changePassword": "পাসওয়ার্ড বদলান",
     "setPassword": "পাসওয়ার্ড সেট করুন",
-    "changePasswordDesc": "আপনার অ্যাকাউন্টের পাসওয়ার্ড আপডেট করুন।",
+    "changePasswordDesc": "আপনার একাউন্টের পাসওয়ার্ড আপডেট করুন।",
     "setPasswordDesc": "আপনি Google দিয়ে সাইন আপ করেছেন। ইমেইল দিয়েও লগইন করতে একটা পাসওয়ার্ড সেট করুন।",
     "currentPassword": "বর্তমান পাসওয়ার্ড",
     "currentPasswordPlaceholder": "বর্তমান পাসওয়ার্ড দিন",
@@ -197,18 +197,18 @@
     "cookiePrefs": "কুকি সেটিংস",
     "cookiePrefsDesc": "কোন কুকি চালু রাখবেন সেটা ঠিক করুন।",
     "dangerZone": "ডেঞ্জার জোন",
-    "dangerZoneDesc": "আপনার অ্যাকাউন্ট ও সব ডেটা পুরোপুরি মুছে ফেলুন। এটা আর ফেরানো যাবে না।",
+    "dangerZoneDesc": "আপনার একাউন্ট ও সব ডেটা পুরোপুরি মুছে ফেলুন। এটা আর ফেরানো যাবে না।",
     "language": "ভাষা",
     "languageDesc": "অ্যাপের ভাষা বদলান।"
   },
   "deleteAccount": {
-    "title": "অ্যাকাউন্ট মুছে ফেলুন",
+    "title": "একাউন্ট মুছে ফেলুন",
     "confirmTitle": "আপনি কি নিশ্চিত?",
-    "confirmDescription": "এতে আপনার অ্যাকাউন্ট, সব পোস্ট, মন্তব্য, লাইক আর মেসেজ পুরোপুরি মুছে যাবে। এটা আর ফেরানো যাবে না।",
+    "confirmDescription": "এতে আপনার একাউন্ট, সব পোস্ট, মন্তব্য, লাইক আর মেসেজ পুরোপুরি মুছে যাবে। এটা আর ফেরানো যাবে না।",
     "typeDelete": "নিশ্চিত করতে \"DELETE\" লিখুন",
     "deleting": "মুছে ফেলা হচ্ছে...",
     "deleteForever": "চিরতরে মুছুন",
-    "goodbye": "অ্যাকাউন্ট মুছে ফেলা হয়েছে। বিদায়।"
+    "goodbye": "একাউন্ট মুছে ফেলা হয়েছে। বিদায়।"
   },
   "profile": {
     "editProfile": "প্রোফাইল এডিট করুন",
@@ -301,10 +301,10 @@
     "manage": "ম্যানেজ করুন",
     "essential": "প্রয়োজনীয়",
     "essentialDesc": "লগইন, সিকিউরিটি, মূল ফিচার",
-    "analytics": "অ্যানালিটিক্স",
+    "analytics": "এনালিটিক্স",
     "analyticsDesc": "Google Analytics, Clarity, PostHog",
     "marketing": "মার্কেটিং",
-    "marketingDesc": "Meta Pixel — টার্গেটেড অ্যাড",
+    "marketingDesc": "Meta Pixel — টার্গেটেড এড",
     "savePreferences": "সেভ করুন",
     "less": "কম দেখুন"
   }
