@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +42,6 @@ const UpdateProfileModal = ({
   onClose,
   user,
 }: UpdateProfileModalProps) => {
-  const t = useTranslations("profile");
-  const ta = useTranslations("auth");
-  const tc = useTranslations("common");
   const { update, data: session } = useSession();
   const [file, setFile] = React.useState<File | undefined>();
   const [date, setDate] = React.useState<Date | undefined>(
@@ -168,8 +164,8 @@ const UpdateProfileModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("updateProfile")}</DialogTitle>
-          <DialogDescription>{t("updateDescription")}</DialogDescription>
+          <DialogTitle>Update Profile</DialogTitle>
+          <DialogDescription>Update your profile information</DialogDescription>
         </DialogHeader>
         <div>
           <section className="bg-slate-200 w-28 h-28 rounded-full flex justify-center items-center mx-auto relative">
@@ -215,41 +211,41 @@ const UpdateProfileModal = ({
           {file && (
             <div className="mt-4 flex items-center justify-center">
               <Button onClick={uploadProfilePictureHandler} disabled={isUploading}>
-                {isUploading ? tc("uploading") : t("updateImage")}
+                {isUploading ? "Uploading..." : "Update Image"}
               </Button>
             </div>
           )}
           <form action={handleSubmit} className="flex flex-col gap-3 mt-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="firstName">{ta("firstName")}</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
                   name="firstName"
                   type="text"
-                  placeholder={ta("firstNamePlaceholder")}
+                  placeholder="John"
                   required
                   defaultValue={user?.firstName || user?.name || ""}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lastName">{ta("lastName")}</Label>
+                <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
                   name="lastName"
                   type="text"
-                  placeholder={ta("lastNamePlaceholder")}
+                  placeholder="Doe"
                   defaultValue={user?.lastName || ""}
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">{ta("email")}</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder={ta("emailPlaceholder")}
+                placeholder="m@example.com"
                 required
                 readOnly
                 defaultValue={user?.email || ""}
@@ -268,17 +264,17 @@ const UpdateProfileModal = ({
             </div> */}
             <div className="grid sm:grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="email">{ta("university")}</Label>
+                <Label htmlFor="email">University Name</Label>
                 <Input
                   id="university"
                   name="university"
                   type="text"
-                  placeholder={ta("universityPlaceholder")}
+                  placeholder="Bangladesh University of Engineering and Technology"
                   defaultValue={user?.university || ""}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">{ta("dateOfBirth")}</Label>
+                <Label htmlFor="email">Date of Birth</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -289,7 +285,7 @@ const UpdateProfileModal = ({
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>{ta("pickDate")}</span>}
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -305,11 +301,11 @@ const UpdateProfileModal = ({
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="bio">{t("bio")}</Label>
+              <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"
                 name="bio"
-                placeholder={t("bioPlaceholder")}
+                placeholder="Tell us about yourself..."
                 maxLength={300}
                 defaultValue={user?.bio || ""}
                 className="resize-none"
@@ -317,10 +313,10 @@ const UpdateProfileModal = ({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="state">{ta("state")}</Label>
+              <Label htmlFor="state">State</Label>
               <Select name="state" defaultValue={user?.stateName || ""}>
                 <SelectTrigger>
-                  <SelectValue placeholder={ta("selectState")} />
+                  <SelectValue placeholder="Select State" />
                 </SelectTrigger>
                 <SelectContent id="state">
                   {BangladeshStates.slice(1).map((state) => (
@@ -331,7 +327,7 @@ const UpdateProfileModal = ({
                 </SelectContent>
               </Select>
             </div>
-            <Button className="mt-4 w-full">{t("updateProfile")}</Button>
+            <Button className="mt-4 w-full">Update Profile</Button>
           </form>
         </div>
       </DialogContent>

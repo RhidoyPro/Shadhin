@@ -17,10 +17,8 @@ import {
 import { toast } from "sonner";
 import { deleteOwnAccount } from "@/actions/settings";
 import { signOut } from "next-auth/react";
-import { useTranslations } from "next-intl";
 
 const DeleteAccountSection = () => {
-  const t = useTranslations("deleteAccount");
   const [confirmation, setConfirmation] = useState("");
   const [isPending, setIsPending] = useState(false);
 
@@ -39,25 +37,26 @@ const DeleteAccountSection = () => {
       return;
     }
 
-    toast.success(t("goodbye"));
+    toast.success("Account deleted. Goodbye.");
     await signOut({ callbackUrl: "/login" });
   };
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">{t("title")}</Button>
+        <Button variant="destructive">Delete My Account</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            {t("confirmDescription")}
+            This will permanently delete your account, all your posts, comments,
+            likes, and messages. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="my-2">
           <p className="text-sm text-muted-foreground mb-2">
-            {t("typeDelete")}
+            Type <span className="font-bold text-foreground">DELETE</span> to confirm:
           </p>
           <Input
             value={confirmation}
@@ -74,7 +73,7 @@ const DeleteAccountSection = () => {
             disabled={confirmation !== "DELETE" || isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isPending ? t("deleting") : t("deleteForever")}
+            {isPending ? "Deleting..." : "Delete Forever"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

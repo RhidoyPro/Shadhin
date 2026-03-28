@@ -36,7 +36,6 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import BoostPostDialog from "./BoostPostDialog";
 import BuyTicketDialog from "./BuyTicketDialog";
-import { useTranslations } from "next-intl";
 
 export type EventWithUser = Prisma.EventGetPayload<{
   include: {
@@ -85,8 +84,6 @@ const EventCard = ({
   eventNotAttendHandler,
   onDeleteEvent,
 }: EventCardProps) => {
-  const t = useTranslations("eventCard");
-  const tc = useTranslations("common");
   const user = useCurrentUser();
   const [isContentClamped, setIsContentClamped] = useState(false);
   const [mediaError, setMediaError] = useState(false);
@@ -156,7 +153,7 @@ const EventCard = ({
     } else {
       await navigator.clipboard.writeText(shareUrl);
       analytics.postShared(event.id, "copy_link");
-      toast.success(t("linkCopied"));
+      toast.success("Link copied to clipboard");
     }
   };
 
@@ -201,7 +198,7 @@ const EventCard = ({
               )}
               {event.isPromoted && (
                 <span className="ml-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                  {tc("promoted")}
+                  Promoted
                 </span>
               )}
             </div>
@@ -216,27 +213,27 @@ const EventCard = ({
                     className="h-8 w-8 rounded-full text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100 hover:bg-muted"
                   >
                     <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">{t("moreOptions")}</span>
+                    <span className="sr-only">More options</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
                     <Link href={`/events/details/${event.id}`} className="flex items-center gap-2 cursor-pointer">
                       <Eye className="h-4 w-4" />
-                      {isEvent ? t("viewEvent") : t("viewPost")}
+                      View {isEvent ? "Event" : "Post"}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare("whatsapp")}>
                     <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
-                    {t("shareWhatsApp")}
+                    Share on WhatsApp
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare("facebook")}>
                     <Share2 className="mr-2 h-4 w-4 text-blue-500" />
-                    {t("shareFacebook")}
+                    Share on Facebook
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => handleShare()}>
                     <Link2 className="mr-2 h-4 w-4" />
-                    {t("copyLink")}
+                    Copy Link
                   </DropdownMenuItem>
                   {isOwner && (
                     <>
@@ -249,7 +246,7 @@ const EventCard = ({
                         }}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
-                        {isEvent ? t("editEvent") : t("editPost")}
+                        Edit {isEvent ? "Event" : "Post"}
                       </DropdownMenuItem>
                       {!event.isPromoted && (
                         <DropdownMenuItem
@@ -257,13 +254,13 @@ const EventCard = ({
                           onClick={() => setIsBoostOpen(true)}
                         >
                           <Megaphone className="mr-2 h-4 w-4" />
-                          {t("boostPost")}
+                          Boost Post
                         </DropdownMenuItem>
                       )}
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
                           <Trash2 className="mr-2 h-4 w-4" />
-                          {isEvent ? t("deleteEvent") : t("deletePost")}
+                          Delete {isEvent ? "Event" : "Post"}
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
                     </>
@@ -273,19 +270,20 @@ const EventCard = ({
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    {isEvent ? t("deleteEventConfirm") : t("deletePostConfirm")}
+                    Delete this {isEvent ? "event" : "post"}?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    {isEvent ? t("deleteEventDescription") : t("deletePostDescription")}
+                    This action cannot be undone. This will permanently delete the{" "}
+                    {isEvent ? "event" : "post"}.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={onDeleteEvent}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    {tc("delete")}
+                    Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -315,18 +313,18 @@ const EventCard = ({
                         return;
                       }
                       setDisplayContent(editContent.trim());
-                      toast.success(tc("updated"));
+                      toast.success("Updated");
                       setIsEditing(false);
                     }}
                   >
-                    {isSaving ? tc("saving") : tc("save")}
+                    {isSaving ? "Saving..." : "Save"}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setIsEditing(false)}
                   >
-                    {tc("cancel")}
+                    Cancel
                   </Button>
                 </div>
               </div>
@@ -346,7 +344,7 @@ const EventCard = ({
                     href={`/events/details/${event.id}`}
                     className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
                   >
-                    {tc("showMore")}
+                    Show more
                   </Link>
                 )}
               </>
@@ -358,7 +356,7 @@ const EventCard = ({
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
               <Image
                 src={event.mediaUrl}
-                alt={displayContent.trim() !== "" ? displayContent : t("postImage")}
+                alt={displayContent.trim() !== "" ? displayContent : "Post image"}
                 width={600}
                 height={400}
                 sizes="(max-width: 768px) 100vw, 600px"
@@ -370,7 +368,7 @@ const EventCard = ({
           {event.type === "image" && event.mediaUrl && mediaError && (
             <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 py-12 text-muted-foreground">
               <ImageOff className="h-5 w-5" />
-              <span className="text-sm">{t("imageUnavailable")}</span>
+              <span className="text-sm">Image unavailable</span>
             </div>
           )}
           {event.type === "video" && event.mediaUrl && !mediaError && (
@@ -387,7 +385,7 @@ const EventCard = ({
           {event.type === "video" && event.mediaUrl && mediaError && (
             <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 py-12 text-muted-foreground">
               <ImageOff className="h-5 w-5" />
-              <span className="text-sm">{t("videoUnavailable")}</span>
+              <span className="text-sm">Video unavailable</span>
             </div>
           )}
 
@@ -416,7 +414,7 @@ const EventCard = ({
                 onClick={() => setIsBuyTicketOpen(true)}
               >
                 <Ticket className="h-3.5 w-3.5" />
-                {tc("buyTicket")} — ৳{event.ticketPrice}
+                Buy Ticket — ৳{event.ticketPrice}
               </Button>
             </div>
           )}

@@ -4,10 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
-import bnMessages from "@/messages/bn.json";
-import enMessages from "@/messages/en.json";
 import { auth } from "@/auth";
 import NextTopLoader from "nextjs-toploader";
 import { Analytics } from "@vercel/analytics/react";
@@ -84,11 +80,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const locale = await getLocale();
-  const messages = locale === "en" ? enMessages : bnMessages;
   return (
     <SessionProvider session={session}>
-      <html lang={locale}>
+      <html lang="en">
         <head>
           <link rel="apple-touch-icon" href="/logo.png" />
           <meta name="mobile-web-app-capable" content="yes" />
@@ -107,17 +101,15 @@ export default async function RootLayout({
         </head>
         <body className={inter.className}>
           <NextTopLoader color="#16a34a" />
-          <NextIntlClientProvider messages={messages}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster richColors />
-            </ThemeProvider>
-          </NextIntlClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster richColors />
+          </ThemeProvider>
 
           {/* ── Essential (always load) ── */}
           <UTMCapture />

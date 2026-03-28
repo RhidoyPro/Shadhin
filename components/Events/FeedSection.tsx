@@ -16,7 +16,6 @@ import { addNotification } from "@/actions/notification";
 import { getUserBookmarkIds } from "@/actions/bookmark";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useScrollDepth } from "@/hooks/use-scroll-depth";
-import { useTranslations } from "next-intl";
 
 // Number of skeleton cards to show while loading next page
 const SKELETON_COUNT = 3;
@@ -27,7 +26,6 @@ type FeedSectionProps = {
 };
 
 const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
-  const t = useTranslations("feed");
   const user = useCurrentUser();
   useScrollDepth(activeState);
 
@@ -93,7 +91,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
         setHasMore(false);
       }
     } catch {
-      toast.error(t("loadError"));
+      toast.error("Couldn't load more posts. Please try again.");
     } finally {
       isLoadingRef.current = false;
       setIsLoading(false);
@@ -228,7 +226,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
           ))
         ) : !isLoading ? (
           <p className="text-center text-sm text-muted-foreground py-10">
-            {t("noEvents")}{" "}
+            No events found for{" "}
             <span className="font-semibold text-foreground capitalize">
               {activeState}
             </span>
@@ -253,7 +251,7 @@ const FeedSection = ({ activeState, initialEvents }: FeedSectionProps) => {
       {!hasMore && events.length > 0 && (
         <div className="flex items-center justify-center gap-2 py-8 border-t border-border/50">
           <CheckCircle2 size={16} className="text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{t("allCaughtUp")}</p>
+          <p className="text-sm text-muted-foreground">You&apos;re all caught up</p>
         </div>
       )}
     </section>

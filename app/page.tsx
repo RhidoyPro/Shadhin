@@ -7,8 +7,7 @@ export default async function Home() {
   const session = await auth();
 
   if (session) {
-    const userDistrict = session.user?.stateName;
-    redirect(userDistrict ? `/events/${userDistrict}` : DEFAULT_LOGIN_REDIRECT);
+    redirect(DEFAULT_LOGIN_REDIRECT);
   }
 
   return (

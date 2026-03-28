@@ -15,10 +15,8 @@ import { useSearchParams } from "next/navigation";
 import { newVerification } from "@/actions/verification";
 import { toast } from "sonner";
 import { analytics } from "@/utils/analytics";
-import { useTranslations } from "next-intl";
 
 function VerifyEmailPage() {
-  const t = useTranslations("verifyEmail");
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -26,14 +24,14 @@ function VerifyEmailPage() {
   const [message, setMessage] = useState<string | undefined>();
 
   const onSubmit = useCallback(async () => {
-    if (!token) return setError(t("missingToken"));
+    if (!token) return setError("Missing token, please try again");
     newVerification(token)
       .then((data) => {
         setError(data.error);
         setMessage(data.message);
       })
       .catch(() => {
-        setError(t("error"));
+        setError("An error occurred while verifying your email");
       });
   }, [token]);
 
@@ -60,11 +58,11 @@ function VerifyEmailPage() {
       <div>
         <Card className="sm:w-[450px] text-center">
           <CardHeader>
-            <CardTitle>{t("title")}</CardTitle>
+            <CardTitle>Verifying your email</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-balance text-muted-foreground">
-              {t("description")}
+              We are verifying your email address. Please wait for a moment.
             </p>
             {!error && !message && (
               <div className="mt-6">
@@ -76,7 +74,7 @@ function VerifyEmailPage() {
           </CardContent>
           <CardFooter className="flex items-center justify-center">
             <Button asChild variant={"link"}>
-              <Link href="/login">{t("backToLogin")}</Link>
+              <Link href="/login">Go back to login</Link>
             </Button>
           </CardFooter>
         </Card>

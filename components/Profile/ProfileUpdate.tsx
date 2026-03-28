@@ -4,14 +4,12 @@ import { Button } from "../ui/button";
 import UpdateProfileModal from "./UpdateProfileModal";
 import { User } from "@prisma/client";
 import { Pencil } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 type ProfileUpdateProps = {
   user: User;
 };
 
 const ProfileUpdate = ({ user }: ProfileUpdateProps) => {
-  const t = useTranslations("profile");
   const [isUpdateProfileModalOpen, setIsUpdateProfileModalOpen] =
     React.useState(false);
   return (
@@ -23,7 +21,7 @@ const ProfileUpdate = ({ user }: ProfileUpdateProps) => {
         onClick={() => setIsUpdateProfileModalOpen(true)}
       >
         <Pencil className="h-4 w-4" />
-        {t("editProfile")}
+        Edit Profile
       </Button>
       <UpdateProfileModal
         isOpen={isUpdateProfileModalOpen}

@@ -12,22 +12,19 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LoginSchemaWithEmail } from "@/utils/zodSchema";
 import { analytics } from "@/utils/analytics";
-import { useTranslations } from "next-intl";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
-  const t = useTranslations("auth");
 
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending && <ClipLoader size={14} color="#fff" className="mr-1" />}
-      {pending ? t("loggingIn") : t("login")}
+      {pending ? "Logging in" : "Login"}
     </Button>
   );
 }
 
 const LoginForm = () => {
-  const t = useTranslations("auth");
   const [state, formAction] = useFormState(loginWithCreds, null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -73,41 +70,41 @@ const LoginForm = () => {
         <Logo color="white" />
       </div>
       <div className="grid gap-2 text-center">
-        <h1 className="text-3xl font-bold text-white">{t("login")}</h1>
+        <h1 className="text-3xl font-bold text-white">Login</h1>
         <p className="text-balance text-slate-200">
-          {t("loginDescription")}
+          Enter your email below to login to your account
         </p>
       </div>
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email" className="text-white">
-            {t("email")}
+            Email
           </Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder={t("emailPlaceholder")}
+            placeholder="m@example.com"
             required
           />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password" className="text-white">
-              {t("password")}
+              Password
             </Label>
             <Link
               href="/forgot-password"
               className="ml-auto inline-block text-sm underline text-white"
             >
-              {t("forgotPassword")}
+              Forgot your password?
             </Link>
           </div>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder={t("passwordPlaceholder")}
+            placeholder="Enter password"
             required
           />
         </div>
@@ -134,9 +131,9 @@ const LoginForm = () => {
         </Button> */}
       </div>
       <div className="text-center text-sm text-white">
-        {t("noAccount")}{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/signup" className="underline">
-          {t("signUp")}
+          Sign up
         </Link>
       </div>
     </form>

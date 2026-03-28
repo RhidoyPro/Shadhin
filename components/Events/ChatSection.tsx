@@ -9,7 +9,6 @@ import { addMessage } from "@/actions/message";
 import { search } from "@/actions/search";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 type ChatUser = {
   id: string;
@@ -76,7 +75,6 @@ const ChatSection = ({
   savedMessages,
   hiddenOnMobile = true,
 }: ChatSectionProps) => {
-  const t = useTranslations("chat");
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>(savedMessages);
@@ -287,7 +285,7 @@ const ChatSection = ({
             </span>
           </div>
           <div>
-            <h2 className="font-semibold text-foreground text-sm">{t("title")}</h2>
+            <h2 className="font-semibold text-foreground text-sm">Live Chat</h2>
             <p className="text-[11px] text-muted-foreground capitalize">{activeState.replace("-", " ")}</p>
           </div>
         </div>
@@ -305,7 +303,7 @@ const ChatSection = ({
         {hasMore && (
           <div className="flex justify-center">
             <Button variant="link" size="sm" className="text-xs" onClick={() => setLoadPrevious(true)}>
-              {t("loadPrevious")}
+              Load previous messages
             </Button>
           </div>
         )}
@@ -353,7 +351,7 @@ const ChatSection = ({
         ))}
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <p className="text-sm text-muted-foreground">{t("empty")}</p>
+            <p className="text-sm text-muted-foreground">No messages yet. Say hi!</p>
           </div>
         )}
       </div>
@@ -404,7 +402,7 @@ const ChatSection = ({
         <div className="flex items-center gap-2">
           <Input
             ref={inputRef}
-            placeholder={t("placeholder")}
+            placeholder="Type a message... (@ to mention)"
             value={message}
             onChange={handleInputChange}
             onKeyDown={(e) => {

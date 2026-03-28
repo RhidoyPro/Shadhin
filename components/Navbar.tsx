@@ -24,7 +24,6 @@ import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { useRouter } from "next/navigation";
 import { Session } from "next-auth";
 import UploadEventModal from "./Shared/UploadEventModal";
-import { useTranslations } from "next-intl";
 
 type NavbarProps = {
   session: Session | null;
@@ -41,8 +40,6 @@ type NavbarProps = {
 };
 
 const Navbar = ({ session, userNotifications }: NavbarProps) => {
-  const t = useTranslations("nav");
-  const ta = useTranslations("auth");
   const router = useRouter();
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -97,7 +94,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                 <Input
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder={t("search")}
+                  placeholder="Search events, people, posts..."
                   className="h-9 w-full rounded-full border-0 bg-muted/60 pl-9 pr-4 text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
@@ -126,7 +123,7 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                   onClick={() => setIsCreateModalOpen(true)}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  {t("create")}
+                  Create
                 </Button>
                 {/* Create button — mobile */}
                 <Button
@@ -147,10 +144,10 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
             {!session?.user && (
               <>
                 <Button variant="outline" className="sm:w-24 rounded-full" asChild>
-                  <Link href="/login">{ta("logIn")}</Link>
+                  <Link href="/login">Log in</Link>
                 </Button>
                 <Button className="sm:w-24 rounded-full" asChild>
-                  <Link href="/signup">{ta("signUp")}</Link>
+                  <Link href="/signup">Sign up</Link>
                 </Button>
               </>
             )}
@@ -187,23 +184,23 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                   {(session.user.role === UserRole.ADMIN ||
                     session.user.role === UserRole.SUPER_USER) && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">{t("adminPanel")}</Link>
+                      <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link href="/leaderboard" className="cursor-pointer">{t("leaderboard")}</Link>
+                    <Link href="/leaderboard" className="cursor-pointer">Leaderboard 🏆</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/bookmarks" className="cursor-pointer">{t("savedPosts")}</Link>
+                    <Link href="/bookmarks" className="cursor-pointer">Saved Posts</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href={`/user/${session.user.id}`} className="cursor-pointer">
-                      {t("viewProfile")}
+                      View/Update Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="cursor-pointer">
-                      {t("settings")}
+                      Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

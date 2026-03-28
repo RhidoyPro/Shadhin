@@ -49,7 +49,6 @@ import {
 import Link from "next/link";
 import { analytics } from "@/utils/analytics";
 import { useFirstAction } from "@/hooks/use-first-action";
-import { useTranslations } from "next-intl";
 
 type EventCommentWithUser = Prisma.CommentGetPayload<{
   include: {
@@ -96,8 +95,6 @@ const EventComments = ({
   eventId,
   eventUserId,
 }: EventCommentsProps) => {
-  const t = useTranslations("commentSection");
-  const tc = useTranslations("common");
   const user = useCurrentUser();
   const markFirstAction = useFirstAction();
   const [isPending, startTransition] = useTransition();
@@ -166,12 +163,12 @@ const EventComments = ({
 
   const addNewCommentHandler = useCallback(async () => {
     if (newComment.trim() === "") {
-      toast.error(t("emptyWrite"));
+      toast.error("Please write something before commenting");
       return;
     }
 
     if (!user) {
-      toast.error(t("notAuth"));
+      toast.error("User not authenticated");
       return;
     }
 
@@ -308,7 +305,7 @@ const EventComments = ({
             )}
             <Input
               ref={commentInputRef}
-              placeholder={t("placeholder")}
+              placeholder="Write a comment... (@ to mention)"
               value={newComment}
               onChange={handleCommentInputChange}
               onKeyDown={(e) => {
@@ -394,20 +391,20 @@ const EventComments = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                        {tc("actions")}
+                        Actions
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="cursor-pointer text-sm" asChild>
                         <Link href={`/user/${comment.user.id}`}>
                           <EyeIcon className="h-4 w-4 mr-2" />
-                          {t("viewProfile")}
+                          View Profile
                         </Link>
                       </DropdownMenuItem>
                       {user?.id === comment.user.id && (
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem className="cursor-pointer text-sm text-destructive focus:text-destructive focus:bg-destructive/10">
                             <Trash2Icon className="h-4 w-4 mr-2" />
-                            {t("deleteComment")}
+                            Delete Comment
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
                       )}
@@ -423,18 +420,19 @@ const EventComments = ({
             {/* AlertDialog content at the same level as DropdownMenu */}
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>{t("deleteConfirm")}</AlertDialogTitle>
+                <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  {t("deleteDescription")}
+                  This action cannot be undone. This will permanently delete the
+                  comment.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteCommentHandler(comment.id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  {tc("delete")}
+                  Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -448,10 +446,10 @@ const EventComments = ({
               <MessageCircleIcon className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium text-muted-foreground">
-              {t("noComments")}
+              No comments yet
             </p>
             <p className="text-xs text-muted-foreground/70 mt-1">
-              {t("beFirst")}
+              Be the first to share your thoughts
             </p>
           </div>
         )}
@@ -462,7 +460,7 @@ const EventComments = ({
       {isLoadingMore && (
         <div className="flex items-center justify-center gap-2 py-4 border-t border-border/30">
           <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{tc("loadingMore")}</p>
+          <p className="text-sm text-muted-foreground">Loading more...</p>
         </div>
       )}
     </Card>

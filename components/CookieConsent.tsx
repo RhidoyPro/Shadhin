@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Shield, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
 export default function CookieConsent() {
-  const t = useTranslations("cookie");
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(true);
@@ -58,30 +56,30 @@ export default function CookieConsent() {
             <Shield className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div className="flex-1 min-w-0">
               <p className="text-sm text-foreground">
-                {t("message")}{" "}
+                We use cookies to improve your experience and analyze usage.{" "}
                 <Link href="/privacy" className="underline text-primary">
-                  {t("privacyPolicy")}
+                  Privacy Policy
                 </Link>
               </p>
 
               {!expanded && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button size="sm" onClick={handleAcceptAll}>
-                    {t("acceptAll")}
+                    Accept All
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={handleRejectNonEssential}
                   >
-                    {t("rejectNonEssential")}
+                    Reject Non-Essential
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setExpanded(true)}
                   >
-                    {t("manage")}
+                    Manage
                     <ChevronDown className="ml-1 h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -92,9 +90,9 @@ export default function CookieConsent() {
                   {/* Essential — always on */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{t("essential")}</p>
+                      <p className="text-sm font-medium">Essential</p>
                       <p className="text-xs text-muted-foreground">
-                        {t("essentialDesc")}
+                        Authentication, security, core features
                       </p>
                     </div>
                     <Switch checked disabled />
@@ -103,9 +101,9 @@ export default function CookieConsent() {
                   {/* Analytics */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{t("analytics")}</p>
+                      <p className="text-sm font-medium">Analytics</p>
                       <p className="text-xs text-muted-foreground">
-                        {t("analyticsDesc")}
+                        Google Analytics, Clarity, PostHog
                       </p>
                     </div>
                     <Switch
@@ -117,9 +115,9 @@ export default function CookieConsent() {
                   {/* Marketing */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{t("marketing")}</p>
+                      <p className="text-sm font-medium">Marketing</p>
                       <p className="text-xs text-muted-foreground">
-                        {t("marketingDesc")}
+                        Meta Pixel for personalized ads
                       </p>
                     </div>
                     <Switch
@@ -130,7 +128,7 @@ export default function CookieConsent() {
 
                   <div className="flex gap-2 pt-1">
                     <Button size="sm" onClick={handleSavePreferences}>
-                      {t("savePreferences")}
+                      Save Preferences
                     </Button>
                     <Button
                       size="sm"
@@ -138,7 +136,7 @@ export default function CookieConsent() {
                       onClick={() => setExpanded(false)}
                     >
                       <ChevronUp className="mr-1 h-3.5 w-3.5" />
-                      {t("less")}
+                      Less
                     </Button>
                   </div>
                 </div>
