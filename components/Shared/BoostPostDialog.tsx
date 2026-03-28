@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { requestPromotion } from "@/actions/promotion";
 import { cn } from "@/lib/utils";
 import { analytics } from "@/utils/analytics";
+import { useTranslations } from "next-intl";
 
 const TIERS = [
   { days: 3, label: "3 Days", price: 50 },
@@ -33,6 +34,8 @@ type Props = {
 };
 
 const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
+  const t = useTranslations("boost");
+  const tc = useTranslations("common");
   const [selectedDays, setSelectedDays] = useState<3 | 7 | 14>(7);
   const [bkashRef, setBkashRef] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -47,7 +50,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
 
   const handleSubmit = () => {
     if (!bkashRef.trim() || bkashRef.trim().length < 6) {
-      toast.error("Please enter a valid bKash transaction reference (min 6 chars).");
+      toast.error(t("invalidTrxId"));
       return;
     }
     startTransition(async () => {
@@ -77,7 +80,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Boost Post</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription className="line-clamp-2 text-sm">
             &ldquo;{eventTitle}&rdquo;
           </DialogDescription>
@@ -87,21 +90,21 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
           <div className="space-y-4 py-2">
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 text-center">
               <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                Request submitted!
+                {t("success")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Your boost request is under review. We&apos;ll activate it once the payment is verified.
+                {t("successDesc")}
               </p>
             </div>
             <Button className="w-full" variant="outline" onClick={() => handleOpenChange(false)}>
-              Close
+              {tc("close")}
             </Button>
           </div>
         ) : (
           <div className="space-y-5 py-1">
             {/* Pricing tiers */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Select Duration</Label>
+              <Label className="text-sm font-medium">{t("selectDuration")}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {TIERS.map((tier) => (
                   <button
@@ -115,7 +118,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
                         : "border-border hover:border-primary/50 hover:bg-muted/50"
                     )}
                   >
-                    <span className="text-sm font-semibold">{tier.label}</span>
+                    <span className="text-sm font-semibold">{tier.days === 3 ? t("threeDays") : tier.days === 7 ? t("sevenDays") : t("fourteenDays")}</span>
                     <span className="text-base font-bold text-primary mt-0.5">
                       ৳{tier.price}
                     </span>
@@ -126,22 +129,21 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
 
             {/* Payment instructions */}
             <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-2">
-              <p className="text-sm font-medium">Payment Instructions</p>
+              <p className="text-sm font-medium">{t("paymentInstructions")}</p>
               <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
                 <li>
-                  Send <span className="font-semibold text-foreground">৳{selectedTier.price}</span> to bKash number{" "}
+                  Send <span className="font-semibold text-foreground">৳{selectedTier.price}</span> to bKash{" "}
                   <span className="font-mono font-semibold text-foreground">{BKASH_NUMBER}</span>
                 </li>
-                <li>Use &ldquo;Send Money&rdquo; (not payment)</li>
-                <li>Copy the TrxID from your bKash confirmation SMS</li>
-                <li>Paste it below and submit</li>
+                <li>{t("sendMoneyNote")}</li>
+                <li>{t("pasteTrxId")}</li>
               </ol>
             </div>
 
             {/* bKash reference input */}
             <div className="space-y-1.5">
               <Label htmlFor="bkash-ref" className="text-sm font-medium">
-                bKash TrxID
+                {t("bkashTrxId")}
               </Label>
               <Input
                 id="bkash-ref"
@@ -152,7 +154,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
                 maxLength={20}
               />
               <p className="text-xs text-muted-foreground">
-                Your request will be approved after manual payment verification (usually within a few hours).
+                {t("verificationNote")}
               </p>
             </div>
 
@@ -161,7 +163,7 @@ const BoostPostDialog = ({ eventId, eventTitle, open, onClose }: Props) => {
               onClick={handleSubmit}
               disabled={isPending || !bkashRef.trim()}
             >
-              {isPending ? "Submitting..." : `Submit Boost Request — ৳${selectedTier.price}`}
+              {isPending ? tc("submitting") : `${t("submit")} — ৳${selectedTier.price}`}
             </Button>
           </div>
         )}

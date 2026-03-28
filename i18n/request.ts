@@ -1,21 +1,19 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
 
-export default getRequestConfig(async ({ locale: explicitLocale }) => {
-  let locale = explicitLocale || "bn";
+const SUPPORTED_LOCALES = ["bn", "en"];
 
-  if (!explicitLocale) {
-    try {
-      const cookieStore = cookies();
-      locale = cookieStore.get("locale")?.value || "bn";
-    } catch {
-      // cookies() may not be available in some contexts
+export default getRequestConfig(async () => {
+  let locale = "bn";
+
+  try {
+    const cookieStore = cookies();
+    const saved = cookieStore.get("locale")?.value;
+    if (saved && SUPPORTED_LOCALES.includes(saved)) {
+      locale = saved;
     }
-  }
-
-  // Validate locale
-  if (locale !== "bn" && locale !== "en") {
-    locale = "bn";
+  } catch {
+    // cookies() not available in some build contexts
   }
 
   return {

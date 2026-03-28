@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { analytics } from "@/utils/analytics";
+import { useTranslations } from "next-intl";
 
 export default function SearchInput({ initialQuery }: { initialQuery: string }) {
+  const t = useTranslations("search");
   const router = useRouter();
   const [value, setValue] = useState(initialQuery);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,7 +37,7 @@ export default function SearchInput({ initialQuery }: { initialQuery: string }) 
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search people, posts, events..."
+        placeholder={t("placeholder")}
         className="h-12 pl-11 text-base rounded-xl border-border bg-card shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 focus-visible:shadow-md transition-shadow placeholder:text-muted-foreground/60"
       />
     </div>

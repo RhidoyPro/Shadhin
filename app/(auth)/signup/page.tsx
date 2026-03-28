@@ -32,19 +32,23 @@ import { toast } from "sonner";
 import { redirect } from "next/navigation";
 import BangladeshStates from "@/data/bangladesh-states";
 import { analytics } from "@/utils/analytics";
+import { useTranslations } from "next-intl";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useTranslations("auth");
 
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending && <ClipLoader size={14} color="#fff" className="mr-1" />}
-      {pending ? "Signing up" : "Signup"}
+      {pending ? t("signingUp") : t("signup")}
     </Button>
   );
 }
 
 export default function SignupPage() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
   const [state, formAction] = useFormState(signup, null);
 
   const [date, setDate] = useState<Date>();
@@ -100,37 +104,37 @@ export default function SignupPage() {
             <Logo />
           </div>
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Signup</h1>
+            <h1 className="text-3xl font-bold">{t("signup")}</h1>
           </div>
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">{t("firstName")}</Label>
                 <Input
                   id="firstName"
                   name="firstName"
                   type="text"
-                  placeholder="John"
+                  placeholder={t("firstNamePlaceholder")}
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">{t("lastName")}</Label>
                 <Input
                   id="lastName"
                   name="lastName"
                   type="text"
-                  placeholder="Doe"
+                  placeholder={t("lastNamePlaceholder")}
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder={t("emailPlaceholder")}
                 required
               />
             </div>
@@ -146,10 +150,10 @@ export default function SignupPage() {
                 />
               </div> */}
               <div className="grid gap-2">
-                <Label htmlFor="state">State</Label>
+                <Label htmlFor="state">{t("state")}</Label>
                 <Select name="state">
                   <SelectTrigger>
-                    <SelectValue placeholder="Select State" />
+                    <SelectValue placeholder={t("selectState")} />
                   </SelectTrigger>
                   <SelectContent id="state">
                     {BangladeshStates.slice(1).map((state) => (
@@ -163,16 +167,16 @@ export default function SignupPage() {
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="email">University Name (Optional)</Label>
+                <Label htmlFor="email">{t("university")}</Label>
                 <Input
                   id="university"
                   name="university"
                   type="text"
-                  placeholder="Bangladesh University of Engineering and Technology"
+                  placeholder={t("universityPlaceholder")}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Date of Birth (Optional)</Label>
+                <Label htmlFor="email">{t("dateOfBirth")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -183,7 +187,7 @@ export default function SignupPage() {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      {date ? format(date, "PPP") : <span>{t("pickDate")}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -202,7 +206,7 @@ export default function SignupPage() {
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("password")}</Label>
               </div>
               <Input id="password" name="password" type="password" required />
             </div>
@@ -227,9 +231,9 @@ export default function SignupPage() {
             </Button> */}
           </div>
           <div className="mt-2 text-center text-sm">
-            Already have an account?{" "}
+            {t("hasAccount")}{" "}
             <Link href="/login" className="underline">
-              Login
+              {t("login")}
             </Link>
           </div>
         </form>

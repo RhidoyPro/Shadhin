@@ -27,9 +27,12 @@ import {
 } from "@/actions/forgot-password";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 function ForgotPasswordPage() {
   const router = useRouter();
+  const t = useTranslations("forgotPassword");
+  const ta = useTranslations("auth");
   const [isPending, startTransition] = useTransition();
 
   const [isCodeShown, setIsCodeShown] = useState(false);
@@ -105,14 +108,14 @@ function ForgotPasswordPage() {
       <div>
         <Card className="sm:w-[450px] text-center">
           <CardHeader>
-            <CardTitle>Reset your Password</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
           </CardHeader>
           <CardDescription>
             {!isCodeShown && !isPasswordShown
-              ? "Enter your email address to receive a reset code."
+              ? t("emailStep")
               : isCodeShown
-              ? "Enter the code sent to your email to verify your account."
-              : "Enter your new password to reset your account."}
+              ? t("codeStep")
+              : t("passwordStep")}
           </CardDescription>
           <CardContent>
             {!isCodeShown && !isPasswordShown && (
@@ -124,13 +127,13 @@ function ForgotPasswordPage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={ta("emailPlaceholder")}
                   required
                   disabled={isPending}
                 />
 
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? <BeatLoader color="#fff" /> : "Send Reset Code"}
+                  {isPending ? <BeatLoader color="#fff" /> : t("sendCode")}
                 </Button>
               </form>
             )}
@@ -165,7 +168,7 @@ function ForgotPasswordPage() {
                 )}
                 {isPasswordShown && (
                   <>
-                    <Label htmlFor="password">New Password</Label>
+                    <Label htmlFor="password">{t("newPassword")}</Label>
                     <Input
                       id="password"
                       name="password"
@@ -181,9 +184,9 @@ function ForgotPasswordPage() {
                   {isPending ? (
                     <BeatLoader color="#fff" />
                   ) : isCodeShown ? (
-                    "Verify Code"
+                    t("verifyCode")
                   ) : (
-                    "Reset Password"
+                    t("resetPassword")
                   )}
                 </Button>
               </form>
@@ -191,7 +194,7 @@ function ForgotPasswordPage() {
           </CardContent>
           <CardFooter className="flex items-center justify-center">
             <Button asChild variant={"link"}>
-              <Link href="/login">Go back to login</Link>
+              <Link href="/login">{t("backToLogin")}</Link>
             </Button>
           </CardFooter>
         </Card>

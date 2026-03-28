@@ -13,12 +13,15 @@ import { formatDistance } from "date-fns";
 import { UserRole } from "@prisma/client";
 import VerifiedBadge from "@/components/Shared/VerifiedBadge";
 import SearchInput from "./SearchInput";
+import { getTranslations } from "next-intl/server";
 
 const SearchPage = async ({
   searchParams,
 }: {
   searchParams: { q?: string };
 }) => {
+  const t = await getTranslations("search");
+  const tc = await getTranslations("common");
   const query = searchParams.q || "";
   const rawResults = query.length >= 2 ? await search(query) : null;
   const results =
@@ -29,10 +32,10 @@ const SearchPage = async ({
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Search
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Find people, posts, and events across all districts
+          {t("subtitle")}
         </p>
       </div>
 
@@ -44,7 +47,7 @@ const SearchPage = async ({
         <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-3">
           <Search size={14} className="text-muted-foreground shrink-0" />
           <p className="text-sm text-muted-foreground">
-            Type at least 2 characters to search.
+            {t("minChars")}
           </p>
         </div>
       )}
@@ -57,7 +60,7 @@ const SearchPage = async ({
             <section className="rounded-xl border border-border bg-card overflow-hidden">
               <div className="px-5 pt-5 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  People
+                  {t("people")}
                 </h2>
               </div>
               <div className="divide-y divide-border">
@@ -113,7 +116,7 @@ const SearchPage = async ({
             <section className="rounded-xl border border-border bg-card overflow-hidden">
               <div className="px-5 pt-5 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Posts & Events
+                  {t("postsAndEvents")}
                 </h2>
               </div>
               <div className="divide-y divide-border">
@@ -173,11 +176,10 @@ const SearchPage = async ({
                 <Search className="text-muted-foreground" size={28} />
               </div>
               <p className="text-base font-medium text-foreground mb-1">
-                No results found
+                {tc("noResults")}
               </p>
               <p className="text-sm text-muted-foreground text-center max-w-xs">
-                We couldn&apos;t find anything matching &ldquo;{query}&rdquo;.
-                Try different keywords or check for typos.
+                {t("noResultsFor", { query })}
               </p>
             </div>
           )}
@@ -191,10 +193,10 @@ const SearchPage = async ({
             <Search className="text-muted-foreground" size={28} />
           </div>
           <p className="text-base font-medium text-foreground mb-1">
-            Discover Shadhin
+            {t("discover")}
           </p>
           <p className="text-sm text-muted-foreground text-center max-w-xs">
-            Search for people by name, district, or university. Find posts and events across all communities.
+            {t("discoverDesc")}
           </p>
         </div>
       )}
