@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useTranslations } from "@/components/I18nProvider";
+import { useTranslations, useLocale } from "@/components/I18nProvider";
 
 type UpdateProfileModalProps = {
   isOpen: boolean;
@@ -46,6 +46,7 @@ const UpdateProfileModal = ({
   const t = useTranslations("profile");
   const ta = useTranslations("auth");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const { update, data: session } = useSession();
   const [file, setFile] = React.useState<File | undefined>();
   const [date, setDate] = React.useState<Date | undefined>(
@@ -325,7 +326,7 @@ const UpdateProfileModal = ({
                 <SelectContent id="state">
                   {BangladeshStates.slice(1).map((state) => (
                     <SelectItem key={state.id} value={state.slug}>
-                      {state.name}
+                      {locale === "bn" ? state.nameBn : state.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -1,18 +1,19 @@
 interface State {
   id: number;
   name: string;
+  nameBn: string;
   slug: string;
 }
 const BangladeshStates: State[] = [
-  { id: 0, name: "All Districts", slug: "all-districts" },
-  { id: 1, name: "Dhaka", slug: "dhaka" },
-  { id: 2, name: "Chattogram", slug: "chattogram" },
-  { id: 3, name: "Khulna", slug: "khulna" },
-  { id: 4, name: "Rajshahi", slug: "rajshahi" },
-  { id: 5, name: "Sylhet", slug: "sylhet" },
-  { id: 6, name: "Barishal", slug: "barishal" },
-  { id: 7, name: "Rangpur", slug: "rangpur" },
-  { id: 8, name: "Mymensingh", slug: "mymensingh" },
+  { id: 0, name: "All Districts", nameBn: "সব জেলা", slug: "all-districts" },
+  { id: 1, name: "Dhaka", nameBn: "ঢাকা", slug: "dhaka" },
+  { id: 2, name: "Chattogram", nameBn: "চট্টগ্রাম", slug: "chattogram" },
+  { id: 3, name: "Khulna", nameBn: "খুলনা", slug: "khulna" },
+  { id: 4, name: "Rajshahi", nameBn: "রাজশাহী", slug: "rajshahi" },
+  { id: 5, name: "Sylhet", nameBn: "সিলেট", slug: "sylhet" },
+  { id: 6, name: "Barishal", nameBn: "বরিশাল", slug: "barishal" },
+  { id: 7, name: "Rangpur", nameBn: "রংপুর", slug: "rangpur" },
+  { id: 8, name: "Mymensingh", nameBn: "ময়মনসিংহ", slug: "mymensingh" },
 ];
 
 export default BangladeshStates;

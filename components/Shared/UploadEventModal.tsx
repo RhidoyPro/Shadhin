@@ -30,7 +30,7 @@ import { computeSHA256 } from "@/utils/computeHash";
 import VerifiedBadge from "./VerifiedBadge";
 import { analytics } from "@/utils/analytics";
 import { useFirstAction } from "@/hooks/use-first-action";
-import { useTranslations } from "@/components/I18nProvider";
+import { useTranslations, useLocale } from "@/components/I18nProvider";
 
 type UploadEventModalProps = {
   isOpen: boolean;
@@ -45,6 +45,7 @@ const UploadEventModal = ({
 }: UploadEventModalProps) => {
   const t = useTranslations("upload");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const user = useCurrentUser();
   const markFirstAction = useFirstAction();
 
@@ -194,7 +195,7 @@ const UploadEventModal = ({
               <SelectContent>
                 {BangladeshStates.map((state) => (
                   <SelectItem key={state.id} value={state.slug}>
-                    {state.name}
+                    {locale === "bn" ? state.nameBn : state.name}
                   </SelectItem>
                 ))}
               </SelectContent>

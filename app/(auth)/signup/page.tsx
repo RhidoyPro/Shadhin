@@ -32,7 +32,7 @@ import { toast } from "sonner";
 import { redirect } from "next/navigation";
 import BangladeshStates from "@/data/bangladesh-states";
 import { analytics } from "@/utils/analytics";
-import { useTranslations } from "@/components/I18nProvider";
+import { useTranslations, useLocale } from "@/components/I18nProvider";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -49,6 +49,7 @@ function SubmitButton() {
 export default function SignupPage() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const [state, formAction] = useFormState(signup, null);
 
   const [date, setDate] = useState<Date>();
@@ -158,7 +159,7 @@ export default function SignupPage() {
                   <SelectContent id="state">
                     {BangladeshStates.slice(1).map((state) => (
                       <SelectItem key={state.id} value={state.slug}>
-                        {state.name}
+                        {locale === "bn" ? state.nameBn : state.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
