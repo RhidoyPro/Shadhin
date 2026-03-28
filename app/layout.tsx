@@ -5,7 +5,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale } from "next-intl/server";
+import bnMessages from "@/messages/bn.json";
+import enMessages from "@/messages/en.json";
 import { auth } from "@/auth";
 import NextTopLoader from "nextjs-toploader";
 import { Analytics } from "@vercel/analytics/react";
@@ -83,7 +85,7 @@ export default async function RootLayout({
 }>) {
   const session = await auth();
   const locale = await getLocale();
-  const messages = await getMessages();
+  const messages = locale === "en" ? enMessages : bnMessages;
   return (
     <SessionProvider session={session}>
       <html lang={locale}>
