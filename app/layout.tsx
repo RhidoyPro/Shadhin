@@ -88,6 +88,21 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <html lang={locale}>
         <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "Shadhin.io",
+                url: "https://shadhin.io",
+                logo: "https://shadhin.io/logo.png",
+                description:
+                  "Bangladesh's district-based social platform for events, live chat, and community discussions.",
+                sameAs: [],
+              }),
+            }}
+          />
           <link rel="apple-touch-icon" href="/logo.png" />
           <meta name="mobile-web-app-capable" content="yes" />
           {/* R2 CDN — preconnect since images load early */}

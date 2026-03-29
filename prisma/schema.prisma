@@ -212,6 +212,7 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@index([stateName, createdAt])
   @@index([replyToId])
 }
@@ -258,6 +259,8 @@ model Report {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([eventId])
+  @@index([userId])
   @@index([createdAt])
 }
 
