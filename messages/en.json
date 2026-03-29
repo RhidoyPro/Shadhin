@@ -168,7 +168,10 @@
     "maxAttendeesPlaceholder": "e.g. 100",
     "dragDrop": "Drag 'n' drop image or video you want to upload",
     "emptyContent": "Please write some content before posting",
-    "uploadFailed": "Failed to upload file, please try again"
+    "uploadFailed": "Failed to upload file, please try again",
+    "photo": "Photo",
+    "video": "Video",
+    "event": "Event"
   },
   "eventActions": {
     "reportEvent": "Report this event",

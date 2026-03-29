@@ -168,7 +168,10 @@
     "maxAttendeesPlaceholder": "যেমন ১০০",
     "dragDrop": "ছবি বা ভিডিও ড্র্যাগ করে ছেড়ে দিন",
     "emptyContent": "পোস্ট করার আগে কিছু লিখুন",
-    "uploadFailed": "আপলোড করতে সমস্যা হয়েছে, আবার চেষ্টা করুন"
+    "uploadFailed": "আপলোড করতে সমস্যা হয়েছে, আবার চেষ্টা করুন",
+    "photo": "ছবি",
+    "video": "ভিডিও",
+    "event": "ইভেন্ট"
   },
   "eventActions": {
     "reportEvent": "ইভেন্ট রিপোর্ট করুন",

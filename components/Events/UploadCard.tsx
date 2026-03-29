@@ -4,8 +4,11 @@ import { Calendar, ImageIcon, Video } from "lucide-react";
 import { Button } from "../ui/button";
 import UploadEventModal from "../Shared/UploadEventModal";
 import CurrentUserAvatar from "../Shared/CurrentUserAvatar";
+import { useTranslations } from "@/components/I18nProvider";
 
 const UploadCard = () => {
+  const t = useTranslations("upload");
+  const tc = useTranslations("common");
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [isStatus, setStatus] = useState(true);
 
@@ -24,7 +27,7 @@ const UploadCard = () => {
               className="min-h-[44px] rounded-2xl bg-muted/50 px-4 py-2.5 cursor-text transition-all hover:bg-muted/70"
               onClick={() => setEventModalOpen(true)}
             >
-              <p className="text-sm text-muted-foreground">What&apos;s on your mind?</p>
+              <p className="text-sm text-muted-foreground">{t("whatsOnMind")}</p>
             </div>
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -35,7 +38,7 @@ const UploadCard = () => {
                   onClick={() => setEventModalOpen(true)}
                 >
                   <ImageIcon className="h-4 w-4" />
-                  <span className="hidden text-xs sm:inline">Photo</span>
+                  <span className="hidden text-xs sm:inline">{t("photo")}</span>
                 </Button>
                 <Button
                   variant="ghost"
@@ -44,7 +47,7 @@ const UploadCard = () => {
                   onClick={() => setEventModalOpen(true)}
                 >
                   <Video className="h-4 w-4" />
-                  <span className="hidden text-xs sm:inline">Video</span>
+                  <span className="hidden text-xs sm:inline">{t("video")}</span>
                 </Button>
                 <Button
                   variant="ghost"
@@ -56,7 +59,7 @@ const UploadCard = () => {
                   }}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden text-xs sm:inline">Event</span>
+                  <span className="hidden text-xs sm:inline">{t("event")}</span>
                 </Button>
               </div>
               <Button
@@ -64,7 +67,7 @@ const UploadCard = () => {
                 className="h-8 rounded-full px-4 text-xs font-medium shadow-md shadow-primary/25"
                 onClick={() => setEventModalOpen(true)}
               >
-                Post
+                {tc("post")}
               </Button>
             </div>
           </div>
