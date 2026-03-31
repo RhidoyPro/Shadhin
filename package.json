@@ -62,7 +62,7 @@
     "react-markdown": "^10.1.0",
     "react-phone-number-input": "^3.4.5",
     "react-spinners": "^0.14.1",
-    "recharts": "^2.12.7",
+    "recharts": "^2.15.4",
     "resend": "^6.2.2",
     "sharp": "^0.33.5",
     "sonner": "^2.0.7",
