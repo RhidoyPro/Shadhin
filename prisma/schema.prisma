@@ -387,6 +387,10 @@ model SupportEmail {
   autoReply   String?
   language    String?   // bn | en | mixed
   status      String    @default("open") // open | resolved | escalated
+  feedback    String?   // yes | no
+  confidence  Float?
+  sentiment   String?   // positive | neutral | frustrated | angry
+  topics      String?   // comma-separated topic tags
   resolvedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
