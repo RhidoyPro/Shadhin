@@ -155,7 +155,7 @@ Platform knowledge:
 
 Classify the support email below. Detect its language and respond accordingly.
 - For simple_question: write a helpful autoReply in the SAME language as the email
-- For complaint or legal_urgent: set autoReply to null`;
+- For complaint or legal_urgent: set autoReply to empty string ""`;
 
 const RESPONSE_SCHEMA = {
   type: "object",
@@ -176,8 +176,7 @@ const RESPONSE_SCHEMA = {
     },
     autoReply: {
       type: "string",
-      nullable: true,
-      description: "Helpful reply in sender's language if simple_question, null otherwise",
+      description: "Helpful reply in sender's language if simple_question. Empty string if not simple_question.",
     },
   },
   required: ["category", "summary", "language", "autoReply"],
@@ -191,8 +190,16 @@ async function classifyEmail(
   const geminiKey = process.env.GOOGLE_AI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
-  if (geminiKey) return classifyWithGemini(geminiKey, subject, body);
-  if (anthropicKey) return classifyWithClaude(anthropicKey, subject, body);
+  if (geminiKey) {
+    const result = await classifyWithGemini(geminiKey, subject, body);
+    if (result) return result;
+    console.warn("Gemini classification failed, trying Claude fallback");
+  }
+  if (anthropicKey) {
+    const result = await classifyWithClaude(anthropicKey, subject, body);
+    if (result) return result;
+    console.warn("Claude classification also failed");
+  }
   return null;
 }
 
@@ -230,14 +237,24 @@ async function classifyWithGemini(
       }
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error("Gemini API error:", response.status, await response.text().catch(() => ""));
+      return null;
+    }
 
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return null;
+    if (!text) {
+      console.error("Gemini empty response:", JSON.stringify(data).slice(0, 200));
+      return null;
+    }
 
-    return JSON.parse(text) as ClassifiedEmail;
-  } catch {
+    const parsed = JSON.parse(text) as ClassifiedEmail;
+    // Normalize empty autoReply to null
+    if (!parsed.autoReply) parsed.autoReply = null;
+    return parsed;
+  } catch (err) {
+    console.error("Gemini classify error:", err instanceof Error ? err.message : "unknown");
     return null;
   }
 }
