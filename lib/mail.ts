@@ -35,7 +35,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 export const sendForgotPasswordEmail = async (email: string, code: string) => {
-  await getResend().emails.send({
+  const { error } = await getResend().emails.send({
     from: FROM,
     replyTo: REPLY_TO,
     to: email,
@@ -43,6 +43,11 @@ export const sendForgotPasswordEmail = async (email: string, code: string) => {
     headers: defaultHeaders,
     react: ResetPasswordEmail({ code }),
   });
+
+  if (error) {
+    console.error("Resend error (password reset):", error);
+    throw new Error(error.message || "Failed to send password reset email");
+  }
 };
 
 export const sendWelcomeEmail = async (

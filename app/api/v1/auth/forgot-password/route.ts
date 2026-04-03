@@ -46,9 +46,17 @@ export async function POST(req: Request) {
     data: { email: parsed.data.email, code, expires },
   });
 
-  // Send email with code (reuse existing mail function)
-  const { sendForgotPasswordEmail } = await import("@/lib/mail");
-  await sendForgotPasswordEmail(parsed.data.email, code);
+  // Send email with code
+  try {
+    const { sendForgotPasswordEmail } = await import("@/lib/mail");
+    await sendForgotPasswordEmail(parsed.data.email, code);
+  } catch (error) {
+    console.error("Failed to send forgot password email:", error);
+    return NextResponse.json(
+      { error: "Failed to send reset email. Please try again later." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ message });
 }
