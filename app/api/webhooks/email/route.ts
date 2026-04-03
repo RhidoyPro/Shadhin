@@ -544,7 +544,7 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
     ? `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6;border-left:3px solid #16a34a;padding-left:16px">
         <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
           <td style="width:52px;vertical-align:top;padding-right:14px">
-            <img src="https://pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
+            <img src="https://shadhin.io/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
           </td>
           <td style="vertical-align:top">
             <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io সাপোর্ট টিম</p>
@@ -560,7 +560,7 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
     : `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6;border-left:3px solid #16a34a;padding-left:16px">
         <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
           <td style="width:52px;vertical-align:top;padding-right:14px">
-            <img src="https://pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
+            <img src="https://shadhin.io/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
           </td>
           <td style="vertical-align:top">
             <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io Support Team</p>
@@ -604,7 +604,7 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
   <div class="email-card" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid #e5e7eb">
     <div style="height:4px;background:linear-gradient(135deg,#16a34a 0%,#0d9488 100%)"></div>
     <div class="email-header" style="padding:28px 32px 8px;text-align:center">
-      <img src="https://pub-81b012e4d7214ac491438e1df8c5bf00.r2.dev/logo.png" width="40" height="40" alt="Shadhin.io" style="display:block;margin:0 auto;border-radius:8px">
+      <img src="https://shadhin.io/logo.png" width="40" height="40" alt="Shadhin.io" style="display:block;margin:0 auto;border-radius:8px">
       <p class="email-heading" style="font-size:20px;font-weight:700;color:#16a34a;margin:10px 0 0;letter-spacing:-0.02em">Shadhin.io</p>
     </div>
     <div class="email-content" style="padding:8px 32px 32px">
