@@ -43,7 +43,7 @@ export const SignupSchema = z.object({
     .optional(),
   state: z
     .string({ message: "Please select a state" })
-    .refine((s) => VALID_STATES.includes(s), {
+    .refine((s) => VALID_STATES.includes(s) || VALID_STATE_SLUGS.includes(s), {
       message: "Please select a valid Bangladesh district",
     }),
 });
