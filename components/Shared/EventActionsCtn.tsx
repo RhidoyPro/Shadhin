@@ -100,7 +100,7 @@ const EventActionsCtn = ({
       }
       setIsReportDialogOpen(false);
       setReportReason("");
-      toast.success(t("reportSuccess"));
+      toast.success(t("reportSuccess"), { description: t("reportHelpNudge") });
     } catch {
       toast.error(t("reportError"));
     }

@@ -64,7 +64,8 @@
     "pickDate": "তারিখ বাছাই করুন",
     "logout": "লগআউট",
     "logIn": "লগইন",
-    "signUp": "সাইন আপ"
+    "signUp": "সাইন আপ",
+    "needHelp": "সাহায্য দরকার? {email}"
   },
   "forgotPassword": {
     "title": "পাসওয়ার্ড রিসেট করুন",
@@ -103,7 +104,8 @@
     "leaderboard": "লিডারবোর্ড",
     "savedPosts": "সেভ করা পোস্ট",
     "viewProfile": "প্রোফাইল দেখুন/আপডেট করুন",
-    "settings": "সেটিংস"
+    "settings": "সেটিংস",
+    "helpSupport": "সাহায্য"
   },
   "feed": {
     "loadError": "পোস্ট লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।",
@@ -180,7 +182,8 @@
     "reportPlaceholder": "কেন রিপোর্ট করছেন লিখুন...",
     "submitReport": "রিপোর্ট জমা দিন",
     "reportSuccess": "রিপোর্ট হয়েছে",
-    "reportError": "রিপোর্ট করতে সমস্যা হয়েছে"
+    "reportError": "রিপোর্ট করতে সমস্যা হয়েছে",
+    "reportHelpNudge": "আরো সাহায্য দরকার? help@shadhin.io তে যোগাযোগ করুন"
   },
   "settings": {
     "title": "সেটিংস",
@@ -202,7 +205,11 @@
     "dangerZone": "ডেঞ্জার জোন",
     "dangerZoneDesc": "আপনার একাউন্ট ও সব ডেটা পুরোপুরি মুছে ফেলুন। এটা আর ফেরানো যাবে না।",
     "language": "ভাষা",
-    "languageDesc": "অ্যাপের ভাষা বদলান।"
+    "languageDesc": "অ্যাপের ভাষা বদলান।",
+    "helpSupport": "সাহায্য ও সহায়তা",
+    "helpDescription": "আমরা সাহায্য করতে এখানে আছি। যেকোনো সময় যোগাযোগ করুন।",
+    "helpReplyTime": "আমরা ২৪ ঘণ্টার মধ্যে উত্তর দিই",
+    "helpPhone": "কল করুন"
   },
   "deleteAccount": {
     "title": "একাউন্ট মুছে ফেলুন",

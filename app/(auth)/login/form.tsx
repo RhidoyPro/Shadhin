@@ -140,6 +140,11 @@ const LoginForm = () => {
           {t("signUp")}
         </Link>
       </div>
+      <div className="text-center text-xs text-white/60">
+        <a href="mailto:help@shadhin.io" className="hover:text-white/80 hover:underline transition-colors">
+          {t("needHelp", { email: "help@shadhin.io" })}
+        </a>
+      </div>
     </form>
   );
 };

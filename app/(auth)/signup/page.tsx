@@ -237,6 +237,11 @@ export default function SignupPage() {
               {t("login")}
             </Link>
           </div>
+          <div className="mt-2 text-center text-xs text-muted-foreground">
+            <a href="mailto:help@shadhin.io" className="hover:text-foreground hover:underline transition-colors">
+              {t("needHelp", { email: "help@shadhin.io" })}
+            </a>
+          </div>
         </form>
       </div>
       <div className="hidden bg-muted lg:block">

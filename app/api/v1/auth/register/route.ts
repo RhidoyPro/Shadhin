@@ -4,12 +4,11 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { saltAndHash } from "@/utils/helper";
 import { SignupSchema } from "@/utils/zodSchema";
-import { generateVerificationToken } from "@/lib/tokens";
-import { sendVerificationEmail, sendWelcomeEmail, sendNewDistrictMemberEmail } from "@/lib/mail";
-import { updateIsEmailSent } from "@/data/verification-token";
+import { sendWelcomeEmail, sendNewDistrictMemberEmail } from "@/lib/mail";
 import { headers } from "next/headers";
 import { sanitizeBody } from "@/lib/sanitize";
 import { validatePasswordNotBreached } from "@/lib/password-check";
+import { signMobileToken } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -51,15 +50,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: breachError }, { status: 400 });
   }
 
-  // Don't reveal if email exists
   const existing = await getUserByEmail(data.email);
   if (existing) {
-    return NextResponse.json({ message: "Verification email sent! Please verify your email and login." });
+    return NextResponse.json({ error: "Email already exists" }, { status: 409 });
   }
 
   const hashedPassword = saltAndHash(data.password);
 
-  await db.user.create({
+  const newUser = await db.user.create({
     data: {
       email: data.email,
       hashedPassword,
@@ -69,12 +67,20 @@ export async function POST(req: Request) {
       university: data.university,
       dateOfBirth: data.dateOfBirth,
       stateName: data.state,
+      emailVerified: new Date(),
     },
   });
 
-  const verificationToken = await generateVerificationToken(data.email);
-  await sendVerificationEmail(verificationToken.email, verificationToken.token);
-  await updateIsEmailSent(verificationToken.token);
+  // Generate JWT so mobile can auto-login
+  const token = await signMobileToken({
+    userId: newUser.id,
+    email: newUser.email!,
+    role: newUser.role,
+    isSuspended: newUser.isSuspended,
+    isVerifiedOrg: newUser.isVerifiedOrg,
+    stateName: newUser.stateName ?? undefined,
+    createdAt: newUser.createdAt.toISOString(),
+  });
 
   // Non-blocking emails
   sendWelcomeEmail(data.email, data.firstName, data.state).catch(() => {});
@@ -90,5 +96,25 @@ export async function POST(req: Request) {
     }
   }).catch(() => {});
 
-  return NextResponse.json({ message: "Verification email sent! Please verify your email and login." });
+  return NextResponse.json({
+    token,
+    user: {
+      id: newUser.id,
+      name: newUser.name,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      phone: newUser.phone,
+      university: newUser.university,
+      dateOfBirth: newUser.dateOfBirth?.toISOString() ?? null,
+      image: newUser.image,
+      role: newUser.role,
+      stateName: newUser.stateName,
+      bio: newUser.bio,
+      isVerifiedOrg: newUser.isVerifiedOrg,
+      isSuspended: newUser.isSuspended,
+      points: newUser.points,
+      createdAt: newUser.createdAt.toISOString(),
+    },
+  });
 }

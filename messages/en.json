@@ -64,7 +64,8 @@
     "pickDate": "Pick a date",
     "logout": "Log out",
     "logIn": "Log in",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "needHelp": "Need help? {email}"
   },
   "forgotPassword": {
     "title": "Reset your Password",
@@ -103,7 +104,8 @@
     "leaderboard": "Leaderboard",
     "savedPosts": "Saved Posts",
     "viewProfile": "View/Update Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "helpSupport": "Help & Support"
   },
   "feed": {
     "loadError": "Couldn't load more posts. Please try again.",
@@ -180,7 +182,8 @@
     "reportPlaceholder": "Describe why you're reporting this...",
     "submitReport": "Submit Report",
     "reportSuccess": "Reported successfully",
-    "reportError": "An error occurred while reporting"
+    "reportError": "An error occurred while reporting",
+    "reportHelpNudge": "Need further help? Contact help@shadhin.io"
   },
   "settings": {
     "title": "Settings",
@@ -202,7 +205,11 @@
     "dangerZone": "Danger Zone",
     "dangerZoneDesc": "Permanently delete your account and all associated data. This cannot be undone.",
     "language": "Language",
-    "languageDesc": "Change the display language of the app."
+    "languageDesc": "Change the display language of the app.",
+    "helpSupport": "Help & Support",
+    "helpDescription": "We're here to help. Reach out anytime.",
+    "helpReplyTime": "We reply within 24 hours",
+    "helpPhone": "Call Us"
   },
   "deleteAccount": {
     "title": "Delete My Account",

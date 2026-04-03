@@ -14,7 +14,7 @@ import { Input } from "./ui/input";
 import LogoutBtn from "./Shared/LogoutBtn";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Search, UserRound, Plus } from "lucide-react";
+import { Search, UserRound, Plus, HelpCircle } from "lucide-react";
 import Notifications from "./Notifications";
 import { UserRole, Prisma } from "@prisma/client";
 import Image from "next/image";
@@ -205,6 +205,12 @@ const Navbar = ({ session, userNotifications }: NavbarProps) => {
                     <Link href="/settings" className="cursor-pointer">
                       {t("settings")}
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="mailto:help@shadhin.io" className="cursor-pointer flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4" />
+                      {t("helpSupport")}
+                    </a>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

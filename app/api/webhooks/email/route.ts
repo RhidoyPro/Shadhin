@@ -505,7 +505,7 @@ async function persistEmail(
         summary: summary || undefined,
         language: language || undefined,
         autoReply: autoReply || undefined,
-        confidence: confidence !== undefined ? String(confidence) : undefined,
+        confidence: confidence !== undefined ? Number(confidence) : undefined,
         sentiment: sentiment || undefined,
         topics: topics?.length ? topics.join(",") : undefined,
         status: category === "legal_urgent" ? "escalated" : "open",
