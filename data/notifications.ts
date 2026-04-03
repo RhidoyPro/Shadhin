@@ -9,7 +9,17 @@ export const getUserNotifications = async (userId: string) => {
       orderBy: {
         createdAt: "desc",
       },
-      take: 30,
+      take: 50,
+      include: {
+        event: {
+          select: {
+            id: true,
+            content: true,
+            stateName: true,
+            mediaUrl: true,
+          },
+        },
+      },
     });
 
     return notifications;
