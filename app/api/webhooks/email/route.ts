@@ -534,17 +534,17 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
   const isBn = language === "bn";
   const feedbackHtml = feedbackId
     ? `<div style="text-align:center;margin:28px 0 8px;padding-top:24px;border-top:1px solid #e5e7eb">
-        <p style="font-size:13px;color:#6b7280;margin:0 0 12px">${isBn ? "এই উত্তর কি সাহায্যকর ছিল?" : "Was this helpful?"}</p>
-        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=yes" style="display:inline-block;padding:10px 28px;background:#16a34a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px">👍 ${isBn ? "হ্যাঁ" : "Yes"}</a>
-        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=no" style="display:inline-block;padding:10px 28px;background:#e5e7eb;color:#374151;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px">👎 ${isBn ? "না" : "No"}</a>
+        <p style="font-size:14px;color:#6b7280;margin:0 0 12px">${isBn ? "এই উত্তর কি সাহায্যকর ছিল?" : "Was this helpful?"}</p>
+        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=yes" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#16a34a 0%,#0d9488 100%);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px;box-shadow:0 2px 6px rgba(22,163,74,0.25)">👍 ${isBn ? "হ্যাঁ" : "Yes"}</a>
+        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=no" style="display:inline-block;padding:12px 28px;background:#f3f4f6;color:#374151;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px;border:1px solid #d1d5db;box-shadow:0 1px 3px rgba(0,0,0,0.05)">👎 ${isBn ? "না" : "No"}</a>
       </div>`
     : "";
 
   const signature = isBn
-    ? `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6">
+    ? `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6;border-left:3px solid #16a34a;padding-left:16px">
         <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
-          <td style="width:48px;vertical-align:top;padding-right:14px">
-            <img src="https://shadhin.io/logo.png" width="42" height="42" alt="Shadhin.io" style="border-radius:8px">
+          <td style="width:52px;vertical-align:top;padding-right:14px">
+            <img src="https://shadhin.io/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
           </td>
           <td style="vertical-align:top">
             <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io সাপোর্ট টিম</p>
@@ -557,10 +557,10 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
           </td>
         </tr></table>
       </div>`
-    : `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6">
+    : `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6;border-left:3px solid #16a34a;padding-left:16px">
         <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
-          <td style="width:48px;vertical-align:top;padding-right:14px">
-            <img src="https://shadhin.io/logo.png" width="42" height="42" alt="Shadhin.io" style="border-radius:8px">
+          <td style="width:52px;vertical-align:top;padding-right:14px">
+            <img src="https://shadhin.io/logo.png" width="44" height="44" alt="Shadhin.io" style="border-radius:8px">
           </td>
           <td style="vertical-align:top">
             <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io Support Team</p>
@@ -575,24 +575,47 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
       </div>`;
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#f6f9fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-<div style="max-width:580px;margin:0 auto;padding:24px 12px 48px">
-  <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
-    <div style="height:4px;background:linear-gradient(90deg,#16a34a,#22c55e)"></div>
-    <div style="padding:28px 32px 8px;text-align:center">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="color-scheme" content="light dark">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @media (prefers-color-scheme: dark) {
+    .email-body { background: #1a1a2e !important; }
+    .email-card { background: #1e293b !important; border-color: #334155 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important; }
+    .email-heading { color: #f1f5f9 !important; }
+    .email-text { color: #cbd5e1 !important; }
+    .email-muted { color: #94a3b8 !important; }
+    .email-info-box { background: #1e293b !important; border-color: #334155 !important; }
+    .email-sig-name { color: #f1f5f9 !important; }
+    .email-sig-sub { color: #94a3b8 !important; }
+    .email-footer-text { color: #94a3b8 !important; }
+    .email-footer-copy { color: #64748b !important; }
+    .email-divider { border-color: #334155 !important; }
+    .email-no-btn { background: #334155 !important; color: #cbd5e1 !important; border-color: #475569 !important; }
+  }
+  @media only screen and (max-width: 480px) {
+    .email-content { padding-left: 20px !important; padding-right: 20px !important; }
+    .email-header { padding-left: 20px !important; padding-right: 20px !important; }
+    .email-wrapper { padding-left: 8px !important; padding-right: 8px !important; }
+  }
+</style>
+</head>
+<body class="email-body" style="margin:0;padding:0;background:#f6f9fc;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px">
+<div class="email-wrapper" style="max-width:580px;margin:0 auto;padding:24px 12px 48px">
+  <div class="email-card" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid #e5e7eb">
+    <div style="height:4px;background:linear-gradient(135deg,#16a34a 0%,#0d9488 100%)"></div>
+    <div class="email-header" style="padding:28px 32px 8px;text-align:center">
       <img src="https://shadhin.io/logo.png" width="40" height="40" alt="Shadhin.io" style="display:block;margin:0 auto;border-radius:8px">
-      <p style="font-size:20px;font-weight:700;color:#16a34a;margin:10px 0 0;letter-spacing:-0.3px">Shadhin.io</p>
+      <p class="email-heading" style="font-size:20px;font-weight:700;color:#16a34a;margin:10px 0 0;letter-spacing:-0.02em">Shadhin.io</p>
     </div>
-    <div style="padding:8px 32px 32px">
+    <div class="email-content" style="padding:8px 32px 32px">
       ${body}
       ${signature}
       ${feedbackHtml}
     </div>
   </div>
   <div style="padding:20px 16px;text-align:center">
-    <p style="font-size:12px;color:#9ca3af;margin:0">${isBn ? "বাংলাদেশের কমিউনিটি প্ল্যাটফর্ম" : "Bangladesh's Community Platform"} · <a href="https://shadhin.io" style="color:#16a34a;text-decoration:none">shadhin.io</a></p>
-    <p style="font-size:11px;color:#d1d5db;margin:6px 0 0">© ${new Date().getFullYear()} Shadhin.io</p>
+    <p class="email-footer-text" style="font-size:13px;color:#6b7280;margin:0">${isBn ? "বাংলাদেশের কমিউনিটি প্ল্যাটফর্ম" : "Bangladesh's Community Platform"} · <a href="https://shadhin.io" style="color:#16a34a;text-decoration:none">shadhin.io</a></p>
+    <p class="email-footer-copy" style="font-size:11px;color:#6b7280;margin:6px 0 0">© ${new Date().getFullYear()} Shadhin.io</p>
   </div>
 </div>
 </body></html>`;
@@ -600,18 +623,18 @@ function brandedEmail(body: string, language?: string, feedbackId?: string): str
 
 function autoReplyHtml(reply: string, language?: string, feedbackId?: string): string {
   const formatted = reply
-    .split("\n\n").map(p => `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">${p.replace(/\n/g, "<br>")}</p>`).join("");
+    .split("\n\n").map(p => `<p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">${p.replace(/\n/g, "<br>")}</p>`).join("");
   return brandedEmail(formatted, language, feedbackId);
 }
 
 function urgentAckHtml(language: string): string {
   const content = language === "bn"
-    ? `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আসসালামু আলাইকুম,</p>
-       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আপনার ইমেইল পেয়েছি। আপনার বিষয়টি <strong style="color:#dc2626">জরুরি</strong> হিসেবে চিহ্নিত করা হয়েছে এবং আমাদের টিমকে জানানো হয়েছে।</p>
-       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আমরা যত দ্রুত সম্ভব আপনার সাথে যোগাযোগ করব। জরুরি প্রয়োজনে সরাসরি <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a> এ লিখুন।</p>`
-    : `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">Hi there,</p>
-       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">We've received your message and it has been marked as <strong style="color:#dc2626">urgent</strong>. Our team has been notified immediately.</p>
-       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">We'll get back to you as quickly as possible. For anything critical, you can also reach us directly at <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a>.</p>`;
+    ? `<p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">আসসালামু আলাইকুম,</p>
+       <p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">আপনার ইমেইল পেয়েছি। আপনার বিষয়টি <strong style="color:#dc2626">জরুরি</strong> হিসেবে চিহ্নিত করা হয়েছে এবং আমাদের টিমকে জানানো হয়েছে।</p>
+       <p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">আমরা যত দ্রুত সম্ভব আপনার সাথে যোগাযোগ করব। জরুরি প্রয়োজনে সরাসরি <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a> এ লিখুন।</p>`
+    : `<p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">Hi there,</p>
+       <p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">We've received your message and it has been marked as <strong style="color:#dc2626">urgent</strong>. Our team has been notified immediately.</p>
+       <p class="email-text" style="font-size:16px;line-height:1.7;color:#374151;margin:0 0 14px">We'll get back to you as quickly as possible. For anything critical, you can also reach us directly at <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a>.</p>`;
   return brandedEmail(content, language);
 }
 
@@ -630,14 +653,14 @@ function adminAlertHtml(senderEmail: string, subject: string, content: string, t
     <div style="background:${color}15;border-left:4px solid ${color};padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px">
       <p style="font-size:12px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:1px;margin:0">${label}</p>
     </div>
-    <table style="width:100%;font-size:14px;color:#374151;margin:0 0 20px">
-      <tr><td style="padding:6px 0;color:#6b7280;width:70px"><strong>From:</strong></td><td style="padding:6px 0">${senderEmail}</td></tr>
-      <tr><td style="padding:6px 0;color:#6b7280"><strong>Subject:</strong></td><td style="padding:6px 0">${subject}</td></tr>
+    <table style="width:100%;font-size:14px;margin:0 0 20px">
+      <tr><td class="email-muted" style="padding:6px 0;color:#6b7280;width:70px"><strong>From:</strong></td><td class="email-text" style="padding:6px 0;color:#374151">${senderEmail}</td></tr>
+      <tr><td class="email-muted" style="padding:6px 0;color:#6b7280"><strong>Subject:</strong></td><td class="email-text" style="padding:6px 0;color:#374151">${subject}</td></tr>
     </table>
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 16px">
-      <p style="font-size:15px;line-height:1.6;color:#374151;margin:0;white-space:pre-wrap">${content}</p>
+    <div class="email-info-box" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 16px">
+      <p class="email-text" style="font-size:16px;line-height:1.6;color:#374151;margin:0;white-space:pre-wrap">${content}</p>
     </div>
-    <p style="font-size:13px;color:#6b7280;margin:0">Reply directly to this email or view in admin dashboard.</p>
+    <p class="email-muted" style="font-size:14px;color:#6b7280;margin:0">Reply directly to this email or view in admin dashboard.</p>
   `);
 }
 
