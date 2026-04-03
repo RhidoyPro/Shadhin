@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { EventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
+import { fetchAndUploadImage } from "@/lib/bot-image";
 
 // Bangla search terms per district for headline matching
 const DISTRICT_TERMS: Record<string, string[]> = {
@@ -15,120 +16,143 @@ const DISTRICT_TERMS: Record<string, string[]> = {
   mymensingh: ["ময়মনসিংহ", "ব্রহ্মপুত্র", "নেত্রকোনা", "শেরপুর"],
 };
 
-// All feeds tested and confirmed working — fetched in parallel
-const RSS_FEEDS = [
-  // Bangla — general / political
+// District display names for Gemini prompts
+const DISTRICT_NAMES: Record<string, string> = {
+  dhaka: "Dhaka", chattogram: "Chattogram", sylhet: "Sylhet", rajshahi: "Rajshahi",
+  khulna: "Khulna", barishal: "Barishal", rangpur: "Rangpur", mymensingh: "Mymensingh",
+  "all-districts": "Bangladesh",
+};
+
+// General news feeds
+const GENERAL_FEEDS = [
   "https://www.prothomalo.com/stories.rss",
   "https://www.banglatribune.com/feed/",
   "https://www.ittefaq.com.bd/feed/",
   "https://www.kalerkantho.com/rss.xml",
   "https://www.deshrupantor.com/feed/",
-  // English — general
   "https://www.thedailystar.net/rss.xml",
-  // Business / economy
   "https://www.tbsnews.net/rss.xml",
-  // Sports
   "https://www.thedailystar.net/taxonomy/term/3/rss.xml",
-  // Entertainment
   "https://www.thedailystar.net/taxonomy/term/283449/rss.xml",
-  "https://www.thedailystar.net/arts-entertainment/rss.xml",
-  "https://www.channelionline.com/feed/",
-  // Technology
   "https://www.thedailystar.net/tech-startup/rss.xml",
-  // Health
   "https://www.thedailystar.net/health/rss.xml",
-  // Crime / justice
-  "https://www.thedailystar.net/crime/rss.xml",
-  // Environment / climate
   "https://www.thedailystar.net/environment/rss.xml",
-  // International / South Asia
-  "https://www.thedailystar.net/world/south-asia/rss.xml",
-  // Education / campus
-  "https://www.thedailystar.net/campus/rss.xml",
-  // Agriculture / rural
   "https://www.thedailystar.net/country/rss.xml",
-  // Lifestyle
-  "https://www.thedailystar.net/lifestyle/rss.xml",
-  // Opinion / analysis
-  "https://www.thedailystar.net/opinion/rss.xml",
+  "https://www.channelionline.com/feed/",
+  "https://feeds.bbci.co.uk/bengali/rss.xml",
 ];
 
-// Fetch headlines already posted by bots in the last 7 days to avoid cross-day repeats
-async function fetchRecentBotHeadlines(): Promise<Set<string>> {
+// District-specific Google News feeds (Bengali)
+const DISTRICT_FEEDS: Record<string, string> = {
+  dhaka: "https://news.google.com/rss/search?q=%E0%A6%A2%E0%A6%BE%E0%A6%95%E0%A6%BE&hl=bn&gl=BD&ceid=BD:bn",
+  chattogram: "https://news.google.com/rss/search?q=%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A6%97%E0%A7%8D%E0%A6%B0%E0%A6%BE%E0%A6%AE&hl=bn&gl=BD&ceid=BD:bn",
+  sylhet: "https://news.google.com/rss/search?q=%E0%A6%B8%E0%A6%BF%E0%A6%B2%E0%A7%87%E0%A6%9F&hl=bn&gl=BD&ceid=BD:bn",
+  rajshahi: "https://news.google.com/rss/search?q=%E0%A6%B0%E0%A6%BE%E0%A6%9C%E0%A6%B6%E0%A6%BE%E0%A6%B9%E0%A7%80&hl=bn&gl=BD&ceid=BD:bn",
+  khulna: "https://news.google.com/rss/search?q=%E0%A6%96%E0%A7%81%E0%A6%B2%E0%A6%A8%E0%A6%BE&hl=bn&gl=BD&ceid=BD:bn",
+  barishal: "https://news.google.com/rss/search?q=%E0%A6%AC%E0%A6%B0%E0%A6%BF%E0%A6%B6%E0%A6%BE%E0%A6%B2&hl=bn&gl=BD&ceid=BD:bn",
+  rangpur: "https://news.google.com/rss/search?q=%E0%A6%B0%E0%A6%82%E0%A6%AA%E0%A7%81%E0%A6%B0&hl=bn&gl=BD&ceid=BD:bn",
+  mymensingh: "https://news.google.com/rss/search?q=%E0%A6%AE%E0%A7%9F%E0%A6%AE%E0%A6%A8%E0%A6%B8%E0%A6%BF%E0%A6%82%E0%A6%B9&hl=bn&gl=BD&ceid=BD:bn",
+};
+
+// ── Headline fetching ──
+
+async function fetchRecentBotContent(): Promise<Set<string>> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const recentBotPosts = await db.event.findMany({
-    where: {
-      createdAt: { gte: sevenDaysAgo },
-      user: { isBot: true },
-    },
+  const recentPosts = await db.event.findMany({
+    where: { createdAt: { gte: sevenDaysAgo }, user: { isBot: true } },
     select: { content: true },
   });
-  // Extract the quoted headline from each bot post
-  const used = new Set<string>();
-  for (const post of recentBotPosts) {
-    const match = post.content.match(/"([^"]+)"/);
-    if (match) used.add(match[1]);
-  }
-  return used;
+  return new Set(recentPosts.map((p) => p.content.slice(0, 80)));
 }
 
-// Fetch and parse RSS headlines from all feeds in parallel
-async function fetchHeadlines(): Promise<string[]> {
+async function fetchFeedHeadlines(urls: string[]): Promise<string[]> {
   const results = await Promise.allSettled(
-    RSS_FEEDS.map((url) =>
+    urls.map((url) =>
       fetch(url, {
-        signal: AbortSignal.timeout(3000),
+        signal: AbortSignal.timeout(4000),
         headers: { "User-Agent": "Mozilla/5.0 (compatible; Shadhin/1.0)" },
       }).then((r) => (r.ok ? r.text() : ""))
     )
   );
 
   const headlines: string[] = [];
-
   for (const result of results) {
     if (result.status !== "fulfilled" || !result.value) continue;
     const xml = result.value;
-
-    // Extract CDATA-wrapped titles (e.g. Prothom Alo)
     const cdata = Array.from(xml.matchAll(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/g));
-    // Extract plain text titles (e.g. bdnews24)
     const plain = Array.from(xml.matchAll(/<title>([\s\S]*?)<\/title>/g));
 
     for (const m of cdata.concat(plain).slice(1)) {
       const title = m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
-      // Skip empty, very short, URL-like, or raw CDATA titles (already captured by cdata regex)
       if (title.length > 20 && !title.startsWith("http") && !title.startsWith("<![CDATA[")) {
         headlines.push(title);
       }
     }
   }
-
-  return Array.from(new Set(headlines)); // deduplicate
+  return Array.from(new Set(headlines));
 }
 
-// Pick a headline relevant to the bot's district, fallback to any headline
-function pickHeadline(
-  headlines: string[],
-  stateName: string | null,
-  used: Set<string>
-): string | null {
+function pickHeadline(headlines: string[], stateName: string | null, used: Set<string>): string | null {
   const available = headlines.filter((h) => !used.has(h));
   if (!available.length) return null;
 
   if (stateName && stateName !== "all-districts") {
     const terms = DISTRICT_TERMS[stateName] || [];
     const relevant = available.filter((h) => terms.some((t) => h.includes(t)));
-    if (relevant.length > 0) {
-      return relevant[Math.floor(Math.random() * relevant.length)];
-    }
+    if (relevant.length > 0) return relevant[Math.floor(Math.random() * relevant.length)];
   }
-
-  // Fallback: any available headline
   return available[Math.floor(Math.random() * available.length)];
 }
 
-// Wrap a raw headline into a discussion-style post
-function toDiscussionPost(headline: string): string {
+// ── AI-powered post generation ──
+
+const POST_STYLES = [
+  "casual opinion",
+  "question to community",
+  "sharing news",
+  "personal reaction",
+  "calling for discussion",
+];
+
+async function generatePost(headline: string, district: string): Promise<string> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) return fallbackPost(headline);
+
+  const style = POST_STYLES[Math.floor(Math.random() * POST_STYLES.length)];
+  const useBangla = Math.random() > 0.2; // 80% Bangla, 20% English
+  const sentenceCount = Math.floor(Math.random() * 3) + 1; // 1-3 sentences
+  const useEmoji = Math.random() > 0.4; // 60% chance
+
+  const prompt = `You are a real person from ${district}, Bangladesh posting on a social media app.
+Write a ${style} post about this news. ${useBangla ? "Write in Bangla (Bengali script)." : "Write in English."}
+${sentenceCount} sentence${sentenceCount > 1 ? "s" : ""} max. Sound natural and human — like a real person sharing thoughts.
+${useEmoji ? "Use 1-2 emoji naturally." : "No emoji."}
+Do NOT use quotes. Do NOT copy the headline word-for-word. Do NOT start with "Breaking:" or news-style language.
+Just write like a normal person would on social media.
+Headline: "${headline}"`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 200, temperature: 0.9 },
+        }),
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    return text || fallbackPost(headline);
+  } catch {
+    return fallbackPost(headline);
+  }
+}
+
+function fallbackPost(headline: string): string {
   const starters = [
     `"${headline}" — এ নিয়ে আপনার মতামত কী?`,
     `আজকের খবর: "${headline}" — কমেন্টে জানান আপনি কী ভাবছেন`,
@@ -138,6 +162,69 @@ function toDiscussionPost(headline: string): string {
   ];
   return starters[Math.floor(Math.random() * starters.length)];
 }
+
+// ── Bot commenting on user posts ──
+
+async function botCommentOnUserPosts(bots: { id: string; stateName: string | null }[]) {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) return 0;
+
+  const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  const recentUserPosts = await db.event.findMany({
+    where: { createdAt: { gte: since48h }, user: { isBot: false } },
+    take: 10,
+    orderBy: { createdAt: "desc" },
+    select: { id: true, content: true, stateName: true },
+  });
+
+  if (!recentUserPosts.length) return 0;
+
+  let commentsCreated = 0;
+
+  for (const bot of bots) {
+    if (Math.random() > 0.3) continue; // 30% chance per bot
+
+    // Pick a post from the bot's district or any
+    const post = recentUserPosts.find((p) => p.stateName === bot.stateName)
+      || recentUserPosts[Math.floor(Math.random() * recentUserPosts.length)];
+
+    // Check if bot already commented on this post
+    const existing = await db.comment.findFirst({
+      where: { eventId: post.id, userId: bot.id },
+    });
+    if (existing) continue;
+
+    const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `You are a person from ${district}, Bangladesh. Write a short, friendly comment (1 sentence, max 15 words) on this social media post. Write in Bangla. Sound natural.\nPost: "${post.content.slice(0, 200)}"` }] }],
+            generationConfig: { maxOutputTokens: 50, temperature: 0.9 },
+          }),
+          signal: AbortSignal.timeout(5000),
+        }
+      );
+      const data = await res.json();
+      const comment = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (!comment) continue;
+
+      await db.comment.create({
+        data: { content: comment, eventId: post.id, userId: bot.id },
+      });
+      commentsCreated++;
+    } catch {
+      // Skip this comment on error
+    }
+  }
+  return commentsCreated;
+}
+
+// ── Main cron handler ──
 
 export async function GET(req: Request) {
   const authError = verifyCronAuth(req);
@@ -157,91 +244,90 @@ export async function GET(req: Request) {
     }
   }
 
-  // Fetch news, bots, and recently used headlines in parallel
-  const [headlines, bots, recentBotHeadlines] = await Promise.all([
-    fetchHeadlines(),
+  // Fetch data in parallel
+  const [bots, recentContent] = await Promise.all([
     db.user.findMany({ where: { isBot: true } }),
-    fetchRecentBotHeadlines(),
+    fetchRecentBotContent(),
   ]);
 
   if (bots.length === 0) {
     return NextResponse.json({ skipped: true, reason: "No bot accounts found" });
   }
 
+  // Fetch general + district-specific headlines
+  const districtFeedUrls = Object.values(DISTRICT_FEEDS);
+  const allFeedUrls = [...GENERAL_FEEDS, ...districtFeedUrls];
+  const headlines = await fetchFeedHeadlines(allFeedUrls);
+
   if (headlines.length === 0) {
-    return NextResponse.json({ skipped: true, reason: "No headlines fetched from news feeds" });
+    return NextResponse.json({ skipped: true, reason: "No headlines fetched" });
   }
 
-  // Batch check which bots already posted today (1 query instead of N)
+  // Check which bots already posted today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const todaysPosts = await db.event.findMany({
-    where: {
-      userId: { in: bots.map((b) => b.id) },
-      createdAt: { gte: today },
-    },
+    where: { userId: { in: bots.map((b) => b.id) }, createdAt: { gte: today } },
     select: { userId: true },
   });
   const alreadyPosted = new Set(todaysPosts.map((p) => p.userId));
 
-  // Seed usedHeadlines with cross-day dedup so bots don't repeat last 7 days of headlines
-  const usedHeadlines = new Set<string>(recentBotHeadlines);
+  const usedHeadlines = new Set<string>(recentContent);
 
-  // Build list of bots to post for, picking headlines up front
-  const postQueue: Array<{ bot: (typeof bots)[number]; content: string; stateName: string }> = [];
+  // Build post queue with AI-generated content + images
+  let postsCreated = 0;
+  let imagesAttached = 0;
+
   for (const bot of bots) {
     if (!force && alreadyPosted.has(bot.id)) continue;
     if (!force && Math.random() > 0.5) continue; // ~50% chance per run
+
     const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
     if (!headline) continue;
     usedHeadlines.add(headline);
-    postQueue.push({
-      bot,
-      content: toDiscussionPost(headline),
-      stateName: bot.stateName || "all-districts",
-    });
+
+    const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
+
+    // Generate AI post + fetch image in parallel
+    const [content, mediaUrl] = await Promise.all([
+      generatePost(headline, district),
+      Math.random() > 0.3 ? fetchAndUploadImage(headline) : Promise.resolve(null), // 70% chance of image
+    ]);
+
+    try {
+      await db.event.create({
+        data: {
+          content,
+          eventType: EventType.STATUS,
+          stateName: bot.stateName || "all-districts",
+          userId: bot.id,
+          ...(mediaUrl ? { mediaUrl, type: "image" } : {}),
+        },
+      });
+      postsCreated++;
+      if (mediaUrl) imagesAttached++;
+    } catch {
+      // Skip this post on error
+    }
   }
 
-  // Create all posts in parallel — allSettled so one failure doesn't abort the rest
-  const createResults = await Promise.allSettled(
-    postQueue.map(({ bot, content, stateName }) =>
-      db.event.create({
-        data: { content, eventType: EventType.STATUS, stateName, userId: bot.id },
-      })
-    )
-  );
-  const postsCreated = createResults.filter((r) => r.status === "fulfilled").length;
-
-  // Bots like recent posts (user posts + each other's posts) to build engagement signal
+  // Bot engagement: liking + commenting
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const [recentUserPosts, recentBotPosts] = await Promise.all([
-    // Real user posts — always try to like a few
     db.event.findMany({
       where: { createdAt: { gte: since24h }, user: { isBot: false } },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: { id: true },
+      take: 5, orderBy: { createdAt: "desc" }, select: { id: true },
     }),
-    // Bot posts from last 48h — cross-like to build engagement
     db.event.findMany({
-      where: {
-        createdAt: { gte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
-        user: { isBot: true },
-      },
-      take: 10,
-      orderBy: { createdAt: "desc" },
-      select: { id: true, userId: true },
+      where: { createdAt: { gte: new Date(Date.now() - 48 * 60 * 60 * 1000) }, user: { isBot: true } },
+      take: 10, orderBy: { createdAt: "desc" }, select: { id: true, userId: true },
     }),
   ]);
 
-  // Build like tasks: avoid duplicate likes with a single batch check
+  // Liking
   const postsToMaybeLike = [
     ...recentUserPosts.map((p) => ({ id: p.id, ownerId: null })),
-    // Each bot post gets liked by a random OTHER bot (~60% chance each)
-    ...recentBotPosts
-      .filter(() => Math.random() > 0.4)
-      .map((p) => ({ id: p.id, ownerId: p.userId })),
+    ...recentBotPosts.filter(() => Math.random() > 0.4).map((p) => ({ id: p.id, ownerId: p.userId })),
   ];
 
   if (postsToMaybeLike.length > 0) {
@@ -256,7 +342,6 @@ export async function GET(req: Request) {
 
     await Promise.allSettled(
       postsToMaybeLike.map((post) => {
-        // Pick a random bot that isn't the post owner
         const eligible = bots.filter((b) => b.id !== post.ownerId);
         if (!eligible.length) return Promise.resolve();
         const bot = eligible[Math.floor(Math.random() * eligible.length)];
@@ -266,9 +351,14 @@ export async function GET(req: Request) {
     );
   }
 
+  // Commenting
+  const commentsCreated = await botCommentOnUserPosts(bots);
+
   return NextResponse.json({
     success: true,
     postsCreated,
+    imagesAttached,
+    commentsCreated,
     botsTotal: bots.length,
     headlinesFetched: headlines.length,
   });

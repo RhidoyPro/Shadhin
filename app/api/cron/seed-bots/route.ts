@@ -13,6 +13,10 @@ const districts = [
   { name: "Mymensingh", slug: "mymensingh" },
 ];
 
+function botAvatar(seed: string): string {
+  return `https://api.dicebear.com/9.x/notionists/png?seed=${encodeURIComponent(seed)}&radius=50&size=200`;
+}
+
 const bots = [
   ...districts.flatMap((d) => [
     {
@@ -47,22 +51,33 @@ export async function GET(req: Request) {
   if (authError) return authError;
 
   let created = 0;
+  let updated = 0;
   let skipped = 0;
 
   for (const bot of bots) {
+    const avatar = botAvatar(bot.email);
     const existing = await db.user.findFirst({ where: { email: bot.email } });
+
     if (existing) {
-      skipped++;
+      // Update avatar if missing
+      if (!existing.image) {
+        await db.user.update({ where: { id: existing.id }, data: { image: avatar } });
+        updated++;
+      } else {
+        skipped++;
+      }
       continue;
     }
+
     await db.user.create({
       data: {
         ...bot,
         isBot: true,
+        image: avatar,
       },
     });
     created++;
   }
 
-  return NextResponse.json({ success: true, created, skipped, total: bots.length });
+  return NextResponse.json({ success: true, created, updated, skipped, total: bots.length });
 }
