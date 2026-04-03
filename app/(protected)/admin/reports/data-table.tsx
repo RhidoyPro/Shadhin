@@ -122,7 +122,7 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
     ),
   },
   {
-    accessorFn: (row) => row.event.user.email,
+    accessorFn: (row) => row.event?.user?.email ?? "N/A",
     id: "event",
     header: ({ column }) => {
       return (
@@ -136,7 +136,7 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
       );
     },
     cell: ({ cell }) => (
-      <div className="lowercase">{cell.row.original.event.user.email}</div>
+      <div className="lowercase">{cell.row.original.event?.user?.email ?? "N/A"}</div>
     ),
   },
   {
@@ -165,6 +165,7 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
       const report = row.original;
 
       const handleDeleteAndStrike = async () => {
+        if (!report.eventId) { toast.error("No event associated with this report"); return; }
         const res = await deleteEventAndStrike(report.eventId);
         if (res.error) {
           toast.error(res.error);
@@ -179,7 +180,7 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
       };
 
       const handleSuspend = async () => {
-        const res = await suspendUser(report.event.userId, 7);
+        const res = await suspendUser(report.event?.userId ?? report.userId, 7);
         if (res.error) {
           toast.error(res.error);
           return;
@@ -214,7 +215,7 @@ export const columns: ColumnDef<ReportWithUserAndEvent>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => window.open(`/user/${report.event.userId}`)}
+              onClick={() => window.open(`/user/${report.event?.userId ?? report.userId}`)}
             >
               View Creator Profile
             </DropdownMenuItem>

@@ -58,6 +58,8 @@ model User {
   orgVerificationRequests OrgVerificationRequest[]
   tickets                 Ticket[]
   expoPushTokens          ExpoPushToken[]
+  blockedUsers            BlockedUser[] @relation("BlockerRelation")
+  blockedBy               BlockedUser[] @relation("BlockedRelation")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -250,18 +252,35 @@ model Follow {
 
 model Report {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String  @db.ObjectId
-  eventId    String  @db.ObjectId
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event      Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String   @db.ObjectId
+  eventId    String?  @db.ObjectId
+  commentId  String?  @db.ObjectId
+  messageId  String?  @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event      Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   reason     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([eventId])
+  @@index([commentId])
+  @@index([messageId])
   @@index([userId])
   @@index([createdAt])
+}
+
+model BlockedUser {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  blockerId     String   @db.ObjectId
+  blockedUserId String   @db.ObjectId
+  blocker       User     @relation("BlockerRelation", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked       User     @relation("BlockedRelation", fields: [blockedUserId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@unique([blockerId, blockedUserId])
+  @@index([blockerId])
+  @@index([blockedUserId])
 }
 
 model Bookmark {
