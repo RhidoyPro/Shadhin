@@ -168,7 +168,7 @@ export default function SignupPage() {
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
               <div className="grid gap-2">
-                <Label htmlFor="email">{t("university")}</Label>
+                <Label htmlFor="university">{t("university")}</Label>
                 <Input
                   id="university"
                   name="university"
@@ -177,7 +177,7 @@ export default function SignupPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">{t("dateOfBirth")}</Label>
+                <Label htmlFor="dob">{t("dateOfBirth")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button

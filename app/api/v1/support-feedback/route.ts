@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const limited = await rateLimit(`api-feedback:${ip}`, { limit: 10, windowSeconds: 60 });
+  if (limited.limited) {
+    return new NextResponse("<html><body><h2>Too many requests. Try again later.</h2></body></html>", {
+      status: 429,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+
   const id = req.nextUrl.searchParams.get("t");
   const rating = req.nextUrl.searchParams.get("r");
 

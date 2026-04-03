@@ -17,7 +17,10 @@ export async function GET(req: Request) {
     select: {
       id: true,
       name: true,
+      firstName: true,
+      lastName: true,
       email: true,
+      phone: true,
       image: true,
       role: true,
       stateName: true,
