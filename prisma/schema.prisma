@@ -376,3 +376,23 @@ model ExpoPushToken {
 
   @@index([userId])
 }
+
+model SupportEmail {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  senderEmail String
+  subject     String
+  body        String
+  category    String    // simple_question | complaint | legal_urgent | unclassified
+  summary     String?
+  autoReply   String?
+  language    String?   // bn | en | mixed
+  status      String    @default("open") // open | resolved | escalated
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@index([senderEmail])
+}

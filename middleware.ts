@@ -57,7 +57,9 @@ export default auth((req) => {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  if (isApiRoute || isMobileApi || isCronRoute || isOgRoute) {
+  const isWebhookRoute = nextUrl.pathname.startsWith("/api/webhooks/");
+
+  if (isApiRoute || isMobileApi || isCronRoute || isOgRoute || isWebhookRoute) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
