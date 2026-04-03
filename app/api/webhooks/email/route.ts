@@ -250,11 +250,18 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, action: "escalated_low_confidence" });
         }
         if (classified.autoReply) {
+          // Get the email ID for feedback links
+          const saved = await db.supportEmail.findFirst({
+            where: { senderEmail, subject: emailSubject },
+            orderBy: { createdAt: "desc" },
+            select: { id: true },
+          });
           await getResend().emails.send({
             from: "Shadhin.io Support <help@shadhin.io>",
             to: senderEmail,
             subject: `Re: ${emailSubject.slice(0, 200)}`,
             text: classified.autoReply,
+            html: autoReplyHtml(classified.autoReply, classified.language, saved?.id),
             headers: { "Auto-Submitted": "auto-replied" },
           });
         }
@@ -291,6 +298,7 @@ export async function POST(req: NextRequest) {
           to: senderEmail,
           subject: `Re: ${emailSubject.slice(0, 200)}`,
           text: ackText,
+          html: urgentAckHtml(classified.language),
           headers: { "Auto-Submitted": "auto-replied" },
         });
         return NextResponse.json({ success: true, action: "escalated_urgent" });
@@ -306,28 +314,32 @@ export async function POST(req: NextRequest) {
   }
 }
 
-const SUPPORT_PROMPT = `You are a bilingual support agent for Shadhin.io, a Bangladeshi community platform.
+const SUPPORT_PROMPT = `You are a friendly, warm human support agent named "Shadhin Support" for Shadhin.io, a Bangladeshi community platform. Write like a real person — conversational, empathetic, and helpful. Never sound robotic or corporate.
 
 Platform knowledge:
-- Users create posts and events in their district (9 Bangladesh divisions)
+- Users create posts and events in their district (9 Bangladesh divisions: Dhaka, Chattogram, Khulna, Rajshahi, Sylhet, Barishal, Rangpur, Mymensingh)
 - Login via Google OAuth or email/password
-- Password reset: https://shadhin.io/forgot-password
-- Events can be promoted (paid via bKash): 3 days/৳50, 7 days/৳100, 14 days/৳200
-- Organizations can apply for verified badges (one-time fee)
-- Users get suspended after 3 community guideline strikes
-- Contact admin directly: help@shadhin.io
+- Password reset: go to https://shadhin.io/forgot-password, enter your email, check inbox for code, enter code + new password
+- Events can be promoted via bKash: 3 days/৳50, 7 days/৳100, 14 days/৳200. Go to your post → "Promote" button
+- Organizations can apply for verified badges (one-time fee) in Settings
+- Community guidelines: 3 strikes = suspension. Appeal via help@shadhin.io
 - Privacy policy: https://shadhin.io/privacy
-- Terms of service: https://shadhin.io/terms
+- Terms: https://shadhin.io/terms
 
-Classify the support email below and follow these rules:
-1. Rate your confidence 0.0-1.0 in your category classification.
-2. Detect the sender's sentiment: positive, neutral, frustrated, or angry.
-3. Tag the email with 1-3 topics (e.g. login, events, billing, bug, account, moderation, privacy, safety).
-4. Detect the email language (bn, en, or mixed).
-5. For simple_question: write an autoReply with 2-3 specific actionable steps. Include relevant URLs where helpful. Keep it under 150 words. Always end with: "If this doesn't help, reply to this email or contact help@shadhin.io"
-   - For Bangla emails, write the entire reply in Bangla.
-   - For English emails, write in English.
-   - For mixed-language emails, write both a Bangla and an English version.
+Classify the email and follow these rules:
+1. Rate confidence 0.0-1.0 in your classification.
+2. Detect sentiment: positive, neutral, frustrated, or angry.
+3. Tag 1-3 topics (login, events, billing, bug, account, moderation, privacy, safety, feature_request).
+4. Detect language (bn, en, or mixed).
+5. For simple_question autoReply:
+   - Start with a warm greeting: "Hi there!" (English) or "আসসালামু আলাইকুম!" (Bangla)
+   - Give 2-3 specific steps with URLs where relevant
+   - Keep under 150 words
+   - Sound like a helpful friend, not a chatbot
+   - End with: "Hope that helps! If not, just reply to this email and a real person will jump in." (English) or "আশা করি এটা কাজে আসবে! না হলে এই ইমেইলে রিপ্লাই করুন, আমাদের টিম সাহায্য করবে।" (Bangla)
+   - For Bangla emails: entire reply in Bangla
+   - For English emails: in English
+   - For mixed: write Bangla first, then English below a line break
 6. For complaint or legal_urgent: set autoReply to empty string "".`;
 
 const RESPONSE_SCHEMA = {
@@ -516,6 +528,119 @@ async function persistEmail(
   }
 }
 
+// ── Branded HTML email templates ─────────────────────────────────────────────
+
+function brandedEmail(body: string, language?: string, feedbackId?: string): string {
+  const isBn = language === "bn";
+  const feedbackHtml = feedbackId
+    ? `<div style="text-align:center;margin:28px 0 8px;padding-top:24px;border-top:1px solid #e5e7eb">
+        <p style="font-size:13px;color:#6b7280;margin:0 0 12px">${isBn ? "এই উত্তর কি সাহায্যকর ছিল?" : "Was this helpful?"}</p>
+        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=yes" style="display:inline-block;padding:10px 28px;background:#16a34a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px">👍 ${isBn ? "হ্যাঁ" : "Yes"}</a>
+        <a href="https://shadhin.io/api/v1/support-feedback?t=${feedbackId}&r=no" style="display:inline-block;padding:10px 28px;background:#e5e7eb;color:#374151;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin:0 8px">👎 ${isBn ? "না" : "No"}</a>
+      </div>`
+    : "";
+
+  const signature = isBn
+    ? `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6">
+        <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
+          <td style="width:48px;vertical-align:top;padding-right:14px">
+            <img src="https://shadhin.io/logo.png" width="42" height="42" alt="Shadhin.io" style="border-radius:8px">
+          </td>
+          <td style="vertical-align:top">
+            <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io সাপোর্ট টিম</p>
+            <p style="font-size:13px;color:#6b7280;margin:2px 0 0">Bangladesh's Community Platform</p>
+            <p style="font-size:13px;margin:6px 0 0">
+              <a href="https://shadhin.io" style="color:#16a34a;text-decoration:none;font-weight:500">shadhin.io</a>
+              <span style="color:#d1d5db;margin:0 6px">·</span>
+              <a href="mailto:help@shadhin.io" style="color:#16a34a;text-decoration:none;font-weight:500">help@shadhin.io</a>
+            </p>
+          </td>
+        </tr></table>
+      </div>`
+    : `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #f3f4f6">
+        <table cellpadding="0" cellspacing="0" style="width:100%"><tr>
+          <td style="width:48px;vertical-align:top;padding-right:14px">
+            <img src="https://shadhin.io/logo.png" width="42" height="42" alt="Shadhin.io" style="border-radius:8px">
+          </td>
+          <td style="vertical-align:top">
+            <p style="font-size:15px;font-weight:600;color:#111827;margin:0">Shadhin.io Support Team</p>
+            <p style="font-size:13px;color:#6b7280;margin:2px 0 0">Bangladesh's Community Platform</p>
+            <p style="font-size:13px;margin:6px 0 0">
+              <a href="https://shadhin.io" style="color:#16a34a;text-decoration:none;font-weight:500">shadhin.io</a>
+              <span style="color:#d1d5db;margin:0 6px">·</span>
+              <a href="mailto:help@shadhin.io" style="color:#16a34a;text-decoration:none;font-weight:500">help@shadhin.io</a>
+            </p>
+          </td>
+        </tr></table>
+      </div>`;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#f6f9fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<div style="max-width:580px;margin:0 auto;padding:24px 12px 48px">
+  <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+    <div style="height:4px;background:linear-gradient(90deg,#16a34a,#22c55e)"></div>
+    <div style="padding:28px 32px 8px;text-align:center">
+      <img src="https://shadhin.io/logo.png" width="40" height="40" alt="Shadhin.io" style="display:block;margin:0 auto;border-radius:8px">
+      <p style="font-size:20px;font-weight:700;color:#16a34a;margin:10px 0 0;letter-spacing:-0.3px">Shadhin.io</p>
+    </div>
+    <div style="padding:8px 32px 32px">
+      ${body}
+      ${signature}
+      ${feedbackHtml}
+    </div>
+  </div>
+  <div style="padding:20px 16px;text-align:center">
+    <p style="font-size:12px;color:#9ca3af;margin:0">${isBn ? "বাংলাদেশের কমিউনিটি প্ল্যাটফর্ম" : "Bangladesh's Community Platform"} · <a href="https://shadhin.io" style="color:#16a34a;text-decoration:none">shadhin.io</a></p>
+    <p style="font-size:11px;color:#d1d5db;margin:6px 0 0">© ${new Date().getFullYear()} Shadhin.io</p>
+  </div>
+</div>
+</body></html>`;
+}
+
+function autoReplyHtml(reply: string, language?: string, feedbackId?: string): string {
+  const formatted = reply
+    .split("\n\n").map(p => `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">${p.replace(/\n/g, "<br>")}</p>`).join("");
+  return brandedEmail(formatted, language, feedbackId);
+}
+
+function urgentAckHtml(language: string): string {
+  const content = language === "bn"
+    ? `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আসসালামু আলাইকুম,</p>
+       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আপনার ইমেইল পেয়েছি। আপনার বিষয়টি <strong style="color:#dc2626">জরুরি</strong> হিসেবে চিহ্নিত করা হয়েছে এবং আমাদের টিমকে জানানো হয়েছে।</p>
+       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">আমরা যত দ্রুত সম্ভব আপনার সাথে যোগাযোগ করব। জরুরি প্রয়োজনে সরাসরি <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a> এ লিখুন।</p>`
+    : `<p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">Hi there,</p>
+       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">We've received your message and it has been marked as <strong style="color:#dc2626">urgent</strong>. Our team has been notified immediately.</p>
+       <p style="font-size:15px;line-height:1.7;color:#374151;margin:0 0 14px">We'll get back to you as quickly as possible. For anything critical, you can also reach us directly at <a href="mailto:help@shadhin.io" style="color:#16a34a;font-weight:500">help@shadhin.io</a>.</p>`;
+  return brandedEmail(content, language);
+}
+
+function adminAlertHtml(senderEmail: string, subject: string, content: string, type: string): string {
+  const colors: Record<string, string> = {
+    complaint: "#f59e0b",
+    urgent: "#ef4444",
+    repeat_contact: "#8b5cf6",
+    unclassified: "#6b7280",
+    classification_failed: "#6b7280",
+  };
+  const color = colors[type] || "#6b7280";
+  const label = type.replace(/_/g, " ").toUpperCase();
+
+  return brandedEmail(`
+    <div style="background:${color}15;border-left:4px solid ${color};padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px">
+      <p style="font-size:12px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:1px;margin:0">${label}</p>
+    </div>
+    <table style="width:100%;font-size:14px;color:#374151;margin:0 0 20px">
+      <tr><td style="padding:6px 0;color:#6b7280;width:70px"><strong>From:</strong></td><td style="padding:6px 0">${senderEmail}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280"><strong>Subject:</strong></td><td style="padding:6px 0">${subject}</td></tr>
+    </table>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 16px">
+      <p style="font-size:15px;line-height:1.6;color:#374151;margin:0;white-space:pre-wrap">${content}</p>
+    </div>
+    <p style="font-size:13px;color:#6b7280;margin:0">Reply directly to this email or view in admin dashboard.</p>
+  `);
+}
+
 async function forwardToAdmin(
   senderEmail: string,
   subject: string,
@@ -540,6 +665,7 @@ async function forwardToAdmin(
     to: ADMIN_EMAIL,
     subject: `[${typeLabels[type] || type}] ${subject.slice(0, 200)}`,
     text: `From: ${senderEmail}\nSubject: ${subject}\nType: ${type}\n\n---\n\n${content}`,
+    html: adminAlertHtml(senderEmail, subject, content, type),
     headers: { "Auto-Submitted": "auto-replied" },
   });
 }
