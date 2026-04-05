@@ -40,6 +40,11 @@ async function extractKeywords(headline: string): Promise<string> {
  * failure — caller should fall back to Pexels stock photos.
  */
 export async function fetchAndUploadArticleImage(articleUrl: string): Promise<string | null> {
+  // Google News aggregator URLs (news.google.com) serve a wrapper page whose
+  // og:image is just the Google News logo/favicon — not the real article
+  // image. Caller should fall back to Pexels for these.
+  if (articleUrl.includes("news.google.com")) return null;
+
   try {
     const res = await fetch(articleUrl, {
       signal: AbortSignal.timeout(8000),
