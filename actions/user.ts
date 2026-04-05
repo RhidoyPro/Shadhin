@@ -16,6 +16,7 @@ import { UserRole } from "@prisma/client";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { s3 } from "@/lib/s3";
+import { moderateText } from "@/lib/moderation";
 
 const generateFileName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
@@ -126,6 +127,21 @@ export const updateUser = async (userId: string, data: any) => {
 
   try {
     const v = validatedData.data;
+
+    // Moderate user-visible text fields
+    const checks = [
+      v.bio,
+      v.firstName,
+      v.lastName,
+      v.university,
+    ].filter((t): t is string => typeof t === "string" && t.trim().length > 0);
+    for (const text of checks) {
+      const mod = await moderateText(text);
+      if (mod.flagged) {
+        return { error: "Profile contains inappropriate content. Please revise." };
+      }
+    }
+
     await db.user.update({
       where: { id: userId },
       data: {

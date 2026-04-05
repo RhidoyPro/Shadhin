@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getFollowCounts, isFollowing } from "@/data/user";
 import { z } from "zod";
 import BangladeshStates from "@/data/bangladesh-states";
+import { moderateText } from "@/lib/moderation";
 
 const VALID_STATE_SLUGS = BangladeshStates.filter((s) => s.slug !== "all-districts").map((s) => s.slug);
 
@@ -82,6 +83,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const { dateOfBirth, ...rest } = parsed.data;
+
+  // Moderate user-visible text fields
+  const textFields = [rest.name, rest.bio, rest.university].filter(
+    (t): t is string => typeof t === "string" && t.trim().length > 0,
+  );
+  for (const text of textFields) {
+    const mod = await moderateText(text);
+    if (mod.flagged) {
+      return apiError("Profile contains inappropriate content. Please revise.", 400);
+    }
+  }
+
   const data: Record<string, unknown> = { ...rest };
   if (dateOfBirth !== undefined) data.dateOfBirth = new Date(dateOfBirth);
 

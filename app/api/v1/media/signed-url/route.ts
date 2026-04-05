@@ -9,10 +9,11 @@ import crypto from "crypto";
 export const dynamic = "force-dynamic";
 
 const ALLOWED_TYPES = [
-  "image/jpeg", "image/png", "image/gif", "image/webp",
+  "image/jpeg", "image/png", "image/gif", "image/webp", "image/heic", "image/heif",
   "video/mp4", "video/quicktime",
 ];
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024; // 25MB
+const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
 
 export async function POST(req: Request) {
   let user;
@@ -31,8 +32,11 @@ export async function POST(req: Request) {
   if (!ALLOWED_TYPES.includes(body.fileType)) {
     return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
   }
-  if (body.fileSize > MAX_SIZE) {
-    return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400 });
+  const isVideo = body.fileType.startsWith("video/");
+  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+  if (body.fileSize > maxSize) {
+    const limitMB = isVideo ? 200 : 25;
+    return NextResponse.json({ error: `File too large (max ${limitMB}MB)` }, { status: 400 });
   }
 
   const key = crypto.randomBytes(32).toString("hex");
