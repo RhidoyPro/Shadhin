@@ -39,7 +39,10 @@ async function extractKeywords(headline: string): Promise<string> {
  * Returns null if anything fails (posts without images are fine).
  */
 export async function fetchAndUploadImage(headline: string): Promise<string | null> {
-  if (!PEXELS_API_KEY) return null;
+  if (!PEXELS_API_KEY) {
+    console.error("[bot-image] PEXELS_API_KEY missing from env");
+    return null;
+  }
 
   try {
     const query = await extractKeywords(headline);
@@ -51,10 +54,16 @@ export async function fetchAndUploadImage(headline: string): Promise<string | nu
         signal: AbortSignal.timeout(5000),
       }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`[bot-image] Pexels search failed: ${res.status} ${res.statusText}`);
+      return null;
+    }
 
     const data = await res.json();
-    if (!data.photos?.length) return null;
+    if (!data.photos?.length) {
+      console.error(`[bot-image] Pexels returned 0 photos for query="${query}"`);
+      return null;
+    }
 
     // Pick random photo from results for variety
     const photo = data.photos[Math.floor(Math.random() * data.photos.length)];
@@ -62,22 +71,31 @@ export async function fetchAndUploadImage(headline: string): Promise<string | nu
 
     // Download the image
     const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) });
-    if (!imgRes.ok) return null;
+    if (!imgRes.ok) {
+      console.error(`[bot-image] Image download failed: ${imgRes.status} ${imageUrl}`);
+      return null;
+    }
     const buffer = Buffer.from(await imgRes.arrayBuffer());
 
     // Upload to R2
     const key = `bot-images/${crypto.randomBytes(16).toString("hex")}.jpg`;
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: key,
-        Body: buffer,
-        ContentType: "image/jpeg",
-      })
-    );
+    try {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: "image/jpeg",
+        })
+      );
+    } catch (uploadErr) {
+      console.error(`[bot-image] R2 upload failed: ${(uploadErr as Error).message}`);
+      return null;
+    }
 
     return `${R2_PUBLIC_URL}/${key}`;
-  } catch {
+  } catch (err) {
+    console.error(`[bot-image] Unexpected error: ${(err as Error).message}`);
     return null;
   }
 }
