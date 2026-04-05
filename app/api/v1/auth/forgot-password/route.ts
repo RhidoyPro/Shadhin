@@ -28,10 +28,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
+  // Normalize email — must match normalization used in login/signup/google.
+  const email = parsed.data.email.trim().toLowerCase();
+
   // Always return same message (don't reveal if email exists)
   const message = "If that email is registered, a reset code has been sent.";
 
-  const user = await getUserByEmail(parsed.data.email);
+  const user = await getUserByEmail(email);
   if (!user) return NextResponse.json({ message });
 
   // Generate 16-char hex code
@@ -40,16 +43,16 @@ export async function POST(req: Request) {
 
   // Delete any existing codes for this email, then create a new one
   await db.forgotPasswordCode.deleteMany({
-    where: { email: parsed.data.email },
+    where: { email },
   });
   await db.forgotPasswordCode.create({
-    data: { email: parsed.data.email, code, expires },
+    data: { email, code, expires },
   });
 
   // Send email with code
   try {
     const { sendForgotPasswordEmail } = await import("@/lib/mail");
-    await sendForgotPasswordEmail(parsed.data.email, code);
+    await sendForgotPasswordEmail(email, code);
   } catch (error) {
     console.error("Failed to send forgot password email:", error);
     return NextResponse.json(

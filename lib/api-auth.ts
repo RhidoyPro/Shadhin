@@ -104,10 +104,15 @@ export async function requireAuth(req: Request): Promise<ApiUser> {
   if (!dbUser) throw apiError("Unauthorized", 401);
   if (dbUser.isSuspended) throw apiError("Account suspended", 403);
 
-  // Reject tokens issued before the last password change
+  // Reject tokens issued before the last password change.
+  // `payload.iat` is seconds (JWT standard), `passwordChangedAt` is millisecond-
+  // precision. Sub-second race: if password was changed in same second as
+  // login, both round to the same second and the fresh token would be rejected.
+  // Subtract 1s grace so a token issued in the same second as the password
+  // change is still accepted.
   if (dbUser.passwordChangedAt && payload.iat) {
     const changedAtSeconds = Math.floor(dbUser.passwordChangedAt.getTime() / 1000);
-    if (payload.iat < changedAtSeconds) {
+    if (payload.iat < changedAtSeconds - 1) {
       throw apiError("Token expired. Please log in again.", 401);
     }
   }

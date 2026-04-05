@@ -28,7 +28,9 @@ export async function POST(req: Request) {
 
   // Map mobile field names to schema
   const data = {
-    email: body.email,
+    // Normalize email — MongoDB is case-sensitive without collation, so users
+    // who sign up with mixed case could never log in with lowercase later.
+    email: typeof body.email === "string" ? body.email.trim().toLowerCase() : body.email,
     password: body.password,
     firstName: body.firstName || body.name?.split(" ")[0],
     lastName: body.lastName || body.name?.split(" ").slice(1).join(" ") || "",

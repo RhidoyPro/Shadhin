@@ -40,7 +40,9 @@ export async function POST(req: Request) {
     }
 
     googleUser = {
-      email: payload.email,
+      // Normalize email — MongoDB is case-sensitive without collation, and
+      // must match normalized email used by password signup/login.
+      email: payload.email.trim().toLowerCase(),
       name: payload.name || payload.email.split("@")[0],
       picture: payload.picture,
       sub: payload.sub,

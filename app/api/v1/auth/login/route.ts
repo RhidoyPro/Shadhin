@@ -35,7 +35,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 400 });
   }
 
-  const { email, password } = parsed.data;
+  const { email: rawEmail, password } = parsed.data;
+  // Normalize email before DB lookup — MongoDB findUnique is case-sensitive
+  // without explicit collation, so "Foo@x.com" and "foo@x.com" would miss.
+  const email = rawEmail.trim().toLowerCase();
   const user = await getUserByEmail(email);
 
   if (!user || !user.hashedPassword) {
