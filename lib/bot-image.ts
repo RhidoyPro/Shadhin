@@ -35,6 +35,84 @@ async function extractKeywords(headline: string): Promise<string> {
 }
 
 /**
+ * Try to extract og:image from a news article URL, download it, upload to R2.
+ * Returns the real news-event image when available. Returns null on any
+ * failure — caller should fall back to Pexels stock photos.
+ */
+export async function fetchAndUploadArticleImage(articleUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(articleUrl, {
+      signal: AbortSignal.timeout(8000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; Shadhin/1.0)" },
+      redirect: "follow",
+    });
+    if (!res.ok) {
+      console.error(`[bot-image] article fetch ${res.status}: ${articleUrl}`);
+      return null;
+    }
+    const html = await res.text();
+
+    // Try og:image (attribute order varies), then twitter:image.
+    const match =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
+      html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+
+    if (!match) {
+      console.error(`[bot-image] no og:image in: ${articleUrl}`);
+      return null;
+    }
+
+    // Resolve relative URLs against article base.
+    let imageUrl = match[1].trim();
+    if (imageUrl.startsWith("//")) imageUrl = "https:" + imageUrl;
+    else if (imageUrl.startsWith("/")) {
+      const base = new URL(articleUrl);
+      imageUrl = `${base.origin}${imageUrl}`;
+    }
+
+    const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) });
+    if (!imgRes.ok) {
+      console.error(`[bot-image] og:image download ${imgRes.status}: ${imageUrl}`);
+      return null;
+    }
+    const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) {
+      console.error(`[bot-image] og:image not image: ${contentType} ${imageUrl}`);
+      return null;
+    }
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+    // Sanity check size — skip broken tracking pixels and huge payloads.
+    if (buffer.length < 2000 || buffer.length > 10 * 1024 * 1024) {
+      console.error(`[bot-image] og:image bad size ${buffer.length}b: ${imageUrl}`);
+      return null;
+    }
+
+    const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+    const key = `bot-images/${crypto.randomBytes(16).toString("hex")}.${ext}`;
+    try {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: contentType,
+        })
+      );
+    } catch (uploadErr) {
+      console.error(`[bot-image] R2 upload (og) failed: ${(uploadErr as Error).message}`);
+      return null;
+    }
+
+    return `${R2_PUBLIC_URL}/${key}`;
+  } catch (err) {
+    console.error(`[bot-image] og:image error: ${(err as Error).message} ${articleUrl}`);
+    return null;
+  }
+}
+
+/**
  * Fetch a relevant image from Pexels, download it, upload to R2, return public URL.
  * Returns null if anything fails (posts without images are fine).
  */

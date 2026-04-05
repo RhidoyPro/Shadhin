@@ -2,7 +2,12 @@ import { db } from "@/lib/db";
 import { EventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
-import { fetchAndUploadImage } from "@/lib/bot-image";
+import { fetchAndUploadImage, fetchAndUploadArticleImage } from "@/lib/bot-image";
+
+interface FeedItem {
+  title: string;
+  link: string;
+}
 
 // Bangla search terms per district for headline matching
 const DISTRICT_TERMS: Record<string, string[]> = {
@@ -65,7 +70,7 @@ async function fetchRecentBotContent(): Promise<Set<string>> {
   return new Set(recentPosts.map((p) => p.content.slice(0, 80)));
 }
 
-async function fetchFeedHeadlines(urls: string[]): Promise<string[]> {
+async function fetchFeedHeadlines(urls: string[]): Promise<FeedItem[]> {
   const results = await Promise.allSettled(
     urls.map((url) =>
       fetch(url, {
@@ -75,30 +80,47 @@ async function fetchFeedHeadlines(urls: string[]): Promise<string[]> {
     )
   );
 
-  const headlines: string[] = [];
+  const items: FeedItem[] = [];
+  const seen = new Set<string>();
   for (const result of results) {
     if (result.status !== "fulfilled" || !result.value) continue;
     const xml = result.value;
-    const cdata = Array.from(xml.matchAll(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/g));
-    const plain = Array.from(xml.matchAll(/<title>([\s\S]*?)<\/title>/g));
+    // Split into <item> blocks and extract title + link from each.
+    const itemBlocks = Array.from(xml.matchAll(/<item[\s>][\s\S]*?<\/item>/g));
+    for (const block of itemBlocks) {
+      const blockXml = block[0];
+      const titleMatch =
+        blockXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) ||
+        blockXml.match(/<title>([\s\S]*?)<\/title>/);
+      const linkMatch =
+        blockXml.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/) ||
+        blockXml.match(/<link>([\s\S]*?)<\/link>/);
+      if (!titleMatch || !linkMatch) continue;
 
-    for (const m of cdata.concat(plain).slice(1)) {
-      const title = m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
-      if (title.length > 20 && !title.startsWith("http") && !title.startsWith("<![CDATA[")) {
-        headlines.push(title);
-      }
+      const title = titleMatch[1]
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .trim();
+      const link = linkMatch[1].trim();
+
+      if (title.length <= 20 || title.startsWith("http") || title.startsWith("<![CDATA[")) continue;
+      if (!link.startsWith("http")) continue;
+      if (seen.has(title)) continue;
+      seen.add(title);
+      items.push({ title, link });
     }
   }
-  return Array.from(new Set(headlines));
+  return items;
 }
 
-function pickHeadline(headlines: string[], stateName: string | null, used: Set<string>): string | null {
-  const available = headlines.filter((h) => !used.has(h));
+function pickHeadline(headlines: FeedItem[], stateName: string | null, used: Set<string>): FeedItem | null {
+  const available = headlines.filter((h) => !used.has(h.title));
   if (!available.length) return null;
 
   if (stateName && stateName !== "all-districts") {
     const terms = DISTRICT_TERMS[stateName] || [];
-    const relevant = available.filter((h) => terms.some((t) => h.includes(t)));
+    const relevant = available.filter((h) => terms.some((t) => h.title.includes(t)));
     if (relevant.length > 0) return relevant[Math.floor(Math.random() * relevant.length)];
   }
   return available[Math.floor(Math.random() * available.length)];
@@ -289,19 +311,26 @@ export async function GET(req: Request) {
       return true;
     })
     .map((bot) => {
-      const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
-      if (!headline) return null;
-      usedHeadlines.add(headline);
-      return { bot, headline };
+      const item = pickHeadline(headlines, bot.stateName, usedHeadlines);
+      if (!item) return null;
+      usedHeadlines.add(item.title);
+      return { bot, item };
     })
-    .filter((x): x is { bot: (typeof bots)[number]; headline: string } => x !== null);
+    .filter((x): x is { bot: (typeof bots)[number]; item: FeedItem } => x !== null);
 
   const results = await Promise.allSettled(
-    postTasks.map(async ({ bot, headline }) => {
+    postTasks.map(async ({ bot, item }) => {
       const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
+      // Fetch og:image from the real article URL first; fall back to Pexels
+      // stock photo if the article has no og:image or scraping fails.
+      const imagePromise = Math.random() > 0.3
+        ? fetchAndUploadArticleImage(item.link).then((url) =>
+            url ? url : fetchAndUploadImage(item.title)
+          )
+        : Promise.resolve(null);
       const [content, mediaUrl] = await Promise.all([
-        generatePost(headline, district),
-        Math.random() > 0.3 ? fetchAndUploadImage(headline) : Promise.resolve(null),
+        generatePost(item.title, district),
+        imagePromise,
       ]);
       await db.event.create({
         data: {
