@@ -288,27 +288,35 @@ export async function GET(req: Request) {
 
   const usedHeadlines = new Set<string>(recentContent);
 
-  // Build post queue with AI-generated content + images
+  // Build post queue with AI-generated content + images.
+  // Run all bots in parallel — 18 sequential Pexels+Gemini calls timed out
+  // at 60s. Parallel fan-out completes in ~10-15s. Gemini free tier (5 RPM)
+  // may rate-limit some calls, but generatePost already falls back to static
+  // templates, and fetchAndUploadImage returns null on failure.
   let postsCreated = 0;
   let imagesAttached = 0;
 
-  for (const bot of bots) {
-    if (!force && alreadyPosted.has(bot.id)) continue;
-    if (!force && Math.random() > 0.5) continue; // ~50% chance per run
+  const postTasks = bots
+    .filter((bot) => {
+      if (!force && alreadyPosted.has(bot.id)) return false;
+      if (!force && Math.random() > 0.5) return false; // ~50% chance per run
+      return true;
+    })
+    .map((bot) => {
+      const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
+      if (!headline) return null;
+      usedHeadlines.add(headline);
+      return { bot, headline };
+    })
+    .filter((x): x is { bot: (typeof bots)[number]; headline: string } => x !== null);
 
-    const headline = pickHeadline(headlines, bot.stateName, usedHeadlines);
-    if (!headline) continue;
-    usedHeadlines.add(headline);
-
-    const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
-
-    // Generate AI post + fetch image in parallel
-    const [content, mediaUrl] = await Promise.all([
-      generatePost(headline, district),
-      Math.random() > 0.3 ? fetchAndUploadImage(headline) : Promise.resolve(null), // 70% chance of image
-    ]);
-
-    try {
+  const results = await Promise.allSettled(
+    postTasks.map(async ({ bot, headline }) => {
+      const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
+      const [content, mediaUrl] = await Promise.all([
+        generatePost(headline, district),
+        Math.random() > 0.3 ? fetchAndUploadImage(headline) : Promise.resolve(null),
+      ]);
       await db.event.create({
         data: {
           content,
@@ -318,10 +326,14 @@ export async function GET(req: Request) {
           ...(mediaUrl ? { mediaUrl, type: "image" } : {}),
         },
       });
+      return { hasImage: !!mediaUrl };
+    })
+  );
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
       postsCreated++;
-      if (mediaUrl) imagesAttached++;
-    } catch {
-      // Skip this post on error
+      if (result.value.hasImage) imagesAttached++;
     }
   }
 
