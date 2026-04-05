@@ -321,17 +321,22 @@ export async function GET(req: Request) {
   const results = await Promise.allSettled(
     postTasks.map(async ({ bot, item }) => {
       const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
-      // Fetch og:image from the real article URL first; fall back to Pexels
-      // stock photo if the article has no og:image or scraping fails.
-      const imagePromise = Math.random() > 0.3
-        ? fetchAndUploadArticleImage(item.link).then((url) =>
-            url ? url : fetchAndUploadImage(item.title)
-          )
-        : Promise.resolve(null);
-      const [content, mediaUrl] = await Promise.all([
+      // Try og:image from article URL first, fall back to Pexels.
+      // Track source via tuple so we can report the og vs pexels breakdown.
+      type Src = "og" | "pexels" | "none";
+      const imagePromise: Promise<{ url: string | null; source: Src }> =
+        Math.random() > 0.3
+          ? fetchAndUploadArticleImage(item.link).then(async (ogUrl) => {
+              if (ogUrl) return { url: ogUrl, source: "og" as Src };
+              const pexUrl = await fetchAndUploadImage(item.title);
+              return { url: pexUrl, source: (pexUrl ? "pexels" : "none") as Src };
+            })
+          : Promise.resolve({ url: null, source: "none" as Src });
+      const [content, imageResult] = await Promise.all([
         generatePost(item.title, district),
         imagePromise,
       ]);
+      const mediaUrl = imageResult.url;
       await db.event.create({
         data: {
           content,
@@ -341,14 +346,18 @@ export async function GET(req: Request) {
           ...(mediaUrl ? { mediaUrl, type: "image" } : {}),
         },
       });
-      return { hasImage: !!mediaUrl };
+      return { hasImage: !!mediaUrl, source: imageResult.source };
     })
   );
 
+  let ogImages = 0;
+  let pexelsImages = 0;
   for (const result of results) {
     if (result.status === "fulfilled") {
       postsCreated++;
       if (result.value.hasImage) imagesAttached++;
+      if (result.value.source === "og") ogImages++;
+      if (result.value.source === "pexels") pexelsImages++;
     }
   }
 
@@ -399,6 +408,8 @@ export async function GET(req: Request) {
     success: true,
     postsCreated,
     imagesAttached,
+    ogImages,
+    pexelsImages,
     commentsCreated,
     botsTotal: bots.length,
     headlinesFetched: headlines.length,
