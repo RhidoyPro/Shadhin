@@ -232,20 +232,6 @@ export async function GET(req: Request) {
 
   const force = new URL(req.url).searchParams.get("force") === "true";
 
-  // One-off diagnostic: reveal which PEX/env vars are actually present so we
-  // can spot typos without leaking values. Remove after Pexels is working.
-  if (new URL(req.url).searchParams.get("diag") === "true") {
-    const pexKeys = Object.keys(process.env).filter((k) => /pex/i.test(k));
-    const r2Keys = Object.keys(process.env).filter((k) => /^R2_|^AWS_/.test(k));
-    return NextResponse.json({
-      pexKeys, // names only
-      pexKeyValueLength: process.env.PEXELS_API_KEY?.length ?? 0,
-      hasGoogleAI: !!process.env.GOOGLE_AI_API_KEY,
-      r2Keys,
-      botsEnabled: process.env.BOTS_ENABLED,
-    });
-  }
-
   if (process.env.BOTS_ENABLED !== "true") {
     return NextResponse.json({ skipped: true, reason: "BOTS_ENABLED is not true" });
   }
