@@ -97,11 +97,16 @@ async function fetchFeedHeadlines(urls: string[]): Promise<FeedItem[]> {
         blockXml.match(/<link>([\s\S]*?)<\/link>/);
       if (!titleMatch || !linkMatch) continue;
 
+      // Audit fix #3: strip HTML tags BEFORE decoding entities. Raw XML may
+      // contain real <a> tags to strip, but &lt;/&gt; are literal angle
+      // brackets the author intended — decoding them first would create
+      // false HTML that the tag-strip regex would eat.
       const title = titleMatch[1]
+        .replace(/<[^>]+>/g, "")  // strip actual HTML tags first
         .replace(/&amp;/g, "&")
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
-        .replace(/<[^>]+>/g, "") // strip any HTML tags from headlines
+        .replace(/&quot;/g, '"')
         .trim();
       const link = linkMatch[1].trim();
 
@@ -143,10 +148,18 @@ const POST_STYLES = [
 
 /** Strip " - Source Name" suffix that RSS feeds append to headlines. */
 function cleanHeadline(raw: string): string {
-  return raw
-    .replace(/\s*[-–—]\s*(The Daily Star|Prothom Alo|Jugantor|Kaler Kantho|Daily Naya Diganta|Ittefaq|Samakal|Dainik Bangla|bd-pratidin\.com|Protidiner Sangbad|sarabangla\.net|RTV Bangladesh|Dhakapost\.com|Daily Times Of Bangladesh|AmaderShomoy\.com|nagorik tv|sRTV|Channel i Online|Ajker Patrika|দৈনিক ইনকিলাব|খোলা কাগজ অনলাইন|খুলনা গেজেট|সময়ের কণ্ঠস্বর|সময় নিউজ|রেডিও টুডে নিউজ|বাংলাদেশ প্রতিদিন|কালবেলা|দেশ রূপান্তর|বার্তা বাজার|Barta Bazar|TBS News)$/i, "")
-    .replace(/\s*[-–—]\s*[A-Z][a-zA-Z\s.]+$/, "") // catch other English source names
+  // 1) Strip any trailing ` - SourceName` pattern. Source names are typically
+  //    short (< 60 chars) after the last separator. Covers English (with digits,
+  //    dots), Bengali, and mixed names like "Dhaka News 24", "প্রথম আলো".
+  const cleaned = raw.replace(/\s*[-–—|]\s*([A-Za-z0-9\s.()]+\.(com|net|org|tv|io|bd)[^\s]*)$/i, "") // URLs: fns24.com, bssnews.net
+    .replace(/\s*[-–—|]\s*(.{2,50})$/, (match, source) => {
+      // Only strip if it looks like a source name: short, no Bengali verbs,
+      // no question marks, starts with uppercase or Bengali.
+      if (source.includes("?") || source.length > 50) return match; // keep — probably headline text
+      return "";
+    })
     .trim();
+  return cleaned || raw.trim(); // never return empty
 }
 
 async function generatePost(headline: string, district: string): Promise<string> {
@@ -197,12 +210,14 @@ Topic: ${clean}`;
     let text = data.candidates?.[0]?.content?.parts?.[0]?.text
       ?.replace(/<[^>]+>/g, "")
       .trim();
-    // Final safety: strip if Gemini still quotes the headline or ends with canned phrases
+    // Final safety: strip canned phrases FIRST, then wrapping quotes.
+    // (Audit fix #1: reversed order — canned phrase may sit after a closing quote)
     if (text) {
       text = text
-        .replace(/^["'""]|["'""]$/g, "") // strip wrapping quotes
         .replace(/\s*[-–—]\s*এ নিয়ে আপনার মতামত কী\??$/, "")
         .replace(/\s*[-–—]\s*কমেন্টে জানান.*$/, "")
+        .replace(/\s*[-–—]\s*আপনারা কী দেখছেন\??$/, "")
+        .replace(/^[""'']+|[""'']+$/g, "") // strip wrapping smart/straight quotes (audit fix #2)
         .trim();
     }
     return text || fallbackPost(clean);
