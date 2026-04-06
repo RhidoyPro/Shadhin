@@ -146,20 +146,26 @@ const POST_STYLES = [
   "worried parent/family member — express concern for loved ones",
 ];
 
-/** Strip " - Source Name" suffix that RSS feeds append to headlines. */
+/** Strip " - Source Name" suffixes that RSS feeds append to headlines.
+ *  Runs iteratively to handle chained separators like BSSNEWS format:
+ *  "Headline | জাতীয় | বাংলাদেশ সংবাদ সংস্থা (বাসস) - bssnews.net" */
 function cleanHeadline(raw: string): string {
-  // 1) Strip any trailing ` - SourceName` pattern. Source names are typically
-  //    short (< 60 chars) after the last separator. Covers English (with digits,
-  //    dots), Bengali, and mixed names like "Dhaka News 24", "প্রথম আলো".
-  const cleaned = raw.replace(/\s*[-–—|]\s*([A-Za-z0-9\s.()]+\.(com|net|org|tv|io|bd)[^\s]*)$/i, "") // URLs: fns24.com, bssnews.net
-    .replace(/\s*[-–—|]\s*(.{2,50})$/, (match, source) => {
-      // Only strip if it looks like a source name: short, no Bengali verbs,
-      // no question marks, starts with uppercase or Bengali.
-      if (source.includes("?") || source.length > 50) return match; // keep — probably headline text
-      return "";
-    })
-    .trim();
-  return cleaned || raw.trim(); // never return empty
+  let result = raw;
+  // Run up to 4 passes to strip chained ` - Source`, ` | Category` etc.
+  for (let i = 0; i < 4; i++) {
+    const prev = result;
+    result = result
+      // Pass 1: strip trailing URLs (fns24.com, bssnews.net, etc.)
+      .replace(/\s*[-–—|]\s*([A-Za-z0-9\s.()]+\.(com|net|org|tv|io|bd)\S*)$/i, "")
+      // Pass 2: strip short trailing text after last separator
+      .replace(/\s*[-–—|]\s*(.{2,50})$/, (match, source) => {
+        if (source.includes("?")) return match; // keep — likely headline text
+        return "";
+      })
+      .trim();
+    if (result === prev) break; // no more changes
+  }
+  return result || raw.trim(); // never return empty
 }
 
 async function generatePost(headline: string, district: string): Promise<string> {
@@ -355,12 +361,15 @@ export async function GET(req: Request) {
   const usedHeadlines = new Set<string>(recentContent);
 
   // Build post queue with AI-generated content + images.
-  // Run all bots in parallel — 18 sequential Pexels+Gemini calls timed out
-  // at 60s. Parallel fan-out completes in ~10-15s. Gemini free tier (5 RPM)
-  // may rate-limit some calls, but generatePost already falls back to static
-  // templates, and fetchAndUploadImage returns null on failure.
+  // Process in batches of 4 to stay within Gemini free tier (15 RPM).
+  // Each bot makes ~2 Gemini calls (post generation + keyword extraction),
+  // so batches of 4 = ~8 calls. With 2s delay between batches, we stay
+  // under the RPM limit. Daily cron typically runs ~9 bots (50% chance),
+  // so batching mainly matters for force=true test runs.
   let postsCreated = 0;
   let imagesAttached = 0;
+  let ogImages = 0;
+  let pexelsImages = 0;
 
   const postTasks = bots
     .filter((bot) => {
@@ -376,46 +385,53 @@ export async function GET(req: Request) {
     })
     .filter((x): x is { bot: (typeof bots)[number]; item: FeedItem } => x !== null);
 
-  const results = await Promise.allSettled(
-    postTasks.map(async ({ bot, item }) => {
-      const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
-      // Try og:image from article URL first, fall back to Pexels.
-      // Track source via tuple so we can report the og vs pexels breakdown.
-      type Src = "og" | "pexels" | "none";
-      const imagePromise: Promise<{ url: string | null; source: Src }> =
-        Math.random() > 0.3
-          ? fetchAndUploadArticleImage(item.link).then(async (ogUrl) => {
-              if (ogUrl) return { url: ogUrl, source: "og" as Src };
-              const pexUrl = await fetchAndUploadImage(item.title);
-              return { url: pexUrl, source: (pexUrl ? "pexels" : "none") as Src };
-            })
-          : Promise.resolve({ url: null, source: "none" as Src });
-      const [content, imageResult] = await Promise.all([
-        generatePost(item.title, district),
-        imagePromise,
-      ]);
-      const mediaUrl = imageResult.url;
-      await db.event.create({
-        data: {
-          content,
-          eventType: EventType.STATUS,
-          stateName: bot.stateName || "all-districts",
-          userId: bot.id,
-          ...(mediaUrl ? { mediaUrl, type: "image" } : {}),
-        },
-      });
-      return { hasImage: !!mediaUrl, source: imageResult.source };
-    })
-  );
+  type Src = "og" | "pexels" | "none";
+  const BATCH_SIZE = 4;
 
-  let ogImages = 0;
-  let pexelsImages = 0;
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      postsCreated++;
-      if (result.value.hasImage) imagesAttached++;
-      if (result.value.source === "og") ogImages++;
-      if (result.value.source === "pexels") pexelsImages++;
+  for (let i = 0; i < postTasks.length; i += BATCH_SIZE) {
+    const batch = postTasks.slice(i, i + BATCH_SIZE);
+
+    const batchResults = await Promise.allSettled(
+      batch.map(async ({ bot, item }) => {
+        const district = DISTRICT_NAMES[bot.stateName || "all-districts"] || "Bangladesh";
+        const imagePromise: Promise<{ url: string | null; source: Src }> =
+          Math.random() > 0.3
+            ? fetchAndUploadArticleImage(item.link).then(async (ogUrl) => {
+                if (ogUrl) return { url: ogUrl, source: "og" as Src };
+                const pexUrl = await fetchAndUploadImage(item.title);
+                return { url: pexUrl, source: (pexUrl ? "pexels" : "none") as Src };
+              })
+            : Promise.resolve({ url: null, source: "none" as Src });
+        const [content, imageResult] = await Promise.all([
+          generatePost(item.title, district),
+          imagePromise,
+        ]);
+        const mediaUrl = imageResult.url;
+        await db.event.create({
+          data: {
+            content,
+            eventType: EventType.STATUS,
+            stateName: bot.stateName || "all-districts",
+            userId: bot.id,
+            ...(mediaUrl ? { mediaUrl, type: "image" } : {}),
+          },
+        });
+        return { hasImage: !!mediaUrl, source: imageResult.source };
+      })
+    );
+
+    for (const result of batchResults) {
+      if (result.status === "fulfilled") {
+        postsCreated++;
+        if (result.value.hasImage) imagesAttached++;
+        if (result.value.source === "og") ogImages++;
+        if (result.value.source === "pexels") pexelsImages++;
+      }
+    }
+
+    // Pause between batches to spread Gemini API calls across the RPM window
+    if (i + BATCH_SIZE < postTasks.length) {
+      await new Promise((r) => setTimeout(r, 3000));
     }
   }
 
