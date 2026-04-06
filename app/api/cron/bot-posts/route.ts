@@ -101,6 +101,7 @@ async function fetchFeedHeadlines(urls: string[]): Promise<FeedItem[]> {
         .replace(/&amp;/g, "&")
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
+        .replace(/<[^>]+>/g, "") // strip any HTML tags from headlines
         .trim();
       const link = linkMatch[1].trim();
 
@@ -167,7 +168,9 @@ Headline: "${headline}"`;
       }
     );
     const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      ?.replace(/<[^>]+>/g, "") // strip any HTML Gemini might echo from headline
+      .trim();
     return text || fallbackPost(headline);
   } catch {
     return fallbackPost(headline);
