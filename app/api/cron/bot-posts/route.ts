@@ -129,30 +129,56 @@ function pickHeadline(headlines: FeedItem[], stateName: string | null, used: Set
 
 // ── AI-powered post generation ──
 
+// More varied, natural-sounding prompt styles.
 const POST_STYLES = [
-  "casual opinion",
-  "question to community",
-  "sharing news",
-  "personal reaction",
-  "calling for discussion",
+  "personal reaction — share how this news makes you feel as a local",
+  "genuine question — ask something specific that a neighbor would ask",
+  "short rant — express mild frustration or concern like venting to friends",
+  "hopeful take — find something positive or optimistic in this news",
+  "local angle — relate this to something you've personally seen in your area",
+  "funny/sarcastic take — light humor about the situation",
+  "informational — explain why this matters to regular people",
+  "worried parent/family member — express concern for loved ones",
 ];
+
+/** Strip " - Source Name" suffix that RSS feeds append to headlines. */
+function cleanHeadline(raw: string): string {
+  return raw
+    .replace(/\s*[-–—]\s*(The Daily Star|Prothom Alo|Jugantor|Kaler Kantho|Daily Naya Diganta|Ittefaq|Samakal|Dainik Bangla|bd-pratidin\.com|Protidiner Sangbad|sarabangla\.net|RTV Bangladesh|Dhakapost\.com|Daily Times Of Bangladesh|AmaderShomoy\.com|nagorik tv|sRTV|Channel i Online|Ajker Patrika|দৈনিক ইনকিলাব|খোলা কাগজ অনলাইন|খুলনা গেজেট|সময়ের কণ্ঠস্বর|সময় নিউজ|রেডিও টুডে নিউজ|বাংলাদেশ প্রতিদিন|কালবেলা|দেশ রূপান্তর|বার্তা বাজার|Barta Bazar|TBS News)$/i, "")
+    .replace(/\s*[-–—]\s*[A-Z][a-zA-Z\s.]+$/, "") // catch other English source names
+    .trim();
+}
 
 async function generatePost(headline: string, district: string): Promise<string> {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) return fallbackPost(headline);
+  const clean = cleanHeadline(headline);
+  if (!apiKey) return fallbackPost(clean);
 
   const style = POST_STYLES[Math.floor(Math.random() * POST_STYLES.length)];
   const useBangla = Math.random() > 0.2; // 80% Bangla, 20% English
   const sentenceCount = Math.floor(Math.random() * 3) + 1; // 1-3 sentences
   const useEmoji = Math.random() > 0.4; // 60% chance
 
-  const prompt = `You are a real person from ${district}, Bangladesh posting on a social media app.
-Write a ${style} post about this news. ${useBangla ? "Write in Bangla (Bengali script)." : "Write in English."}
-${sentenceCount} sentence${sentenceCount > 1 ? "s" : ""} max. Sound natural and human — like a real person sharing thoughts.
-${useEmoji ? "Use 1-2 emoji naturally." : "No emoji."}
-Do NOT use quotes. Do NOT copy the headline word-for-word. Do NOT start with "Breaking:" or news-style language.
-Just write like a normal person would on social media.
-Headline: "${headline}"`;
+  const prompt = `You're a regular person from ${district}, Bangladesh posting on social media.
+Write a ${style} about this topic. ${useBangla ? "Write entirely in Bangla (Bengali script)." : "Write in English."}
+${sentenceCount} sentence${sentenceCount > 1 ? "s" : ""} maximum.
+
+RULES (follow these strictly):
+- Write like texting a friend, NOT like a news anchor or journalist
+- NEVER put the headline in quotes. NEVER copy it word-for-word
+- NEVER include the news source name
+- NEVER end with "আপনার মতামত কী?" or "কমেন্টে জানান" or "আপনারা কী দেখছেন?" — these are overused
+- NEVER start with "আজকের খবর:" or "এই বিষয়ে আলোচনা হোক:"
+- Sound like a REAL person — use slang, contractions, incomplete sentences, local expressions
+- ${useEmoji ? "1-2 emoji max, placed naturally." : "No emoji."}
+
+Examples of GOOD posts (for reference, don't copy):
+- "এই গরমে ট্রাফিক জ্যামে বসে থাকতে থাকতে মাথা নষ্ট 🥵"
+- "আমাদের এলাকার রাস্তা কবে ঠিক হবে কেউ বলতে পারবেন?"
+- "ভালো খবর শুনলে মনটা ভালো হয়ে যায়"
+- "Seriously though, when will this issue get resolved?"
+
+Topic: ${clean}`;
 
   try {
     const res = await fetch(
@@ -162,30 +188,44 @@ Headline: "${headline}"`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 200, temperature: 0.9 },
+          generationConfig: { maxOutputTokens: 200, temperature: 1.2 },
         }),
         signal: AbortSignal.timeout(8000),
       }
     );
     const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-      ?.replace(/<[^>]+>/g, "") // strip any HTML Gemini might echo from headline
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      ?.replace(/<[^>]+>/g, "")
       .trim();
-    return text || fallbackPost(headline);
+    // Final safety: strip if Gemini still quotes the headline or ends with canned phrases
+    if (text) {
+      text = text
+        .replace(/^["'""]|["'""]$/g, "") // strip wrapping quotes
+        .replace(/\s*[-–—]\s*এ নিয়ে আপনার মতামত কী\??$/, "")
+        .replace(/\s*[-–—]\s*কমেন্টে জানান.*$/, "")
+        .trim();
+    }
+    return text || fallbackPost(clean);
   } catch {
-    return fallbackPost(headline);
+    return fallbackPost(clean);
   }
 }
 
 function fallbackPost(headline: string): string {
-  const starters = [
-    `"${headline}" — এ নিয়ে আপনার মতামত কী?`,
-    `আজকের খবর: "${headline}" — কমেন্টে জানান আপনি কী ভাবছেন`,
-    `"${headline}" — আপনার এলাকায় এর প্রভাব কেমন পড়ছে?`,
-    `এই বিষয়ে আলোচনা হোক: "${headline}"`,
-    `"${headline}" — সত্যিই কি এমন হচ্ছে? আপনারা কী দেখছেন?`,
+  // More varied fallback templates — no two use the same structure.
+  const templates = [
+    `${headline} — এটা শুনে কেমন লাগছে বলুন তো?`,
+    `আজ ${headline} নিয়ে ভাবছিলাম... কী হবে শেষে?`,
+    `${headline} 😔 এই পরিস্থিতি কবে বদলাবে?`,
+    `কেউ কি জানেন ${headline} নিয়ে আর কোনো আপডেট আছে?`,
+    `${headline}... আমাদের সবার সচেতন হওয়া দরকার`,
+    `এটা ভালো খবর — ${headline} 🙂`,
+    `${headline} — প্রতিদিন নতুন কিছু শুনছি`,
+    `সত্যি বলতে ${headline} বিষয়টা চিন্তার`,
+    `${headline} — কী বলবেন?`,
+    `আশেপাশে সবাই ${headline} নিয়ে কথা বলছে`,
   ];
-  return starters[Math.floor(Math.random() * starters.length)];
+  return templates[Math.floor(Math.random() * templates.length)];
 }
 
 // ── Bot commenting on user posts ──
